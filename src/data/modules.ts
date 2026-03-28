@@ -1,0 +1,740 @@
+import { Module } from "@/types/module";
+
+export const modules: Module[] = [
+  // ═══════════════════════════════════════════════════════
+  // PARTE 1 — FUNDAMENTOS TEÓRICOS
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "linux-gnu",
+    title: "O que é Linux e GNU",
+    icon: "🐧",
+    category: "Fundamentos Teóricos",
+    description: "A história do Linux, o projeto GNU e o conceito de software livre",
+    content: [
+      "O Linux não é um sistema operacional completo — é um kernel (núcleo). O kernel é o componente que faz a ponte entre o hardware (processador, memória, disco) e os programas que você usa. Ele gerencia processos, memória, dispositivos e chamadas de sistema.",
+      "O kernel Linux foi criado por Linus Torvalds em 1991, como um projeto pessoal inspirado no MINIX. Ele foi publicado com uma licença livre (GPL), permitindo que qualquer pessoa estudasse, modificasse e redistribuísse o código-fonte.",
+      "O projeto GNU (GNU's Not Unix) foi iniciado por Richard Stallman em 1983 com o objetivo de criar um sistema operacional completamente livre. O GNU desenvolveu ferramentas essenciais: o compilador GCC, o editor Emacs, o shell Bash, as coreutils (ls, cp, mv, rm, cat, etc.) e as bibliotecas C (glibc).",
+      "Quando o kernel Linux se uniu às ferramentas GNU, nasceu o sistema GNU/Linux — um sistema operacional completo e livre. É por isso que muitos puristas chamam de GNU/Linux. Na prática, a maioria das pessoas diz simplesmente Linux.",
+      "Software livre não significa gratuito. Significa liberdade: liberdade de usar, estudar, modificar e distribuir. A licença GPL garante essas 4 liberdades fundamentais. O Debian é um dos defensores mais radicais dessas liberdades.",
+      "Uma distribuição Linux (distro) é uma combinação do kernel Linux + ferramentas GNU + gerenciador de pacotes + ambiente gráfico + configurações específicas. O Debian é uma das distribuições mais antigas e influentes do ecossistema Linux.",
+    ],
+    commands: [
+      { command: "uname -r", description: "Exibe a versão do kernel Linux em uso", example: "uname -r", output: "6.1.0-21-amd64" },
+      { command: "uname -a", description: "Exibe todas as informações do sistema: kernel, hostname, arquitetura e data de compilação", example: "uname -a", output: "Linux debian 6.1.0-21-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.90-1 x86_64 GNU/Linux" },
+      { command: "cat /proc/version", description: "Mostra detalhes sobre o kernel e compilador", example: "cat /proc/version", output: "Linux version 6.1.0-21-amd64 (debian-kernel@lists.debian.org) (gcc-12 (Debian 12.2.0-14) 12.2.0)" },
+      { command: "cat /etc/os-release", description: "Exibe informações sobre a distribuição Debian", example: "cat /etc/os-release", output: 'NAME="Debian GNU/Linux"\nVERSION="12 (bookworm)"\nID=debian' },
+    ],
+    exercises: [
+      { id: 1, question: "Qual é a diferença entre Linux e GNU/Linux?", answer: "Linux é apenas o kernel. GNU/Linux é o sistema completo: kernel Linux + ferramentas GNU", hint: "Pense no que cada projeto contribui" },
+      { id: 2, question: "Quem criou o kernel Linux e em que ano?", answer: "Linus Torvalds, em 1991" },
+      { id: 3, question: "Qual comando mostra a versão do kernel Debian?", answer: "uname -r" },
+      { id: 4, question: "Qual arquivo contém informações sobre a distribuição?", answer: "/etc/os-release" },
+    ],
+  },
+  {
+    id: "projeto-debian",
+    title: "O Projeto Debian",
+    icon: "🔴",
+    category: "Fundamentos Teóricos",
+    description: "Conheça o Debian, sua história, filosofia, Contrato Social e versões",
+    content: [
+      "O Debian é um sistema operacional GNU/Linux criado por Ian Murdock em 1993. O nome Debian vem da combinação do nome de Ian com o de sua então namorada Debra Lynn. É um dos projetos de software livre mais antigos e influentes do mundo.",
+      "O Projeto Debian é administrado por voluntários ao redor do mundo e governado pelo Contrato Social do Debian — um compromisso público com a comunidade de software livre. O projeto nunca é financiado por uma empresa única, garantindo independência.",
+      "O Debian é a base de centenas de outras distribuições, incluindo Ubuntu, Linux Mint, Kali Linux, Raspberry Pi OS e muitas outras. Sua estabilidade e sistema de pacotes .deb são referências no mundo Linux.",
+      "O Debian possui três branches principais: Stable (estável, recomendado para produção), Testing (versão em teste com pacotes mais novos) e Unstable/Sid (versão de desenvolvimento). Para servidores, sempre use Stable.",
+      "As versões estáveis do Debian recebem nomes de personagens do filme Toy Story: Buster (10), Bullseye (11), Bookworm (12 — atual), e Trixie (13 — em desenvolvimento). O suporte LTS para cada versão dura aproximadamente 5 anos.",
+      "As Diretrizes de Software Livre do Debian (DFSG) definem o que é software livre para o projeto. Qualquer software que não atenda às DFSG vai para repositórios contrib ou non-free, mantendo o repositório main 100% livre.",
+    ],
+    commands: [
+      { command: "cat /etc/debian_version", description: "Mostra a versão exata do Debian instalado", example: "cat /etc/debian_version", output: "12.5" },
+      { command: "lsb_release -a", description: "Exibe informações completas da distribuição", example: "lsb_release -a", output: "Distributor ID: Debian\nDescription: Debian GNU/Linux 12 (bookworm)\nRelease: 12\nCodename: bookworm" },
+      { command: "dpkg --version", description: "Mostra a versão do gerenciador de pacotes dpkg", example: "dpkg --version", output: "Debian 'dpkg' package management program version 1.21.22 (amd64)." },
+      { command: "apt-cache showpkg debian-archive-keyring", description: "Mostra informações do pacote de chaves do Debian", example: "apt-cache showpkg debian-archive-keyring" },
+    ],
+    exercises: [
+      { id: 1, question: "Quem criou o Debian e em que ano?", answer: "Ian Murdock, em 1993" },
+      { id: 2, question: "Qual é a versão estável atual do Debian?", answer: "Debian 12 (Bookworm)", hint: "Pense no personagem de Toy Story" },
+      { id: 3, question: "Qual comando mostra a versão do Debian?", answer: "cat /etc/debian_version ou lsb_release -a" },
+      { id: 4, question: "Qual arquivo contém a versão do Debian?", answer: "/etc/debian_version" },
+    ],
+  },
+  {
+    id: "repositorios-debian",
+    title: "Repositórios Debian",
+    icon: "📚",
+    category: "Fundamentos Teóricos",
+    description: "Entenda os repositórios main, contrib, non-free e como configurar o sources.list",
+    content: [
+      "Os repositórios do Debian são servidores que armazenam pacotes de software. O arquivo /etc/apt/sources.list define quais repositórios o sistema deve consultar ao instalar ou atualizar pacotes.",
+      "O repositório main contém apenas software livre conforme as DFSG. O contrib contém software livre que depende de pacotes não-livres. O non-free contém software proprietário. O non-free-firmware (adicionado no Debian 12) contém firmwares proprietários para hardware.",
+      "Além dos repositórios principais, o Debian oferece security (atualizações de segurança), updates (atualizações estáveis) e backports (versões mais novas de pacotes portadas para o Debian Stable).",
+      "Para o Debian 12 Bookworm, uma linha típica do sources.list é: deb https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware. Você também deve adicionar as linhas de segurança e updates.",
+      "Os espelhos (mirrors) são cópias dos repositórios Debian ao redor do mundo. Usar um espelho próximo geograficamente acelera os downloads. No Brasil, você pode usar ftp.br.debian.org ou os servidores da USP.",
+    ],
+    commands: [
+      { command: "cat /etc/apt/sources.list", description: "Exibe a lista de repositórios configurados", example: "cat /etc/apt/sources.list" },
+      { command: "apt-cache policy", description: "Mostra os repositórios configurados e suas prioridades", example: "apt-cache policy" },
+      { command: "apt-get update", description: "Atualiza a lista de pacotes disponíveis nos repositórios", example: "sudo apt-get update" },
+      { command: "apt-cache search nome", description: "Busca pacotes nos repositórios pelo nome ou descrição", example: "apt-cache search python3", flags: [{ flag: "--names-only", description: "Busca apenas no nome do pacote, não na descrição" }] },
+      { command: "apt-cache show pacote", description: "Exibe informações detalhadas sobre um pacote", example: "apt-cache show nginx", output: "Package: nginx\nVersion: 1.22.1-9\nDescription: small, powerful, scalable web/proxy server" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual arquivo define os repositórios do Debian?", answer: "/etc/apt/sources.list" },
+      { id: 2, question: "Qual repositório contém apenas software 100% livre?", answer: "main" },
+      { id: 3, question: "Qual comando atualiza a lista de pacotes?", answer: "sudo apt-get update" },
+      { id: 4, question: "Qual repositório contém firmwares proprietários no Debian 12?", answer: "non-free-firmware" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 2 — INSTALAÇÃO E AMBIENTE
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "instalacao",
+    title: "Instalando o Debian",
+    icon: "💿",
+    category: "Instalação e Ambiente",
+    description: "Como instalar o Debian: download, particionamento e configuração inicial",
+    content: [
+      "O Debian oferece várias formas de instalação: netinstall (instalador mínimo que baixa pacotes da internet), live ISO (sistema completo para testar antes de instalar), e DVD offline (todos os pacotes no disco). Para a maioria dos usuários, o netinstall é recomendado.",
+      "O instalador do Debian (debian-installer) é famoso por sua robustez e flexibilidade. Ele suporta mais de 70 idiomas, incluindo português brasileiro, e pode ser usado em modo gráfico ou texto (útil para servidores sem interface gráfica).",
+      "O particionamento é uma etapa crítica. Para desktops, uma configuração simples é: /boot (500MB, ext4), raiz / (20GB+, ext4 ou btrfs), /home (restante, ext4), swap (igual à RAM ou 2x para hibernação). Em UEFI, adicione uma partição EFI de 512MB (FAT32).",
+      "O Debian pergunta durante a instalação se você quer instalar um ambiente gráfico. Você pode escolher entre GNOME, KDE Plasma, XFCE, LXDE, MATE, Cinnamon e outros. Para servidores, deixe sem ambiente gráfico.",
+      "Após a instalação, o Debian configura o GRUB como gerenciador de boot e cria um usuário padrão. O root não tem senha no modo de instalação padrão — use sudo com seu usuário regular para tarefas administrativas.",
+    ],
+    commands: [
+      { command: "lsblk", description: "Lista todos os discos e partições do sistema", example: "lsblk", output: "NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS\nsda      8:0    0   20G  0 disk\n├─sda1   8:1    0  512M  0 part /boot/efi\n└─sda2   8:2    0 19.5G  0 part /" },
+      { command: "df -h", description: "Mostra o uso de espaço em disco em formato legível", example: "df -h", output: "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda2        20G  4.2G   15G  23% /" },
+      { command: "fdisk -l", description: "Lista partições de todos os discos (requer root)", example: "sudo fdisk -l" },
+      { command: "free -h", description: "Mostra uso de memória RAM e swap", example: "free -h", output: "              total        used        free\nMem:            8Gi       1.2Gi       6.8Gi\nSwap:           4Gi         0B        4Gi" },
+      { command: "hostnamectl", description: "Mostra e configura o hostname do sistema", example: "hostnamectl", output: "Static hostname: debian\nOperating System: Debian GNU/Linux 12 (bookworm)\nKernel: Linux 6.1.0-21-amd64\nArchitecture: x86-64" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual comando lista todos os discos e partições?", answer: "lsblk" },
+      { id: 2, question: "Qual comando mostra o uso de espaço em disco legível?", answer: "df -h" },
+      { id: 3, question: "Qual tipo de partição é necessária em sistemas UEFI?", answer: "Partição EFI (FAT32), geralmente em /boot/efi" },
+      { id: 4, question: "Qual gerenciador de boot o Debian instala por padrão?", answer: "GRUB" },
+    ],
+  },
+  {
+    id: "ambiente-grafico",
+    title: "Ambientes Gráficos",
+    icon: "🖥️",
+    category: "Instalação e Ambiente",
+    description: "Conheça os ambientes gráficos disponíveis no Debian: GNOME, KDE, XFCE e outros",
+    content: [
+      "Um ambiente gráfico (DE - Desktop Environment) é o conjunto de programas que fornecem janelas, menus, painéis e ícones. O Debian suporta múltiplos ambientes, cada um com características diferentes.",
+      "GNOME é o ambiente padrão do Debian. Moderno, limpo e com foco em produtividade. Consome mais recursos (RAM) mas é muito bem integrado e recebe atualizações frequentes. Usa GTK e o Mutter como compositor.",
+      "KDE Plasma é o ambiente mais completo e customizável. Interface rica, com muitos widgets e configurações. Consome memória similar ao GNOME mas oferece muito mais controle visual. Usa Qt.",
+      "XFCE é leve, rápido e estável — ideal para computadores mais antigos. Consome pouca memória (cerca de 300MB) e mantém a aparência clássica de desktop. É o ambiente padrão do Raspberry Pi OS.",
+      "Outros ambientes disponíveis: LXDE (ultratrailer, para hardware muito antigo), LXQt (versão moderna do LXDE), MATE (fork do GNOME 2, familiar para quem veio do Windows), Cinnamon (focado em facilidade de uso).",
+      "O display manager (gerenciador de login) é o programa que aparece antes de você logar. O GNOME usa GDM3, o KDE usa SDDM, e o XFCE usa LightDM. Você pode trocar o ambiente gráfico sem reinstalar o sistema.",
+    ],
+    commands: [
+      { command: "tasksel", description: "Ferramenta para instalar grupos de pacotes (como ambientes gráficos)", example: "sudo tasksel" },
+      { command: "apt install gnome-core", description: "Instala o GNOME (versão mínima)", example: "sudo apt install gnome-core" },
+      { command: "apt install kde-plasma-desktop", description: "Instala o KDE Plasma", example: "sudo apt install kde-plasma-desktop" },
+      { command: "apt install xfce4", description: "Instala o XFCE4", example: "sudo apt install xfce4" },
+      { command: "systemctl start gdm3", description: "Inicia o display manager GDM3 do GNOME", example: "sudo systemctl start gdm3" },
+      { command: "echo $XDG_CURRENT_DESKTOP", description: "Mostra qual ambiente gráfico está em uso", example: "echo $XDG_CURRENT_DESKTOP", output: "GNOME" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual é o ambiente gráfico padrão do Debian?", answer: "GNOME" },
+      { id: 2, question: "Qual ambiente é mais recomendado para hardware antigo?", answer: "XFCE (ou LXDE para hardware muito antigo)", hint: "Pense em qual consome menos RAM" },
+      { id: 3, question: "Qual comando instala grupos de pacotes incluindo ambientes gráficos?", answer: "tasksel" },
+      { id: 4, question: "Como verificar qual ambiente gráfico está ativo?", answer: "echo $XDG_CURRENT_DESKTOP" },
+    ],
+  },
+  {
+    id: "terminal-basico",
+    title: "Primeiros Passos no Terminal",
+    icon: "⌨️",
+    category: "Instalação e Ambiente",
+    description: "Aprenda a usar o terminal Bash no Debian: navegação básica e comandos essenciais",
+    content: [
+      "O terminal é a interface de linha de comando. No Debian, o shell padrão é o Bash (Bourne Again Shell). Para abrir o terminal no GNOME, pressione Ctrl+Alt+T. No XFCE, clique com botão direito na área de trabalho.",
+      "O prompt do Bash mostra: usuário@hostname:diretório$. O cifrão $ indica usuário comum, enquanto # indica root. Nunca trabalhe como root no dia a dia — use sudo para tarefas administrativas.",
+      "O Bash oferece autocompletar com Tab: digitar parte de um comando ou arquivo e pressionar Tab completa automaticamente. Pressionar Tab duas vezes mostra todas as opções disponíveis.",
+      "O histórico de comandos é acessado com as setas para cima e para baixo. Ctrl+R busca no histórico. O arquivo ~/.bash_history armazena os últimos comandos digitados.",
+      "Atalhos importantes: Ctrl+C cancela o processo atual, Ctrl+Z pausa um processo, Ctrl+D fecha o terminal, Ctrl+L limpa a tela (equivalente ao comando clear), Ctrl+A vai para o início da linha, Ctrl+E vai para o fim.",
+    ],
+    commands: [
+      { command: "pwd", description: "Exibe o diretório atual (Print Working Directory)", example: "pwd", output: "/home/usuario" },
+      { command: "ls", description: "Lista arquivos e diretórios", example: "ls -la", flags: [{ flag: "-l", description: "Formato longo com permissões e tamanhos" }, { flag: "-a", description: "Mostra arquivos ocultos (que começam com .)" }, { flag: "-h", description: "Tamanhos em formato legível (KB, MB)" }] },
+      { command: "cd", description: "Muda de diretório (Change Directory)", example: "cd /home/usuario/documentos", flags: [{ flag: "~", description: "Vai para o diretório home" }, { flag: "..", description: "Volta um nível" }, { flag: "-", description: "Volta ao diretório anterior" }] },
+      { command: "clear", description: "Limpa o terminal (atalho: Ctrl+L)", example: "clear" },
+      { command: "history", description: "Mostra o histórico de comandos", example: "history | tail -20", flags: [{ flag: "-c", description: "Limpa o histórico" }] },
+      { command: "whoami", description: "Mostra o nome do usuário atual", example: "whoami", output: "usuario" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual comando mostra o diretório atual?", answer: "pwd" },
+      { id: 2, question: "Como listar todos os arquivos incluindo ocultos?", answer: "ls -la", hint: "Pense nas flags de ls" },
+      { id: 3, question: "Qual atalho cancela um processo em execução?", answer: "Ctrl+C" },
+      { id: 4, question: "Como voltar para o diretório home?", answer: "cd ~ ou apenas cd" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 3 — COMANDOS ESSENCIAIS
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "navegacao",
+    title: "Navegação no Sistema de Arquivos",
+    icon: "📂",
+    category: "Comandos Essenciais",
+    description: "Entenda a hierarquia de diretórios do Debian e como navegar por ela",
+    content: [
+      "O Linux usa uma hierarquia de diretórios definida pelo FHS (Filesystem Hierarchy Standard). Tudo começa no / (raiz). Diferente do Windows com C: e D:, no Linux tudo está sob um único /.",
+      "Diretórios principais: /bin e /usr/bin (programas executáveis), /etc (arquivos de configuração), /home (diretórios dos usuários), /var (dados variáveis como logs), /tmp (arquivos temporários), /dev (dispositivos), /proc (informações do kernel), /sys (informações do sistema).",
+      "No Debian, /bin, /sbin, /lib são links simbólicos para /usr/bin, /usr/sbin, /usr/lib respectivamente. Isso é o usrmerge, uma mudança para simplificar a estrutura de diretórios.",
+      "Caminhos absolutos começam com / (ex: /home/usuario/arquivo.txt). Caminhos relativos não começam com / e são relativos ao diretório atual (ex: documentos/arquivo.txt). O ~ representa o diretório home do usuário.",
+      "O comando find é poderoso para buscar arquivos. O locate usa um banco de dados pré-indexado para buscas mais rápidas. O which encontra onde um programa está instalado.",
+    ],
+    commands: [
+      { command: "ls -la /", description: "Lista todos os diretórios raiz do sistema", example: "ls -la /", output: "drwxr-xr-x  18 root root 4096 /\ndrwxr-xr-x 143 root root 4096 /etc\ndrwxr-xr-x   3 root root 4096 /home" },
+      { command: "tree", description: "Mostra estrutura de diretórios em formato de árvore", example: "tree /etc -L 1", flags: [{ flag: "-L n", description: "Limita a profundidade de n níveis" }, { flag: "-d", description: "Mostra apenas diretórios" }] },
+      { command: "find / -name arquivo", description: "Busca arquivo por nome em todo o sistema", example: "find /home -name '*.conf' -type f", flags: [{ flag: "-type f", description: "Busca apenas arquivos" }, { flag: "-type d", description: "Busca apenas diretórios" }, { flag: "-mtime -7", description: "Modificados nos últimos 7 dias" }] },
+      { command: "locate nome", description: "Busca rápida usando banco de dados indexado", example: "locate nginx.conf" },
+      { command: "which programa", description: "Mostra o caminho completo de um programa", example: "which python3", output: "/usr/bin/python3" },
+      { command: "du -sh *", description: "Mostra tamanho de arquivos/diretórios no diretório atual", example: "du -sh /var/*", flags: [{ flag: "-s", description: "Sumariza (mostra total, não recursivo)" }, { flag: "-h", description: "Formato legível" }] },
+    ],
+    exercises: [
+      { id: 1, question: "Onde ficam os arquivos de configuração no Linux?", answer: "/etc" },
+      { id: 2, question: "Qual diretório contém os diretórios pessoais dos usuários?", answer: "/home" },
+      { id: 3, question: "Qual comando busca um arquivo por nome recursivamente?", answer: "find / -name nome_do_arquivo" },
+      { id: 4, question: "Como descobrir onde está instalado o programa git?", answer: "which git" },
+    ],
+  },
+  {
+    id: "arquivos",
+    title: "Manipulação de Arquivos",
+    icon: "📄",
+    category: "Comandos Essenciais",
+    description: "Criar, copiar, mover, renomear e deletar arquivos e diretórios no Debian",
+    content: [
+      "Os comandos básicos de manipulação de arquivos no Linux são simples mas poderosos. Diferente do Windows, o Linux não usa extensões para determinar o tipo de arquivo — ele analisa o conteúdo.",
+      "O comando cp copia arquivos e diretórios. O mv move (ou renomeia). O rm remove. O mkdir cria diretórios. O touch cria arquivos vazios ou atualiza o timestamp de um arquivo existente.",
+      "ATENÇÃO: No Linux, não existe lixeira no terminal. O rm apaga permanentemente. Sempre confirme o que você está apagando antes de executar rm -rf. Não existe desfazer para remoções no terminal.",
+      "O comando cat exibe o conteúdo de arquivos. Para arquivos grandes, use less (permite navegar) ou more. O head mostra as primeiras linhas, o tail mostra as últimas — útil para logs.",
+      "Wildcards (curingas) são úteis para operar em múltiplos arquivos: * representa qualquer quantidade de caracteres, ? representa um único caractere. Ex: ls *.txt lista todos os .txt.",
+    ],
+    commands: [
+      { command: "cp origem destino", description: "Copia arquivo ou diretório", example: "cp arquivo.txt /backup/arquivo.txt", flags: [{ flag: "-r", description: "Copia recursivamente (para diretórios)" }, { flag: "-p", description: "Preserva permissões e timestamps" }, { flag: "-v", description: "Modo verbose (mostra o que está fazendo)" }] },
+      { command: "mv origem destino", description: "Move ou renomeia arquivo/diretório", example: "mv velho.txt novo.txt" },
+      { command: "rm arquivo", description: "Remove arquivo permanentemente", example: "rm -rf /tmp/lixo/", flags: [{ flag: "-r", description: "Remove diretório recursivamente" }, { flag: "-f", description: "Força remoção sem confirmação" }, { flag: "-i", description: "Pede confirmação antes de apagar" }] },
+      { command: "mkdir -p dir/subdir", description: "Cria diretório e subdiretórios", example: "mkdir -p ~/projetos/debian/scripts" },
+      { command: "cat arquivo.txt", description: "Exibe conteúdo de arquivo", example: "cat /etc/hostname", output: "debian" },
+      { command: "less arquivo.txt", description: "Visualiza arquivo com paginação (sair com q)", example: "less /var/log/syslog" },
+      { command: "tail -f arquivo.log", description: "Monitora arquivo em tempo real (útil para logs)", example: "tail -f /var/log/syslog", flags: [{ flag: "-n 20", description: "Mostra as últimas 20 linhas" }, { flag: "-f", description: "Segue o arquivo em tempo real" }] },
+    ],
+    exercises: [
+      { id: 1, question: "Como copiar um diretório inteiro?", answer: "cp -r origem/ destino/", hint: "Precisa de uma flag especial para diretórios" },
+      { id: 2, question: "Qual comando monitora um arquivo de log em tempo real?", answer: "tail -f arquivo.log" },
+      { id: 3, question: "Como criar múltiplos subdiretórios de uma vez?", answer: "mkdir -p dir/subdir/subsubdir" },
+      { id: 4, question: "O que acontece quando você usa rm sem cuidado?", answer: "A remoção é permanente — não há lixeira no terminal" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 4 — PERMISSÕES E USUÁRIOS
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "permissoes",
+    title: "Permissões e Propriedade",
+    icon: "🔒",
+    category: "Permissões e Usuários",
+    description: "Entenda o sistema de permissões rwx do Linux e como gerenciar o acesso a arquivos",
+    content: [
+      "Todo arquivo no Linux tem um dono (owner), um grupo e permissões. As permissões são divididas em três grupos: dono (u), grupo (g) e outros (o). Cada grupo tem três bits: leitura (r=4), escrita (w=2) e execução (x=1).",
+      "A saída de ls -l mostra as permissões: -rwxr-xr-x significa: tipo (-), dono (rwx=7), grupo (r-x=5), outros (r-x=5). Portanto, em notação octal seria 755.",
+      "O comando chmod altera permissões. Pode usar notação simbólica (chmod u+x arquivo) ou octal (chmod 755 arquivo). Notação octal: 4=leitura, 2=escrita, 1=execução. Ex: 644 = dono lê/escreve, grupo e outros apenas leem.",
+      "O comando chown altera o dono de um arquivo. chgrp altera o grupo. Apenas root pode mudar o dono de arquivos que não lhe pertencem.",
+      "O bit especial setuid (4xxx) permite que um executável rode com as permissões do dono. O setgid (2xxx) faz o mesmo para grupos. O sticky bit (1xxx) em diretórios impede que usuários apaguem arquivos de outros (como em /tmp).",
+    ],
+    commands: [
+      { command: "ls -l arquivo", description: "Mostra permissões detalhadas do arquivo", example: "ls -l /etc/passwd", output: "-rw-r--r-- 1 root root 1873 Mar 28 12:00 /etc/passwd" },
+      { command: "chmod 755 arquivo", description: "Define permissões em notação octal", example: "chmod 755 script.sh", flags: [{ flag: "+x", description: "Adiciona permissão de execução" }, { flag: "-w", description: "Remove permissão de escrita" }, { flag: "u+x", description: "Adiciona execução apenas para o dono" }] },
+      { command: "chown usuario:grupo arquivo", description: "Altera dono e grupo do arquivo", example: "sudo chown www-data:www-data /var/www/html", flags: [{ flag: "-R", description: "Aplica recursivamente em diretório" }] },
+      { command: "umask", description: "Mostra/define a máscara padrão de permissões para novos arquivos", example: "umask 022", output: "0022" },
+      { command: "stat arquivo", description: "Exibe metadados completos do arquivo incluindo permissões", example: "stat /etc/hostname" },
+    ],
+    exercises: [
+      { id: 1, question: "O que significa a permissão 755 em notação octal?", answer: "Dono: rwx (7), Grupo: r-x (5), Outros: r-x (5)", hint: "Lembre: 4=leitura, 2=escrita, 1=execução" },
+      { id: 2, question: "Como tornar um script executável?", answer: "chmod +x script.sh" },
+      { id: 3, question: "Qual permissão numérica permite leitura para todos, escrita apenas para o dono?", answer: "644" },
+      { id: 4, question: "Qual comando altera o dono de um arquivo?", answer: "chown usuario arquivo" },
+    ],
+  },
+  {
+    id: "usuarios",
+    title: "Gestão de Usuários e Grupos",
+    icon: "👥",
+    category: "Permissões e Usuários",
+    description: "Criar, modificar e remover usuários e grupos no Debian. Entender o sudo",
+    content: [
+      "O Debian usa o sistema de usuários Unix. Cada usuário tem um UID (User ID) numérico. O root tem UID 0. Usuários do sistema têm UIDs de 1 a 999. Usuários comuns têm UIDs a partir de 1000.",
+      "O arquivo /etc/passwd armazena informações dos usuários. O /etc/shadow armazena as senhas (hasheadas). O /etc/group armazena os grupos. Nunca edite esses arquivos manualmente — use os comandos adequados.",
+      "O sudo permite que usuários executem comandos como root sem precisar da senha de root. No Debian, para usar sudo, o usuário deve estar no grupo sudo. O arquivo /etc/sudoers configura as permissões do sudo.",
+      "Grupos são usados para organizar usuários com permissões semelhantes. Por exemplo, o grupo docker permite usar o Docker sem sudo, o grupo sudo dá acesso de administrador, o grupo audio permite usar áudio.",
+      "Durante a instalação do Debian, o instalador pode criar o usuário root sem senha e configurar sudo automaticamente. Se preferir usar su para root, você precisa definir uma senha de root com: sudo passwd root.",
+    ],
+    commands: [
+      { command: "adduser nome", description: "Cria novo usuário interativamente (recomendado no Debian)", example: "sudo adduser joao" },
+      { command: "usermod -aG grupo usuario", description: "Adiciona usuário a um grupo", example: "sudo usermod -aG sudo joao", flags: [{ flag: "-aG", description: "Adiciona sem remover grupos existentes" }, { flag: "-s /bin/bash", description: "Define o shell padrão" }] },
+      { command: "deluser usuario", description: "Remove usuário do sistema", example: "sudo deluser --remove-home joao", flags: [{ flag: "--remove-home", description: "Remove o diretório home junto" }] },
+      { command: "groups usuario", description: "Lista grupos que o usuário pertence", example: "groups joao", output: "joao : joao sudo audio cdrom video" },
+      { command: "passwd usuario", description: "Define ou altera senha de um usuário", example: "sudo passwd joao" },
+      { command: "su - usuario", description: "Troca para outro usuário (com ambiente completo)", example: "su - root" },
+      { command: "id usuario", description: "Mostra UID, GID e grupos do usuário", example: "id joao", output: "uid=1001(joao) gid=1001(joao) groups=1001(joao),27(sudo)" },
+    ],
+    exercises: [
+      { id: 1, question: "Como dar permissão de sudo para um usuário no Debian?", answer: "sudo usermod -aG sudo usuario" },
+      { id: 2, question: "Qual arquivo armazena as senhas dos usuários?", answer: "/etc/shadow" },
+      { id: 3, question: "Qual UID tem o usuário root?", answer: "0" },
+      { id: 4, question: "Como listar os grupos de um usuário?", answer: "groups usuario" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 5 — ADMINISTRAÇÃO DO SISTEMA
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "apt",
+    title: "Gerenciamento de Pacotes com APT",
+    icon: "📦",
+    category: "Administração do Sistema",
+    description: "Domine o APT — o gerenciador de pacotes mais poderoso do mundo Linux",
+    content: [
+      "O APT (Advanced Package Tool) é o gerenciador de pacotes de alto nível do Debian e Ubuntu. Ele resolve dependências automaticamente, baixa pacotes dos repositórios e gerencia atualizações do sistema.",
+      "O fluxo básico do APT: apt update (atualiza a lista de pacotes) → apt upgrade (atualiza os pacotes instalados) → apt install pacote (instala novo pacote) → apt remove pacote (remove pacote).",
+      "O apt e apt-get são similares, mas apt é a interface moderna e recomendada para uso interativo. apt-get é mais estável para scripts. Ambos funcionam no Debian.",
+      "O APT usa o conceito de pinning para controlar de qual repositório um pacote vem. Útil quando você quer instalar um pacote específico do testing em um sistema stable, por exemplo via backports.",
+      "O arquivo /etc/apt/apt.conf.d/ contém configurações do APT. Você pode configurar proxy, verificação de assinatura, cache de pacotes e mais. O cache de pacotes fica em /var/cache/apt/archives/.",
+    ],
+    commands: [
+      { command: "apt update", description: "Atualiza a lista de pacotes dos repositórios", example: "sudo apt update" },
+      { command: "apt upgrade", description: "Atualiza todos os pacotes instalados", example: "sudo apt upgrade", flags: [{ flag: "-y", description: "Confirma automaticamente sem pedir" }] },
+      { command: "apt install pacote", description: "Instala um pacote e suas dependências", example: "sudo apt install nginx git vim" },
+      { command: "apt remove pacote", description: "Remove um pacote (mantém configurações)", example: "sudo apt remove nginx", flags: [{ flag: "--purge", description: "Remove também os arquivos de configuração" }] },
+      { command: "apt autoremove", description: "Remove pacotes instalados como dependências que não são mais necessários", example: "sudo apt autoremove" },
+      { command: "apt search termo", description: "Busca pacotes pelo nome ou descrição", example: "apt search 'web server'" },
+      { command: "apt show pacote", description: "Mostra informações detalhadas sobre um pacote", example: "apt show nginx" },
+      { command: "apt list --installed", description: "Lista todos os pacotes instalados", example: "apt list --installed | grep python" },
+      { command: "apt full-upgrade", description: "Atualização completa, pode remover pacotes conflitantes", example: "sudo apt full-upgrade" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual é o fluxo correto para instalar um pacote?", answer: "sudo apt update && sudo apt install nome-do-pacote", hint: "Sempre atualize a lista antes de instalar" },
+      { id: 2, question: "Como remover um pacote E seus arquivos de configuração?", answer: "sudo apt remove --purge nome-do-pacote" },
+      { id: 3, question: "Qual comando remove dependências que não são mais necessárias?", answer: "sudo apt autoremove" },
+      { id: 4, question: "Como buscar pacotes relacionados a database?", answer: "apt search database" },
+    ],
+  },
+  {
+    id: "dpkg",
+    title: "dpkg: Gerenciamento Baixo Nível",
+    icon: "🔧",
+    category: "Administração do Sistema",
+    description: "Entenda o dpkg, o sistema base de pacotes .deb do Debian",
+    content: [
+      "O dpkg (Debian Package) é o gerenciador de pacotes de baixo nível do Debian. Enquanto o APT resolve dependências e baixa da internet, o dpkg instala, remove e consulta pacotes .deb diretamente.",
+      "Arquivos .deb são os pacotes do Debian. Você pode baixar um .deb manualmente e instalar com dpkg -i. Porém, o dpkg não resolve dependências — se o pacote precisar de outras dependências, você precisará instalá-las separadamente.",
+      "O dpkg mantém um banco de dados em /var/lib/dpkg/ com informações sobre todos os pacotes instalados. Você pode consultar esse banco com dpkg -l para listar pacotes ou dpkg -L para ver os arquivos de um pacote.",
+      "Quando o dpkg ou APT fica inconsistente (por exemplo, após um erro de instalação), você pode forçar a configuração dos pacotes pendentes com dpkg --configure -a.",
+      "O formato .deb internamente é um arquivo ar que contém: control.tar.gz (metadados do pacote), data.tar.gz (os arquivos do programa), e debian-binary (versão do formato).",
+    ],
+    commands: [
+      { command: "dpkg -i pacote.deb", description: "Instala um pacote .deb local", example: "sudo dpkg -i google-chrome.deb" },
+      { command: "dpkg -r pacote", description: "Remove um pacote instalado", example: "sudo dpkg -r nginx", flags: [{ flag: "-P", description: "Remove e purga arquivos de configuração" }] },
+      { command: "dpkg -l", description: "Lista todos os pacotes instalados", example: "dpkg -l | grep python", output: "ii  python3  3.11.2  amd64  interactive high-level object-oriented language" },
+      { command: "dpkg -L pacote", description: "Lista todos os arquivos instalados por um pacote", example: "dpkg -L nginx", output: "/etc/nginx\n/etc/nginx/nginx.conf\n/usr/sbin/nginx\n/usr/lib/nginx" },
+      { command: "dpkg -S /caminho/arquivo", description: "Descobre qual pacote instalou determinado arquivo", example: "dpkg -S /usr/bin/python3", output: "python3: /usr/bin/python3" },
+      { command: "dpkg --configure -a", description: "Configura todos os pacotes pendentes (útil após erros)", example: "sudo dpkg --configure -a" },
+      { command: "dpkg-reconfigure pacote", description: "Reconfigura interativamente um pacote já instalado", example: "sudo dpkg-reconfigure tzdata" },
+    ],
+    exercises: [
+      { id: 1, question: "Como instalar um arquivo .deb baixado manualmente?", answer: "sudo dpkg -i arquivo.deb" },
+      { id: 2, question: "Como ver todos os arquivos que um pacote instalou?", answer: "dpkg -L nome-do-pacote" },
+      { id: 3, question: "Como descobrir qual pacote é responsável por um arquivo?", answer: "dpkg -S /caminho/do/arquivo" },
+      { id: 4, question: "O que fazer quando o sistema tem pacotes quebrados após erro?", answer: "sudo dpkg --configure -a e depois sudo apt -f install" },
+    ],
+  },
+  {
+    id: "processos",
+    title: "Processos e Monitoramento",
+    icon: "⚙️",
+    category: "Administração do Sistema",
+    description: "Monitorar e gerenciar processos no Debian: ps, top, htop, kill e signals",
+    content: [
+      "Um processo é um programa em execução. Cada processo tem um PID (Process ID) único. O processo pai do sistema é o init/systemd com PID 1. Todo processo foi criado por outro processo (pai).",
+      "Os sinais são a forma de comunicação entre processos no Linux. O SIGTERM (15) pede gentilmente que o processo termine. O SIGKILL (9) mata imediatamente sem possibilidade de tratamento. Use SIGKILL apenas como último recurso.",
+      "O comando top mostra processos em tempo real. O htop é uma versão mais amigável (instale com apt install htop). O atop e glances oferecem monitoramento ainda mais completo.",
+      "Processos em segundo plano (background) permitem que você continue usando o terminal enquanto o programa roda. Use & no fim do comando para iniciar em background. Use fg para trazer de volta ao foreground.",
+      "O journalctl acessa os logs do systemd. É muito útil para diagnosticar problemas de inicialização e serviços. Combine com -u para ver logs de um serviço específico.",
+    ],
+    commands: [
+      { command: "ps aux", description: "Lista todos os processos em execução", example: "ps aux | grep nginx", output: "root       1234  0.0  0.1  12345  4567 ?  Ss  Mar28  0:00 nginx: master process" },
+      { command: "top", description: "Monitor de processos em tempo real (sair com q)", example: "top" },
+      { command: "htop", description: "Monitor de processos interativo e colorido", example: "htop" },
+      { command: "kill -9 PID", description: "Mata um processo pelo PID", example: "kill -9 1234", flags: [{ flag: "-15", description: "SIGTERM: pede encerramento gentil" }, { flag: "-9", description: "SIGKILL: mata imediatamente" }, { flag: "-1", description: "SIGHUP: recarrega configuração" }] },
+      { command: "killall processo", description: "Mata todos os processos com determinado nome", example: "killall firefox" },
+      { command: "pgrep processo", description: "Busca PID de processo pelo nome", example: "pgrep nginx", output: "1234\n1235" },
+      { command: "nice -n 10 comando", description: "Inicia processo com prioridade menor (0 a 19)", example: "nice -n 10 tar czf backup.tar.gz /home" },
+      { command: "systemctl status", description: "Mostra status dos serviços do sistema", example: "systemctl status nginx" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual sinal termina um processo de forma gentil?", answer: "SIGTERM (15): kill -15 PID ou apenas kill PID" },
+      { id: 2, question: "Como matar um processo que não responde?", answer: "kill -9 PID (SIGKILL)" },
+      { id: 3, question: "Como encontrar o PID de um processo pelo nome?", answer: "pgrep nome-do-processo" },
+      { id: 4, question: "Qual é o PID do primeiro processo do sistema (init/systemd)?", answer: "PID 1" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 6 — REDE E SEGURANÇA
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "rede",
+    title: "Configuração de Rede",
+    icon: "🌐",
+    category: "Rede e Segurança",
+    description: "Configurar interfaces de rede, IPs estáticos e diagnósticos de conectividade no Debian",
+    content: [
+      "O Debian usa o arquivo /etc/network/interfaces para configurar redes (tradicional) ou o NetworkManager para redes dinâmicas (comum em desktops). Em Debian 12+, o systemd-networkd também é uma opção.",
+      "Interfaces de rede no Linux têm nomes como eth0 (ethernet), wlan0 (WiFi) ou os novos nomes preditivos como enp3s0 (ethernet, bus 3, slot 0). Use ip link show para ver todas as interfaces.",
+      "Para configurar um IP estático no /etc/network/interfaces, você define: iface eth0 inet static, address (IP), netmask (máscara), gateway (roteador) e dns-nameservers (DNS).",
+      "O comando ip substituiu os antigos ifconfig, route e arp. Use ip addr (IPs), ip route (rotas), ip link (interfaces). O ifconfig ainda está disponível via net-tools mas está obsoleto.",
+      "Para diagnósticos de rede: ping testa conectividade, traceroute mostra o caminho dos pacotes, nslookup e dig fazem consultas DNS, ss (substituiu netstat) mostra conexões ativas.",
+    ],
+    commands: [
+      { command: "ip addr show", description: "Mostra todas as interfaces e seus IPs", example: "ip addr show", output: "2: eth0: <BROADCAST,MULTICAST,UP> mtu 1500\n    inet 192.168.1.100/24 brd 192.168.1.255 scope global eth0" },
+      { command: "ip route show", description: "Mostra a tabela de roteamento", example: "ip route show", output: "default via 192.168.1.1 dev eth0\n192.168.1.0/24 dev eth0 proto kernel scope link" },
+      { command: "ping -c 4 host", description: "Testa conectividade com um host", example: "ping -c 4 google.com", flags: [{ flag: "-c n", description: "Envia n pacotes" }, { flag: "-i n", description: "Intervalo de n segundos" }] },
+      { command: "traceroute host", description: "Mostra o caminho dos pacotes até o destino", example: "traceroute google.com" },
+      { command: "ss -tulpn", description: "Lista portas abertas e processos escutando", example: "sudo ss -tulpn", flags: [{ flag: "-t", description: "TCP" }, { flag: "-u", description: "UDP" }, { flag: "-l", description: "Apenas portas em escuta" }, { flag: "-p", description: "Mostra processo" }, { flag: "-n", description: "Sem resolução de nomes" }] },
+      { command: "dig domain", description: "Consulta DNS detalhada", example: "dig google.com A", output: ";; ANSWER SECTION:\ngoogle.com.    300    IN    A    142.250.185.46" },
+      { command: "curl -I url", description: "Faz requisição HTTP e mostra apenas headers", example: "curl -I https://debian.org" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual comando moderno substitui o ifconfig?", answer: "ip addr show" },
+      { id: 2, question: "Como ver quais portas estão abertas no sistema?", answer: "sudo ss -tulpn" },
+      { id: 3, question: "Qual arquivo configura interfaces de rede de forma tradicional no Debian?", answer: "/etc/network/interfaces" },
+      { id: 4, question: "Como testar resolução DNS de um domínio?", answer: "dig dominio.com ou nslookup dominio.com" },
+    ],
+  },
+  {
+    id: "firewall-ufw",
+    title: "Firewall com UFW",
+    icon: "🛡️",
+    category: "Rede e Segurança",
+    description: "Configure o UFW (Uncomplicated Firewall) para proteger seu sistema Debian",
+    content: [
+      "O UFW (Uncomplicated Firewall) é uma interface simplificada para o iptables — o sistema de firewall nativo do Linux. O UFW torna a configuração de regras de firewall muito mais acessível.",
+      "Por padrão, o UFW não vem ativado no Debian. Antes de ativar, é crucial liberar a porta SSH (22) para não se trancar fora do servidor! A ordem é: instalar, adicionar regra SSH, depois ativar.",
+      "O iptables é a base do firewall Linux. O UFW é uma camada de abstração sobre ele. Para regras complexas que o UFW não suporta, você pode usar iptables ou nftables (a ferramenta moderna).",
+      "Regras do UFW são persistentes — sobrevivem a reinicializações. O estado das regras é salvo em /etc/ufw/. Você pode ver e editar regras avançadas em /etc/ufw/before.rules e after.rules.",
+      "O fail2ban é um complemento importante para segurança: ele monitora logs e bloqueia IPs que tentam fazer brute force em SSH, HTTP e outros serviços. É altamente recomendado em servidores expostos à internet.",
+    ],
+    commands: [
+      { command: "apt install ufw", description: "Instala o UFW no Debian", example: "sudo apt install ufw" },
+      { command: "ufw allow 22", description: "Libera a porta SSH antes de ativar o firewall", example: "sudo ufw allow ssh" },
+      { command: "ufw enable", description: "Ativa o UFW (faça APÓS liberar o SSH!)", example: "sudo ufw enable" },
+      { command: "ufw status verbose", description: "Mostra status e regras do firewall", example: "sudo ufw status verbose" },
+      { command: "ufw allow 80/tcp", description: "Libera porta HTTP", example: "sudo ufw allow 80/tcp" },
+      { command: "ufw allow from 192.168.1.0/24", description: "Libera acesso de uma faixa de IPs", example: "sudo ufw allow from 192.168.1.0/24 to any port 3306" },
+      { command: "ufw deny 23", description: "Bloqueia uma porta", example: "sudo ufw deny 23" },
+      { command: "ufw delete allow 80", description: "Remove uma regra existente", example: "sudo ufw delete allow 80/tcp" },
+      { command: "ufw reset", description: "Reseta todas as regras do UFW", example: "sudo ufw reset" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual é a ordem correta para ativar o UFW com segurança?", answer: "Instalar → sudo ufw allow ssh → sudo ufw enable", hint: "Libere o SSH ANTES de ativar!" },
+      { id: 2, question: "Como liberar a porta 443 (HTTPS)?", answer: "sudo ufw allow 443/tcp" },
+      { id: 3, question: "Como verificar as regras ativas do UFW?", answer: "sudo ufw status verbose" },
+      { id: 4, question: "O UFW persiste após reinicialização?", answer: "Sim, as regras são salvas em /etc/ufw/" },
+    ],
+  },
+  {
+    id: "systemd",
+    title: "Systemd e Serviços",
+    icon: "⚡",
+    category: "Rede e Segurança",
+    description: "Gerenciar serviços, targets e logs com o systemd no Debian",
+    content: [
+      "O systemd é o sistema de init padrão do Debian desde o Debian 8 (Jessie). Ele é responsável por inicializar o sistema, gerenciar serviços (daemons), montar sistemas de arquivos e muito mais.",
+      "Serviços no systemd são chamados de units. Um arquivo .service define como um serviço deve ser iniciado, parado e reiniciado. Ficam em /lib/systemd/system/ (sistema) e /etc/systemd/system/ (customizações).",
+      "O systemd organiza os estados do sistema em targets (equivalente aos runlevels do SysV). O multi-user.target é modo texto normal, o graphical.target inclui interface gráfica.",
+      "O journald é o sistema de log do systemd. Os logs são armazenados em formato binário em /var/log/journal/. O comando journalctl permite consultá-los com filtros poderosos.",
+      "Você pode criar seus próprios serviços systemd criando um arquivo .service em /etc/systemd/system/. Depois de criar, execute systemctl daemon-reload para carregar a nova configuração.",
+    ],
+    commands: [
+      { command: "systemctl start servico", description: "Inicia um serviço", example: "sudo systemctl start nginx" },
+      { command: "systemctl stop servico", description: "Para um serviço", example: "sudo systemctl stop nginx" },
+      { command: "systemctl restart servico", description: "Reinicia um serviço", example: "sudo systemctl restart nginx" },
+      { command: "systemctl enable servico", description: "Habilita serviço para iniciar com o sistema", example: "sudo systemctl enable nginx" },
+      { command: "systemctl disable servico", description: "Desabilita inicialização automática do serviço", example: "sudo systemctl disable bluetooth" },
+      { command: "systemctl status servico", description: "Mostra status detalhado de um serviço", example: "systemctl status ssh" },
+      { command: "systemctl list-units --type=service", description: "Lista todos os serviços ativos", example: "systemctl list-units --type=service --state=running" },
+      { command: "journalctl -u servico -f", description: "Acompanha logs de um serviço em tempo real", example: "journalctl -u nginx -f", flags: [{ flag: "-n 100", description: "Mostra as últimas 100 linhas" }, { flag: "--since today", description: "Logs de hoje" }, { flag: "-p err", description: "Apenas erros" }] },
+    ],
+    exercises: [
+      { id: 1, question: "Como habilitar o nginx para iniciar automaticamente?", answer: "sudo systemctl enable nginx" },
+      { id: 2, question: "Como ver os logs de um serviço em tempo real?", answer: "journalctl -u nome-do-servico -f" },
+      { id: 3, question: "Qual comando lista todos os serviços em execução?", answer: "systemctl list-units --type=service --state=running" },
+      { id: 4, question: "Onde ficam os arquivos de unit do systemd (sistema)?", answer: "/lib/systemd/system/ (e customizações em /etc/systemd/system/)" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 7 — PRODUTIVIDADE E SHELL
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "pipes-redirecionamento",
+    title: "Pipes e Redirecionamento",
+    icon: "🔀",
+    category: "Produtividade e Shell",
+    description: "Domine pipes, redirecionamento de I/O e combinação de comandos no Bash",
+    content: [
+      "O pipe (|) conecta a saída de um comando na entrada do próximo. É um dos recursos mais poderosos do shell Unix. Ex: cat arquivo.txt | grep erro | sort | uniq conta as linhas únicas com erro.",
+      "Redirecionamento: > redireciona saída para arquivo (sobrescreve), >> adiciona ao final do arquivo. 2> redireciona erros (stderr), &> redireciona stdout e stderr juntos. < usa arquivo como entrada.",
+      "O /dev/null é o buraco negro do Linux — tudo que é enviado para ele desaparece. Útil para suprimir saídas desnecessárias: comando > /dev/null 2>&1.",
+      "Operadores de encadeamento: && executa o próximo comando apenas se o anterior teve sucesso (exit code 0). || executa o próximo apenas se o anterior falhou. ; executa sempre, independente do resultado.",
+      "O comando tee permite dividir a saída: exibe no terminal E grava em arquivo ao mesmo tempo. Ex: comando | tee arquivo.log. Útil para monitorar e registrar logs simultaneamente.",
+    ],
+    commands: [
+      { command: "cmd1 | cmd2", description: "Pipe: saída do cmd1 vira entrada do cmd2", example: "ps aux | grep nginx | awk '{print $2}'" },
+      { command: "comando > arquivo", description: "Redireciona stdout para arquivo (sobrescreve)", example: "echo 'teste' > /tmp/teste.txt" },
+      { command: "comando >> arquivo", description: "Adiciona stdout ao final do arquivo", example: "echo 'linha nova' >> /tmp/teste.txt" },
+      { command: "comando 2>&1", description: "Redireciona stderr para o mesmo destino que stdout", example: "make build > build.log 2>&1" },
+      { command: "grep 'termo' arquivo", description: "Filtra linhas que contêm o termo", example: "grep -r 'ERROR' /var/log/", flags: [{ flag: "-i", description: "Ignora maiúsculas/minúsculas" }, { flag: "-n", description: "Mostra número da linha" }, { flag: "-r", description: "Recursivo em diretórios" }, { flag: "-v", description: "Inverte — mostra linhas que NÃO têm o termo" }] },
+      { command: "awk '{print $1}'", description: "Processa texto por colunas", example: "ps aux | awk '{print $1, $2, $11}'" },
+      { command: "sed 's/velho/novo/g'", description: "Substitui texto com expressões regulares", example: "sed 's/localhost/0.0.0.0/g' nginx.conf" },
+      { command: "sort | uniq -c", description: "Ordena e conta ocorrências únicas", example: "cat acesso.log | awk '{print $1}' | sort | uniq -c | sort -rn | head -10" },
+    ],
+    exercises: [
+      { id: 1, question: "Como contar quantas linhas têm error em um log?", answer: "grep -i 'error' /var/log/syslog | wc -l" },
+      { id: 2, question: "Como executar cmd2 apenas se cmd1 tiver sucesso?", answer: "cmd1 && cmd2" },
+      { id: 3, question: "Como suprimir toda saída de um comando?", answer: "comando > /dev/null 2>&1" },
+      { id: 4, question: "Como adicionar saída de um comando ao final de um arquivo?", answer: "comando >> arquivo.txt" },
+    ],
+  },
+  {
+    id: "atalhos-produtividade",
+    title: "Atalhos e Produtividade",
+    icon: "⚡",
+    category: "Produtividade e Shell",
+    description: "Atalhos do Bash, aliases, variáveis de ambiente e dicas para produtividade",
+    content: [
+      "O Bash oferece muitos atalhos de teclado que aumentam drasticamente a produtividade. Os mais importantes: Ctrl+R (busca no histórico), Ctrl+A e Ctrl+E (início/fim da linha), Alt+. (último argumento do comando anterior).",
+      "Aliases permitem criar atalhos para comandos longos. Você define aliases no ~/.bashrc para torná-los permanentes. Por exemplo: alias ll='ls -la --color=auto' cria o atalho ll.",
+      "Variáveis de ambiente são variáveis globais que configuram o comportamento do sistema. PATH define onde o sistema busca executáveis. HOME é o diretório home. EDITOR define o editor padrão.",
+      "O ~/.bashrc é executado para cada novo terminal interativo. O ~/.bash_profile (ou ~/.profile) é executado no login. Adicione aliases e configurações de ambiente ao ~/.bashrc.",
+      "Brace expansion é muito útil: {a,b,c} expande para a, b e c. {1..10} expande para 1 2 3...10. Ex: mkdir -p projeto/{src,tests,docs} cria três subdiretórios de uma vez.",
+    ],
+    commands: [
+      { command: "alias nome='comando'", description: "Cria um alias temporário", example: "alias gs='git status'" },
+      { command: "echo $PATH", description: "Mostra os diretórios onde o shell busca executáveis", example: "echo $PATH", output: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" },
+      { command: "export VAR=valor", description: "Define variável de ambiente para processos filhos", example: "export EDITOR=vim" },
+      { command: "source ~/.bashrc", description: "Recarrega o .bashrc sem fechar o terminal", example: "source ~/.bashrc" },
+      { command: "!!", description: "Repete o último comando executado", example: "!! repete o último comando" },
+      { command: "Ctrl+R", description: "Busca incremental reversa no histórico de comandos", example: "Ctrl+R e comece a digitar o comando" },
+      { command: "comando &", description: "Executa comando em background", example: "sleep 60 &" },
+      { command: "mkdir -p projeto/{src,tests,docs}", description: "Cria múltiplos diretórios de uma vez (brace expansion)", example: "mkdir -p ~/app/{frontend,backend,database}" },
+    ],
+    exercises: [
+      { id: 1, question: "Como criar um alias permanente para ll=ls -la?", answer: "Adicione 'alias ll=\"ls -la\"' no ~/.bashrc e execute source ~/.bashrc" },
+      { id: 2, question: "Como criar múltiplos diretórios de uma vez?", answer: "mkdir -p projeto/{src,tests,docs}" },
+      { id: 3, question: "Qual atalho busca no histórico de comandos?", answer: "Ctrl+R" },
+      { id: 4, question: "Como repetir o último comando digitado?", answer: "!! ou pressione seta para cima e Enter" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 8 — SHELL SCRIPTING
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "shell-scripting",
+    title: "Shell Scripting Básico",
+    icon: "📜",
+    category: "Shell Scripting",
+    description: "Crie scripts Bash para automatizar tarefas no Debian",
+    content: [
+      "Shell scripting permite automatizar tarefas repetitivas. Um script Bash começa com o shebang #!/bin/bash que indica qual interpretador usar. Depois de criar o script, torne-o executável com chmod +x.",
+      "Variáveis em Bash: use letras maiúsculas por convenção. Atribua sem espaços: NOME=valor. Para acessar, use o cifrão seguido do nome da variável. Argumentos do script são acessados por posição: primeiro argumento, segundo argumento etc.",
+      "Estruturas de controle: if/then/else/fi para condições, for para loops, while para loops condicionais, case para múltiplas condições. Comandos de teste com colchetes verificam condições como existência de arquivos e comparações.",
+      "Funções organizam o código em blocos reutilizáveis. Defina com nome() e chame pelo nome. O código de retorno do último comando indica sucesso (0) ou falha (qualquer outro valor).",
+      "Boas práticas: use set -e para parar o script em caso de erro, set -u para tratar variáveis não definidas como erro, use aspas duplas em variáveis para evitar problemas com espaços.",
+    ],
+    commands: [
+      { command: "#!/bin/bash", description: "Shebang: primeira linha obrigatória de todo script Bash", example: "#!/bin/bash\n# Meu primeiro script Debian\necho 'Olá, Debian!'" },
+      { command: "chmod +x script.sh", description: "Torna o script executável", example: "chmod +x backup.sh && ./backup.sh" },
+      { command: "if [ condicao ]; then", description: "Estrutura condicional if/else", example: "if [ -f /etc/nginx/nginx.conf ]; then\n  echo 'nginx instalado'\nelse\n  echo 'nginx nao encontrado'\nfi" },
+      { command: "for item in lista; do", description: "Loop for para iterar sobre lista", example: "for pkg in nginx git vim curl; do\n  sudo apt install -y $pkg\ndone" },
+      { command: "while [ condicao ]; do", description: "Loop while condicional", example: "contador=0\nwhile [ $contador -lt 10 ]; do\n  echo $contador\n  contador=$((contador+1))\ndone" },
+      { command: "read -p 'msg' VAR", description: "Lê entrada do usuário", example: "read -p 'Nome: ' NOME\necho \"Ola, $NOME!\"" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual é a primeira linha obrigatória de um script Bash?", answer: "#!/bin/bash (o shebang)" },
+      { id: 2, question: "Como tornar um script executável?", answer: "chmod +x script.sh" },
+      { id: 3, question: "Como verificar se um arquivo existe em um script bash?", answer: "if [ -f /caminho/arquivo ]; then" },
+      { id: 4, question: "Qual variável contém o exit code do último comando?", answer: "$?" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 9 — REFERÊNCIA RÁPIDA
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "man-help",
+    title: "Obtendo Ajuda no Linux",
+    icon: "❓",
+    category: "Referência Rápida",
+    description: "Como usar o man, info, help e encontrar documentação no Debian",
+    content: [
+      "O sistema man (manual) é a documentação oficial do Linux. Cada comando tem uma página man dividida em seções: NAME, SYNOPSIS, DESCRIPTION, OPTIONS, EXAMPLES, SEE ALSO. Pressione q para sair.",
+      "As páginas man são organizadas em seções numeradas: 1 (comandos do usuário), 2 (chamadas de sistema), 3 (funções de biblioteca), 4 (dispositivos), 5 (formatos de arquivo), 8 (administração do sistema).",
+      "O comando help mostra ajuda para comandos internos do Bash (como cd, echo, if). A flag --help mostra um resumo rápido para a maioria dos programas externos.",
+      "O Debian tem uma wiki excelente em wiki.debian.org com guias detalhados. A Debian Reference (reference.debian.org) é um manual completo. Os mailing lists e fóruns da comunidade também são recursos valiosos.",
+      "O comando info mostra documentação no formato GNU info, que tem hiperlinks e é mais detalhado que man para ferramentas GNU. apropos busca em páginas man por palavras-chave.",
+    ],
+    commands: [
+      { command: "man comando", description: "Abre o manual do comando", example: "man ls", flags: [{ flag: "-k palavra", description: "Busca em todos os manuais (mesmo que apropos)" }] },
+      { command: "comando --help", description: "Mostra ajuda rápida do comando", example: "ls --help | head -20" },
+      { command: "apropos palavra", description: "Busca páginas man que mencionam a palavra", example: "apropos 'disk usage'", output: "du (1) - estimate file space usage\ndf (1) - report file system disk space usage" },
+      { command: "info comando", description: "Documentação GNU info (mais detalhada que man)", example: "info tar" },
+      { command: "type comando", description: "Mostra o tipo de um comando (builtin, alias, arquivo)", example: "type ls", output: "ls is aliased to 'ls --color=auto'" },
+      { command: "whatis comando", description: "Mostra descrição curta de um comando", example: "whatis grep", output: "grep (1) - print lines that match patterns" },
+    ],
+    exercises: [
+      { id: 1, question: "Como ver o manual do comando find?", answer: "man find" },
+      { id: 2, question: "Como buscar manuais relacionados a network?", answer: "apropos network ou man -k network" },
+      { id: 3, question: "Qual a diferença entre man e --help?", answer: "man mostra a documentação completa. --help mostra um resumo rápido disponível sem o pacote man" },
+      { id: 4, question: "Em qual seção do man estão os comandos de administração do sistema?", answer: "Seção 8 (man 8 comando)" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 10 — ACESSO REMOTO E SSH
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "ssh-conexao",
+    title: "SSH: Conexão Remota Segura",
+    icon: "🔐",
+    category: "Acesso Remoto e SSH",
+    description: "Configure e use SSH para acesso remoto seguro ao Debian",
+    content: [
+      "O SSH (Secure Shell) é o protocolo padrão para acesso remoto seguro em Linux. Toda comunicação é criptografada. O servidor SSH é o openssh-server, e o cliente é o openssh-client.",
+      "Autenticação por chave SSH é muito mais segura que senha. Você gera um par de chaves (pública e privada) com ssh-keygen. A chave pública vai para o servidor, a privada fica em seu computador — nunca compartilhe a chave privada.",
+      "O arquivo ~/.ssh/authorized_keys no servidor contém as chaves públicas permitidas. Você pode copiar sua chave pública com ssh-copy-id, ou manualmente copiando o conteúdo de ~/.ssh/id_ed25519.pub.",
+      "O arquivo /etc/ssh/sshd_config configura o servidor SSH. Configurações de segurança recomendadas: PermitRootLogin no (desativa login como root), PasswordAuthentication no (apenas chaves), Port 2222 (muda a porta padrão).",
+      "O SSH suporta tunelamento: você pode criar túneis para acessar serviços remotos como se fossem locais. O port forwarding local (-L) e remoto (-R) são úteis para acessar bancos de dados e outros serviços de forma segura.",
+    ],
+    commands: [
+      { command: "apt install openssh-server", description: "Instala o servidor SSH no Debian", example: "sudo apt install openssh-server && sudo systemctl enable ssh" },
+      { command: "ssh usuario@servidor", description: "Conecta a um servidor remoto via SSH", example: "ssh joao@192.168.1.100", flags: [{ flag: "-p 2222", description: "Conecta na porta 2222" }, { flag: "-i chave.pem", description: "Usa chave privada específica" }] },
+      { command: "ssh-keygen -t ed25519", description: "Gera par de chaves SSH (algoritmo moderno)", example: "ssh-keygen -t ed25519 -C 'meu@email.com'" },
+      { command: "ssh-copy-id usuario@servidor", description: "Copia chave pública para o servidor", example: "ssh-copy-id joao@192.168.1.100" },
+      { command: "scp arquivo usuario@servidor:/dest", description: "Copia arquivo via SSH", example: "scp backup.tar.gz joao@servidor:/home/joao/" },
+      { command: "ssh -L 5432:localhost:5432 user@servidor", description: "Cria túnel SSH para acessar PostgreSQL remoto localmente", example: "ssh -L 5432:localhost:5432 joao@servidor.com" },
+      { command: "systemctl restart ssh", description: "Reinicia o servidor SSH após mudanças no sshd_config", example: "sudo systemctl restart ssh && sudo systemctl status ssh" },
+    ],
+    exercises: [
+      { id: 1, question: "Como gerar um par de chaves SSH moderno?", answer: "ssh-keygen -t ed25519" },
+      { id: 2, question: "Como copiar sua chave pública para um servidor?", answer: "ssh-copy-id usuario@servidor" },
+      { id: 3, question: "Qual configuração no sshd_config desativa login como root?", answer: "PermitRootLogin no" },
+      { id: 4, question: "Como conectar SSH em uma porta não padrão (ex: 2222)?", answer: "ssh -p 2222 usuario@servidor" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 11 — SERVIÇOS LINUX
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "servidor-web",
+    title: "Servidor Web no Debian",
+    icon: "🌍",
+    category: "Serviços Linux",
+    description: "Configure Apache ou Nginx como servidor web no Debian",
+    content: [
+      "O Debian suporta dois servidores web principais: Apache e Nginx. O Apache é mais antigo, usa .htaccess para configuração por diretório e tem um ecossistema enorme de módulos. O Nginx é mais novo, usa menos memória e é excelente como proxy reverso.",
+      "O Apache no Debian usa Virtual Hosts para servir múltiplos sites. Os sites ficam em /etc/apache2/sites-available/ e são ativados com a2ensite. Os módulos são ativados com a2enmod.",
+      "O Nginx organiza configurações em /etc/nginx/sites-available/ (desabilitados) e /etc/nginx/sites-enabled/ (habilitados via symlinks). A configuração global fica em /etc/nginx/nginx.conf.",
+      "O Let's Encrypt fornece certificados SSL gratuitos. O Certbot é o cliente oficial para obter e renovar certificados automaticamente. Em Debian, instale o certbot e o plugin para Apache ou Nginx.",
+      "Os logs do servidor web são fundamentais para diagnóstico. Apache: /var/log/apache2/access.log e error.log. Nginx: /var/log/nginx/access.log e error.log. O GoAccess é uma ótima ferramenta para analisar esses logs.",
+    ],
+    commands: [
+      { command: "apt install apache2", description: "Instala o Apache no Debian", example: "sudo apt install apache2 && sudo systemctl enable apache2" },
+      { command: "apt install nginx", description: "Instala o Nginx no Debian", example: "sudo apt install nginx && sudo systemctl enable nginx" },
+      { command: "a2ensite meusite.conf", description: "Ativa um Virtual Host no Apache", example: "sudo a2ensite meusite.conf && sudo systemctl reload apache2" },
+      { command: "a2enmod ssl rewrite", description: "Ativa módulos do Apache", example: "sudo a2enmod ssl rewrite headers && sudo systemctl restart apache2" },
+      { command: "nginx -t", description: "Testa a configuração do Nginx", example: "sudo nginx -t", output: "nginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file test is successful" },
+      { command: "certbot --nginx -d dominio.com", description: "Obtém certificado SSL com Certbot para Nginx", example: "sudo certbot --nginx -d meusite.com -d www.meusite.com" },
+      { command: "tail -f /var/log/nginx/error.log", description: "Monitora logs de erro do Nginx em tempo real", example: "sudo tail -f /var/log/nginx/error.log" },
+    ],
+    exercises: [
+      { id: 1, question: "Onde ficam os Virtual Hosts do Apache no Debian?", answer: "/etc/apache2/sites-available/" },
+      { id: 2, question: "Como testar se a configuração do Nginx está correta?", answer: "sudo nginx -t" },
+      { id: 3, question: "Como ativar um site no Apache?", answer: "sudo a2ensite nome-do-site.conf && sudo systemctl reload apache2" },
+      { id: 4, question: "Onde ficam os logs de erro do Nginx?", answer: "/var/log/nginx/error.log" },
+    ],
+  },
+  {
+    id: "servidor-banco-dados",
+    title: "Servidor de Banco de Dados",
+    icon: "🗄️",
+    category: "Serviços Linux",
+    description: "Instale e configure PostgreSQL e MariaDB no Debian",
+    content: [
+      "O PostgreSQL é o banco de dados relacional mais avançado do mundo open source. É altamente recomendado para projetos sérios. No Debian, o PostgreSQL é bem integrado e facilmente instalável.",
+      "O MySQL/MariaDB é muito popular para aplicações web. O MariaDB é o fork comunitário do MySQL e é o padrão no Debian quando você instala mysql-server. É totalmente compatível com MySQL.",
+      "Segurança em banco de dados: sempre execute mysql_secure_installation após instalar o MariaDB. Para PostgreSQL, o usuário padrão é postgres — defina uma senha imediatamente.",
+      "O backup de bancos de dados é crítico. Para PostgreSQL, use pg_dump. Para MySQL/MariaDB, use mysqldump. Automatize backups com cron jobs e armazene em local seguro.",
+      "Para acesso remoto ao banco de dados, configure o bind-address e crie usuários com permissões específicas. Em produção, use SSH tunneling ao invés de expor o banco diretamente na internet.",
+    ],
+    commands: [
+      { command: "apt install postgresql", description: "Instala PostgreSQL no Debian", example: "sudo apt install postgresql postgresql-contrib" },
+      { command: "sudo -u postgres psql", description: "Acessa o PostgreSQL como superusuário", example: "sudo -u postgres psql" },
+      { command: "apt install mariadb-server", description: "Instala MariaDB no Debian", example: "sudo apt install mariadb-server && sudo mysql_secure_installation" },
+      { command: "mysql -u root -p", description: "Acessa o MySQL/MariaDB como root", example: "sudo mysql -u root" },
+      { command: "pg_dump banco > backup.sql", description: "Faz backup de banco PostgreSQL", example: "sudo -u postgres pg_dump meubanco > /backup/meubanco_backup.sql" },
+      { command: "mysqldump -u root banco > backup.sql", description: "Faz backup de banco MySQL/MariaDB", example: "mysqldump -u root -p meubanco > backup.sql" },
+      { command: "systemctl status postgresql", description: "Verifica status do PostgreSQL", example: "systemctl status postgresql" },
+    ],
+    exercises: [
+      { id: 1, question: "Qual usuário padrão do PostgreSQL no sistema Linux?", answer: "postgres" },
+      { id: 2, question: "Como acessar o PostgreSQL após instalar?", answer: "sudo -u postgres psql" },
+      { id: 3, question: "Qual comando faz backup de um banco PostgreSQL?", answer: "pg_dump nome_do_banco > backup.sql" },
+      { id: 4, question: "Qual script deve ser executado após instalar o MariaDB?", answer: "sudo mysql_secure_installation" },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // PARTE 12 — INFRAESTRUTURA COMO CÓDIGO
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "iac-provisionamento",
+    title: "IaC: Script de Provisionamento",
+    icon: "🤖",
+    category: "Infraestrutura como Código",
+    description: "Crie scripts de provisionamento para configurar servidores Debian de forma automatizada",
+    content: [
+      "Infraestrutura como Código (IaC) é a prática de definir e gerenciar infraestrutura usando código em vez de processos manuais. No nível básico, um script Bash de provisionamento já é IaC.",
+      "Um script de provisionamento idempotente pode ser executado múltiplas vezes com o mesmo resultado. Use verificações para evitar instalar algo que já está instalado ou criar algo que já existe.",
+      "Ferramentas profissionais de IaC incluem Ansible (simples, usa YAML), Terraform (infraestrutura em nuvem), Puppet e Chef. Para servidores Debian, Ansible é a escolha mais comum.",
+      "O cloud-init é um padrão de provisionamento usado em VMs e servidores em nuvem. Você define um arquivo YAML com as configurações e o servidor aplica automaticamente na primeira inicialização.",
+      "Boas práticas de IaC: versionamento do código (Git), testes antes de aplicar em produção, documentação clara e variáveis para configurações que mudam entre ambientes.",
+    ],
+    commands: [
+      { command: "#!/bin/bash\nset -euo pipefail", description: "Início de script robusto de provisionamento", example: "#!/bin/bash\nset -euo pipefail\nLOG=/var/log/provision.log\nexec > >(tee $LOG) 2>&1" },
+      { command: "dpkg -l | grep -q pacote", description: "Verifica se pacote está instalado (idempotência)", example: "dpkg -l | grep -q nginx || sudo apt install -y nginx" },
+      { command: "systemctl is-active servico", description: "Verifica se serviço está rodando", example: "systemctl is-active nginx || sudo systemctl start nginx" },
+      { command: "apt install -y ansible", description: "Instala o Ansible no Debian", example: "sudo apt install -y ansible" },
+      { command: "ansible-playbook -i hosts playbook.yml", description: "Executa um playbook Ansible", example: "ansible-playbook -i inventory/hosts site.yml --check" },
+      { command: "crontab -e", description: "Edita as tarefas agendadas (cron) do usuário", example: "# Backup diario as 2h\n0 2 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" },
+    ],
+    exercises: [
+      { id: 1, question: "O que significa idempotência em IaC?", answer: "Executar o script múltiplas vezes produz sempre o mesmo resultado, sem efeitos colaterais" },
+      { id: 2, question: "Como verificar se o nginx está instalado em um script?", answer: "dpkg -l | grep -q nginx" },
+      { id: 3, question: "Qual ferramenta de IaC usa YAML e é comum com Debian?", answer: "Ansible" },
+      { id: 4, question: "O que o set -euo pipefail faz em um script?", answer: "Para o script em qualquer erro (-e), trata variáveis não definidas como erro (-u) e propaga erros em pipes (-o pipefail)" },
+    ],
+  },
+];
