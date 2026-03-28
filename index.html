@@ -1,19 +1,921 @@
 <!DOCTYPE html>
-  <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-      <title>Debian - Guia Completo</title>
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-      <meta name="description" content="Guia Completo do Debian em Português Brasileiro — do iniciante ao avançado com exemplos práticos." />
-      <meta property="og:title" content="Debian — Guia Completo" />
-      <meta property="og:description" content="Guia Completo do Debian em Português Brasileiro" />
-    </head>
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>Debian — Guia Completo em Português</title>
+  <meta name="description" content="Guia completo do Debian GNU/Linux em Português Brasileiro. 24 módulos com comandos, exercícios e explicações detalhadas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            'dred': '#c1001f',
+            'dred-light': '#e8364f',
+            'dred-dark': '#8a0015',
+            'dbg': '#0d1117',
+            'dcard': '#161b22',
+            'dborder': '#30363d',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: #0d1117; color: #e6edf3; font-family: 'Inter', sans-serif; margin: 0; }
+    code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    .sidebar { background: #0d1117; border-right: 1px solid #21262d; width: 280px; min-width: 280px; height: 100vh; position: sticky; top: 0; overflow-y: auto; flex-shrink: 0; }
+    .sidebar-header { padding: 20px; border-bottom: 1px solid #21262d; }
+    .logo { width: 32px; height: 32px; background: #c1001f; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; font-size: 13px; color: #8b949e; width: 100%; text-align: left; background: none; border-top: none; border-right: none; border-bottom: none; }
+    .nav-item:hover { background: #161b22; color: #e6edf3; }
+    .nav-item.active { background: rgba(193,0,31,0.12); border-left-color: #c1001f; color: #c1001f; font-weight: 600; }
+    .nav-category { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #484f58; }
+    .nav-num { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #484f58; min-width: 20px; }
+
+    .main-content { flex: 1; min-width: 0; overflow-y: auto; height: 100vh; }
+    .content-inner { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    .cmd-block { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; }
+    .cmd-prompt { color: #e8364f; }
+    .cmd-text { color: #58d4b2; font-size: 1.05em; font-weight: 600; }
+    .cmd-desc { color: #8b949e; font-size: 14px; margin-top: 8px; font-family: 'Inter', sans-serif; }
+    .cmd-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #e8364f; font-weight: 600; margin-bottom: 6px; }
+    .cmd-example { margin-top: 12px; padding-top: 12px; border-top: 1px solid #21262d; }
+    .cmd-example-label { font-size: 10px; text-transform: uppercase; color: #484f58; letter-spacing: 0.1em; }
+    .cmd-output { color: #8b949e; font-size: 13px; }
+    .flag-item { display: flex; gap: 12px; padding: 4px 0; align-items: flex-start; }
+    .flag-name { color: #e3b341; font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 120px; flex-shrink: 0; }
+    .flag-desc { color: #8b949e; font-size: 13px; font-family: 'Inter', sans-serif; }
+
+    .exercise-card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .exercise-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(193,0,31,0.2); color: #c1001f; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .btn-hint { font-size: 12px; color: #e3b341; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 0; }
+    .btn-answer { font-size: 12px; color: #c1001f; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 0; }
+    .hint-box { margin-top: 8px; padding: 8px 12px; background: rgba(227,179,65,0.1); border: 1px solid rgba(227,179,65,0.2); border-radius: 6px; font-size: 13px; color: #e3b341; }
+    .answer-box { margin-top: 8px; padding: 8px 12px; background: #0d1117; border: 1px solid #21262d; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #58d4b2; display: flex; align-items: center; gap: 8px; }
+
+    .section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 17px; font-weight: 700; color: #e6edf3; }
+    .tag-badge { font-size: 11px; background: rgba(193,0,31,0.15); color: #e8364f; padding: 2px 8px; border-radius: 9999px; font-weight: 600; }
+
+    .hamburger { display: none; }
+    .overlay { display: none; }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; z-index: 100; transform: translateX(-100%); transition: transform 0.2s; }
+      .sidebar.open { transform: translateX(0); }
+      .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 99; }
+      .overlay.show { display: block; }
+      .hamburger { display: flex; }
+      .content-inner { padding-top: 64px; }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script>
+const MODULES = [
+  {
+    id:"linux-gnu", title:"O que é Linux e GNU", icon:"🐧", category:"Fundamentos Teóricos",
+    description:"A história do Linux, o projeto GNU e o conceito de software livre",
+    content:[
+      "O Linux não é um sistema operacional completo — é um kernel (núcleo). O kernel faz a ponte entre o hardware (processador, memória, disco) e os programas. Ele gerencia processos, memória, dispositivos e chamadas de sistema.",
+      "O kernel Linux foi criado por Linus Torvalds em 1991, como um projeto pessoal inspirado no MINIX. Publicado com licença GPL, permitindo que qualquer pessoa estudasse, modificasse e redistribuísse o código.",
+      "O projeto GNU (GNU's Not Unix) foi iniciado por Richard Stallman em 1983 para criar um sistema operacional completamente livre. O GNU desenvolveu ferramentas essenciais: GCC, Emacs, Bash, coreutils (ls, cp, mv, rm, cat) e glibc.",
+      "Quando o kernel Linux se uniu às ferramentas GNU, nasceu o sistema GNU/Linux — um sistema completo e livre. Por isso muitos puristas chamam de GNU/Linux. Na prática, a maioria diz simplesmente Linux.",
+      "Software livre não significa gratuito. Significa liberdade: usar, estudar, modificar e distribuir. A GPL garante essas 4 liberdades fundamentais. O Debian é um dos maiores defensores dessas liberdades.",
+      "Uma distribuição Linux é: kernel Linux + ferramentas GNU + gerenciador de pacotes + ambiente gráfico + configurações específicas. O Debian é uma das distribuições mais antigas e influentes do ecossistema.",
+    ],
+    commands:[
+      {cmd:"uname -r", desc:"Exibe a versão do kernel Linux em uso", output:"6.1.0-21-amd64"},
+      {cmd:"uname -a", desc:"Exibe todas as informações do sistema: kernel, hostname, arquitetura e data de compilação", output:"Linux debian 6.1.0-21-amd64 #1 SMP x86_64 GNU/Linux"},
+      {cmd:"cat /proc/version", desc:"Mostra detalhes sobre o kernel e compilador usado na compilação"},
+      {cmd:"cat /etc/os-release", desc:"Exibe informações sobre a distribuição Debian", output:'NAME="Debian GNU/Linux"\nVERSION="12 (bookworm)"'},
+    ],
+    exercises:[
+      {q:"Qual é a diferença entre Linux e GNU/Linux?", hint:"Pense no que cada projeto contribui", ans:"Linux é apenas o kernel. GNU/Linux é o sistema completo: kernel Linux + ferramentas GNU"},
+      {q:"Quem criou o kernel Linux e em que ano?", ans:"Linus Torvalds, em 1991"},
+      {q:"Qual comando mostra a versão do kernel Debian?", ans:"uname -r"},
+      {q:"Qual arquivo contém informações sobre a distribuição?", ans:"/etc/os-release"},
+    ]
+  },
+  {
+    id:"projeto-debian", title:"O Projeto Debian", icon:"🔴", category:"Fundamentos Teóricos",
+    description:"Conheça o Debian, sua história, filosofia, Contrato Social e versões",
+    content:[
+      "O Debian é um sistema GNU/Linux criado por Ian Murdock em 1993. O nome Debian vem da combinação do nome Ian com o de sua então namorada Debra Lynn. É um dos projetos de software livre mais antigos do mundo.",
+      "O Projeto Debian é administrado por voluntários ao redor do mundo e governado pelo Contrato Social — um compromisso público com a comunidade de software livre. Nunca financiado por uma empresa única.",
+      "O Debian é a base de centenas de distribuições: Ubuntu, Linux Mint, Kali Linux, Raspberry Pi OS e muitas outras. Sua estabilidade e sistema de pacotes .deb são referências no mundo Linux.",
+      "Três branches principais: Stable (estável, para produção), Testing (pacotes mais novos em teste) e Unstable/Sid (desenvolvimento). Para servidores, sempre use Stable.",
+      "As versões recebem nomes de personagens do Toy Story: Buster (10), Bullseye (11), Bookworm (12 — atual), Trixie (13 — desenvolvimento). Suporte LTS de ~5 anos por versão.",
+      "As Diretrizes de Software Livre do Debian (DFSG) definem o que é software livre para o projeto. Software que não atende vai para contrib ou non-free, mantendo o main 100% livre.",
+    ],
+    commands:[
+      {cmd:"cat /etc/debian_version", desc:"Mostra a versão exata do Debian instalado", output:"12.5"},
+      {cmd:"lsb_release -a", desc:"Exibe informações completas da distribuição", output:"Distributor ID: Debian\nDescription: Debian GNU/Linux 12 (bookworm)\nCodename: bookworm"},
+      {cmd:"dpkg --version", desc:"Mostra a versão do gerenciador de pacotes dpkg"},
+      {cmd:"apt-cache showpkg debian-archive-keyring", desc:"Mostra informações do pacote de chaves do Debian"},
+    ],
+    exercises:[
+      {q:"Quem criou o Debian e em que ano?", ans:"Ian Murdock, em 1993"},
+      {q:"Qual é a versão estável atual do Debian?", hint:"Personagem de Toy Story", ans:"Debian 12 (Bookworm)"},
+      {q:"Qual comando mostra a versão do Debian?", ans:"cat /etc/debian_version ou lsb_release -a"},
+      {q:"O que são as DFSG?", ans:"Diretrizes de Software Livre do Debian — definem o que é software livre para o projeto"},
+    ]
+  },
+  {
+    id:"repositorios", title:"Repositórios Debian", icon:"📚", category:"Fundamentos Teóricos",
+    description:"Entenda os repositórios main, contrib, non-free e como configurar o sources.list",
+    content:[
+      "Os repositórios são servidores que armazenam pacotes. O arquivo /etc/apt/sources.list define quais repositórios o sistema consulta ao instalar ou atualizar pacotes.",
+      "O repositório main contém apenas software livre conforme DFSG. O contrib contém software livre que depende de pacotes não-livres. O non-free contém software proprietário. O non-free-firmware (Debian 12+) tem firmwares proprietários.",
+      "Além dos principais: security (atualizações de segurança), updates (atualizações estáveis) e backports (versões mais novas portadas para o Stable).",
+      "Para o Debian 12 Bookworm, uma linha típica: deb https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware. Adicione também as linhas de segurança e updates.",
+      "Espelhos (mirrors) são cópias dos repositórios ao redor do mundo. Usar um próximo geograficamente acelera os downloads. No Brasil: ftp.br.debian.org ou espelhos da USP.",
+    ],
+    commands:[
+      {cmd:"cat /etc/apt/sources.list", desc:"Exibe a lista de repositórios configurados"},
+      {cmd:"apt-cache policy", desc:"Mostra os repositórios configurados e suas prioridades"},
+      {cmd:"sudo apt-get update", desc:"Atualiza a lista de pacotes disponíveis nos repositórios"},
+      {cmd:"apt-cache search nome", desc:"Busca pacotes nos repositórios pelo nome ou descrição", flags:[{f:"--names-only",d:"Busca apenas no nome do pacote"}]},
+      {cmd:"apt-cache show nginx", desc:"Exibe informações detalhadas sobre um pacote", output:"Package: nginx\nVersion: 1.22.1-9\nDescription: small, powerful, scalable web/proxy server"},
+    ],
+    exercises:[
+      {q:"Qual arquivo define os repositórios do Debian?", ans:"/etc/apt/sources.list"},
+      {q:"Qual repositório contém apenas software 100% livre?", ans:"main"},
+      {q:"Qual comando atualiza a lista de pacotes?", ans:"sudo apt-get update"},
+      {q:"Qual repositório tem firmwares proprietários no Debian 12?", ans:"non-free-firmware"},
+    ]
+  },
+  {
+    id:"instalacao", title:"Instalando o Debian", icon:"💿", category:"Instalação e Ambiente",
+    description:"Como instalar o Debian: download, particionamento e configuração inicial",
+    content:[
+      "O Debian oferece: netinstall (baixa pacotes da internet), live ISO (testa antes de instalar) e DVD offline. Para a maioria, o netinstall é recomendado.",
+      "O debian-installer suporta mais de 70 idiomas, incluindo português brasileiro, em modo gráfico ou texto (útil para servidores sem interface gráfica).",
+      "Particionamento: /boot (500MB), raiz / (20GB+), /home (restante), swap (igual à RAM). Em UEFI, adicione partição EFI de 512MB (FAT32).",
+      "Durante a instalação, você escolhe o ambiente gráfico: GNOME, KDE Plasma, XFCE, LXDE, MATE, Cinnamon. Para servidores, deixe sem ambiente gráfico.",
+      "Após instalar, o GRUB é configurado como gerenciador de boot. O root não tem senha por padrão — use sudo com seu usuário regular para tarefas administrativas.",
+    ],
+    commands:[
+      {cmd:"lsblk", desc:"Lista todos os discos e partições do sistema", output:"NAME   SIZE TYPE MOUNTPOINTS\nsda     20G disk\n├─sda1 512M part /boot/efi\n└─sda2  19G part /"},
+      {cmd:"df -h", desc:"Mostra o uso de espaço em disco em formato legível", output:"Filesystem  Size  Used Avail Use%\n/dev/sda2    20G  4.2G   15G  23%"},
+      {cmd:"sudo fdisk -l", desc:"Lista partições de todos os discos (requer root)"},
+      {cmd:"free -h", desc:"Mostra uso de memória RAM e swap", output:"       total  used  free\nMem:     8Gi  1.2Gi 6.8Gi\nSwap:    4Gi    0B  4Gi"},
+      {cmd:"hostnamectl", desc:"Mostra e configura o hostname do sistema", output:"Static hostname: debian\nOperating System: Debian GNU/Linux 12 (bookworm)"},
+    ],
+    exercises:[
+      {q:"Qual comando lista todos os discos e partições?", ans:"lsblk"},
+      {q:"Qual comando mostra o uso de espaço em disco legível?", ans:"df -h"},
+      {q:"Qual tipo de partição é necessária em sistemas UEFI?", ans:"Partição EFI (FAT32), geralmente em /boot/efi"},
+      {q:"Qual gerenciador de boot o Debian instala por padrão?", ans:"GRUB"},
+    ]
+  },
+  {
+    id:"ambiente-grafico", title:"Ambientes Gráficos", icon:"🖥️", category:"Instalação e Ambiente",
+    description:"Conheça os ambientes gráficos disponíveis no Debian: GNOME, KDE, XFCE e outros",
+    content:[
+      "Um ambiente gráfico (DE) fornece janelas, menus, painéis e ícones. O Debian suporta múltiplos ambientes com características diferentes.",
+      "GNOME é o ambiente padrão do Debian. Moderno e com foco em produtividade. Consome mais RAM mas é bem integrado. Usa GTK e o Mutter como compositor.",
+      "KDE Plasma é o mais completo e customizável. Interface rica com muitos widgets. Consome RAM similar ao GNOME mas oferece muito mais controle visual. Usa Qt.",
+      "XFCE é leve, rápido e estável — ideal para computadores antigos. Consome ~300MB de RAM e mantém aparência clássica de desktop.",
+      "Outros: LXDE (ultratrailer), LXQt (LXDE moderno), MATE (fork GNOME 2), Cinnamon (focado em facilidade de uso).",
+      "O display manager (GDM3 para GNOME, SDDM para KDE, LightDM para XFCE) é o programa de login. Você pode trocar o ambiente sem reinstalar o sistema.",
+    ],
+    commands:[
+      {cmd:"sudo tasksel", desc:"Ferramenta para instalar grupos de pacotes (como ambientes gráficos)"},
+      {cmd:"sudo apt install gnome-core", desc:"Instala o GNOME (versão mínima)"},
+      {cmd:"sudo apt install kde-plasma-desktop", desc:"Instala o KDE Plasma"},
+      {cmd:"sudo apt install xfce4", desc:"Instala o XFCE4"},
+      {cmd:"sudo systemctl start gdm3", desc:"Inicia o display manager GDM3 do GNOME"},
+      {cmd:"echo $XDG_CURRENT_DESKTOP", desc:"Mostra qual ambiente gráfico está em uso", output:"GNOME"},
+    ],
+    exercises:[
+      {q:"Qual é o ambiente gráfico padrão do Debian?", ans:"GNOME"},
+      {q:"Qual ambiente é mais recomendado para hardware antigo?", hint:"Pense em qual consome menos RAM", ans:"XFCE (ou LXDE para hardware muito antigo)"},
+      {q:"Qual comando instala grupos de pacotes incluindo ambientes gráficos?", ans:"sudo tasksel"},
+      {q:"Como verificar qual ambiente gráfico está ativo?", ans:"echo $XDG_CURRENT_DESKTOP"},
+    ]
+  },
+  {
+    id:"terminal", title:"Primeiros Passos no Terminal", icon:"⌨️", category:"Instalação e Ambiente",
+    description:"Aprenda a usar o terminal Bash no Debian: navegação básica e comandos essenciais",
+    content:[
+      "O terminal é a interface de linha de comando. O Bash é o shell padrão do Debian. Abra com Ctrl+Alt+T no GNOME.",
+      "O prompt mostra: usuário@hostname:diretório$. O cifrão $ indica usuário comum, # indica root. Nunca trabalhe como root no dia a dia.",
+      "Autocompletar com Tab: parte do comando + Tab completa automaticamente. Tab duas vezes mostra todas as opções.",
+      "Histórico: setas ↑ e ↓ navegam, Ctrl+R busca no histórico, ~/.bash_history armazena os comandos.",
+      "Atalhos: Ctrl+C cancela, Ctrl+Z pausa, Ctrl+D fecha, Ctrl+L limpa a tela, Ctrl+A início da linha, Ctrl+E fim da linha.",
+    ],
+    commands:[
+      {cmd:"pwd", desc:"Exibe o diretório atual (Print Working Directory)", output:"/home/usuario"},
+      {cmd:"ls -la", desc:"Lista arquivos e diretórios incluindo ocultos, em formato longo", flags:[{f:"-l",d:"Formato longo com permissões"},{f:"-a",d:"Mostra arquivos ocultos"},{f:"-h",d:"Tamanhos legíveis (KB, MB)"}]},
+      {cmd:"cd /caminho", desc:"Muda de diretório", flags:[{f:"~",d:"Vai para o home"},{f:"..",d:"Volta um nível"},{f:"-",d:"Volta ao diretório anterior"}]},
+      {cmd:"clear", desc:"Limpa o terminal (atalho: Ctrl+L)"},
+      {cmd:"history | tail -20", desc:"Mostra os últimos 20 comandos do histórico"},
+      {cmd:"whoami", desc:"Mostra o nome do usuário atual", output:"usuario"},
+    ],
+    exercises:[
+      {q:"Qual comando mostra o diretório atual?", ans:"pwd"},
+      {q:"Como listar todos os arquivos incluindo ocultos?", hint:"Pense nas flags de ls", ans:"ls -la"},
+      {q:"Qual atalho cancela um processo em execução?", ans:"Ctrl+C"},
+      {q:"Como voltar para o diretório home?", ans:"cd ~ ou apenas cd"},
+    ]
+  },
+  {
+    id:"navegacao", title:"Navegação no Sistema de Arquivos", icon:"📂", category:"Comandos Essenciais",
+    description:"Entenda a hierarquia de diretórios do Debian e como navegar por ela",
+    content:[
+      "O Linux usa o FHS (Filesystem Hierarchy Standard). Tudo começa no / (raiz). Diferente do Windows com C: e D:, no Linux tudo está sob um único /.",
+      "Diretórios: /bin e /usr/bin (executáveis), /etc (configurações), /home (usuários), /var (logs e dados variáveis), /tmp (temporários), /dev (dispositivos), /proc (kernel), /sys (sistema).",
+      "No Debian, /bin, /sbin, /lib são links simbólicos para /usr/bin, /usr/sbin, /usr/lib. Isso é o usrmerge.",
+      "Caminhos absolutos começam com / (ex: /home/user/arquivo). Caminhos relativos são relativos ao diretório atual. O ~ representa o home do usuário.",
+      "O find busca arquivos recursivamente. O locate usa banco de dados pré-indexado (mais rápido). O which encontra onde um programa está instalado.",
+    ],
+    commands:[
+      {cmd:"ls -la /", desc:"Lista todos os diretórios raiz do sistema"},
+      {cmd:"tree /etc -L 1", desc:"Mostra estrutura de diretórios em árvore", flags:[{f:"-L n",d:"Limita profundidade a n níveis"},{f:"-d",d:"Apenas diretórios"}]},
+      {cmd:"find /home -name '*.conf' -type f", desc:"Busca arquivos por nome", flags:[{f:"-type f",d:"Apenas arquivos"},{f:"-type d",d:"Apenas diretórios"},{f:"-mtime -7",d:"Modificados nos últimos 7 dias"}]},
+      {cmd:"locate nginx.conf", desc:"Busca rápida usando banco de dados indexado"},
+      {cmd:"which python3", desc:"Mostra o caminho completo de um programa", output:"/usr/bin/python3"},
+      {cmd:"du -sh /var/*", desc:"Mostra tamanho de arquivos/diretórios", flags:[{f:"-s",d:"Sumariza"},{f:"-h",d:"Formato legível"}]},
+    ],
+    exercises:[
+      {q:"Onde ficam os arquivos de configuração no Linux?", ans:"/etc"},
+      {q:"Qual diretório contém os diretórios pessoais dos usuários?", ans:"/home"},
+      {q:"Qual comando busca um arquivo por nome recursivamente?", ans:"find / -name nome_do_arquivo"},
+      {q:"Como descobrir onde está instalado o programa git?", ans:"which git"},
+    ]
+  },
+  {
+    id:"arquivos", title:"Manipulação de Arquivos", icon:"📄", category:"Comandos Essenciais",
+    description:"Criar, copiar, mover, renomear e deletar arquivos e diretórios no Debian",
+    content:[
+      "Os comandos básicos são simples mas poderosos. Diferente do Windows, o Linux não usa extensões para determinar o tipo — ele analisa o conteúdo.",
+      "cp copia, mv move/renomeia, rm remove, mkdir cria diretórios, touch cria arquivos vazios ou atualiza timestamps.",
+      "ATENÇÃO: Não existe lixeira no terminal. O rm apaga permanentemente. Confirme sempre o que está apagando antes de usar rm -rf.",
+      "cat exibe conteúdo, less permite navegar em arquivos grandes (sair com q), head/tail mostram início/fim — tail -f monitora em tempo real.",
+      "Wildcards: * (qualquer quantidade de chars), ? (um char). Ex: ls *.txt lista todos os .txt.",
+    ],
+    commands:[
+      {cmd:"cp arquivo.txt /backup/", desc:"Copia arquivo ou diretório", flags:[{f:"-r",d:"Recursivo (para diretórios)"},{f:"-p",d:"Preserva permissões e timestamps"},{f:"-v",d:"Modo verbose"}]},
+      {cmd:"mv velho.txt novo.txt", desc:"Move ou renomeia arquivo/diretório"},
+      {cmd:"rm -rf /tmp/lixo/", desc:"Remove arquivo permanentemente", flags:[{f:"-r",d:"Remove diretório recursivamente"},{f:"-f",d:"Força sem confirmação"},{f:"-i",d:"Pede confirmação"}]},
+      {cmd:"mkdir -p ~/projetos/debian/scripts", desc:"Cria diretório e subdiretórios"},
+      {cmd:"cat /etc/hostname", desc:"Exibe conteúdo de arquivo", output:"debian"},
+      {cmd:"less /var/log/syslog", desc:"Visualiza arquivo com paginação (sair com q)"},
+      {cmd:"tail -f /var/log/syslog", desc:"Monitora arquivo em tempo real", flags:[{f:"-n 20",d:"Mostra as últimas 20 linhas"},{f:"-f",d:"Segue o arquivo em tempo real"}]},
+    ],
+    exercises:[
+      {q:"Como copiar um diretório inteiro?", hint:"Precisa de uma flag especial para diretórios", ans:"cp -r origem/ destino/"},
+      {q:"Qual comando monitora um arquivo de log em tempo real?", ans:"tail -f arquivo.log"},
+      {q:"Como criar múltiplos subdiretórios de uma vez?", ans:"mkdir -p dir/subdir/subsubdir"},
+      {q:"O que acontece quando você usa rm sem cuidado?", ans:"A remoção é permanente — não há lixeira no terminal"},
+    ]
+  },
+  {
+    id:"permissoes", title:"Permissões e Propriedade", icon:"🔒", category:"Permissões e Usuários",
+    description:"Entenda o sistema de permissões rwx do Linux e como gerenciar o acesso a arquivos",
+    content:[
+      "Todo arquivo tem dono, grupo e permissões. Três grupos: dono (u), grupo (g) e outros (o). Cada grupo: leitura (r=4), escrita (w=2), execução (x=1).",
+      "ls -l mostra: -rwxr-xr-x = tipo(-), dono(rwx=7), grupo(r-x=5), outros(r-x=5). Notação octal: 755.",
+      "chmod altera permissões. Notação simbólica: chmod u+x arquivo. Octal: chmod 755 arquivo. Exemplos: 644 = dono lê/escreve, grupo/outros só leem.",
+      "chown altera o dono. chgrp altera o grupo. Apenas root pode mudar dono de arquivos que não lhe pertencem.",
+      "Bits especiais: setuid (4xxx) executa com permissões do dono, setgid (2xxx) idem para grupos, sticky bit (1xxx) em /tmp impede apagar arquivos de outros.",
+    ],
+    commands:[
+      {cmd:"ls -l /etc/passwd", desc:"Mostra permissões detalhadas do arquivo", output:"-rw-r--r-- 1 root root 1873 Mar 28 /etc/passwd"},
+      {cmd:"chmod 755 script.sh", desc:"Define permissões em notação octal", flags:[{f:"+x",d:"Adiciona execução"},{f:"-w",d:"Remove escrita"},{f:"u+x",d:"Execução apenas para o dono"}]},
+      {cmd:"sudo chown www-data:www-data /var/www/html", desc:"Altera dono e grupo do arquivo", flags:[{f:"-R",d:"Aplica recursivamente"}]},
+      {cmd:"umask 022", desc:"Mostra/define a máscara padrão de permissões", output:"0022"},
+      {cmd:"stat /etc/hostname", desc:"Exibe metadados completos do arquivo incluindo permissões"},
+    ],
+    exercises:[
+      {q:"O que significa a permissão 755 em notação octal?", hint:"4=leitura, 2=escrita, 1=execução", ans:"Dono: rwx (7), Grupo: r-x (5), Outros: r-x (5)"},
+      {q:"Como tornar um script executável?", ans:"chmod +x script.sh"},
+      {q:"Qual permissão numérica permite leitura para todos, escrita apenas para o dono?", ans:"644"},
+      {q:"Qual comando altera o dono de um arquivo?", ans:"chown usuario arquivo"},
+    ]
+  },
+  {
+    id:"usuarios", title:"Gestão de Usuários e Grupos", icon:"👥", category:"Permissões e Usuários",
+    description:"Criar, modificar e remover usuários e grupos no Debian. Entender o sudo",
+    content:[
+      "O Debian usa o sistema de usuários Unix. Cada usuário tem um UID. O root tem UID 0. Usuários do sistema: UIDs 1-999. Usuários comuns: UIDs a partir de 1000.",
+      "/etc/passwd armazena info dos usuários. /etc/shadow armazena senhas (hasheadas). /etc/group armazena grupos. Nunca edite manualmente — use os comandos adequados.",
+      "sudo permite executar comandos como root sem a senha de root. O usuário deve estar no grupo sudo. O arquivo /etc/sudoers configura as permissões.",
+      "Grupos organizam usuários: docker (usar Docker sem sudo), sudo (administrador), audio (usar áudio).",
+      "Na instalação do Debian, o instalador pode configurar sudo automaticamente. Para usar su, defina senha de root: sudo passwd root.",
+    ],
+    commands:[
+      {cmd:"sudo adduser joao", desc:"Cria novo usuário interativamente (recomendado no Debian)"},
+      {cmd:"sudo usermod -aG sudo joao", desc:"Adiciona usuário ao grupo sudo", flags:[{f:"-aG",d:"Adiciona sem remover grupos existentes"},{f:"-s /bin/bash",d:"Define o shell padrão"}]},
+      {cmd:"sudo deluser --remove-home joao", desc:"Remove usuário e seu diretório home"},
+      {cmd:"groups joao", desc:"Lista grupos do usuário", output:"joao : joao sudo audio cdrom video"},
+      {cmd:"sudo passwd joao", desc:"Define ou altera senha de um usuário"},
+      {cmd:"su - root", desc:"Troca para outro usuário (com ambiente completo)"},
+      {cmd:"id joao", desc:"Mostra UID, GID e grupos do usuário", output:"uid=1001(joao) gid=1001(joao) groups=1001(joao),27(sudo)"},
+    ],
+    exercises:[
+      {q:"Como dar permissão de sudo para um usuário no Debian?", ans:"sudo usermod -aG sudo usuario"},
+      {q:"Qual arquivo armazena as senhas dos usuários?", ans:"/etc/shadow"},
+      {q:"Qual UID tem o usuário root?", ans:"0"},
+      {q:"Como listar os grupos de um usuário?", ans:"groups usuario"},
+    ]
+  },
+  {
+    id:"apt", title:"Gerenciamento de Pacotes com APT", icon:"📦", category:"Administração do Sistema",
+    description:"Domine o APT — o gerenciador de pacotes mais poderoso do mundo Linux",
+    content:[
+      "O APT (Advanced Package Tool) resolve dependências automaticamente, baixa pacotes dos repositórios e gerencia atualizações.",
+      "Fluxo básico: apt update → apt upgrade → apt install pacote → apt remove pacote.",
+      "apt e apt-get são similares. apt é a interface moderna para uso interativo. apt-get é mais estável para scripts.",
+      "O APT usa pinning para controlar de qual repositório um pacote vem — útil para instalar pacotes do Testing no Stable via backports.",
+      "Configurações em /etc/apt/apt.conf.d/. Cache de pacotes em /var/cache/apt/archives/.",
+    ],
+    commands:[
+      {cmd:"sudo apt update", desc:"Atualiza a lista de pacotes dos repositórios"},
+      {cmd:"sudo apt upgrade", desc:"Atualiza todos os pacotes instalados", flags:[{f:"-y",d:"Confirma automaticamente"}]},
+      {cmd:"sudo apt install nginx git vim", desc:"Instala pacotes e suas dependências"},
+      {cmd:"sudo apt remove --purge nginx", desc:"Remove pacote e seus arquivos de configuração"},
+      {cmd:"sudo apt autoremove", desc:"Remove dependências que não são mais necessárias"},
+      {cmd:"apt search 'web server'", desc:"Busca pacotes pelo nome ou descrição"},
+      {cmd:"apt show nginx", desc:"Mostra informações detalhadas sobre um pacote"},
+      {cmd:"apt list --installed | grep python", desc:"Lista pacotes instalados filtrados"},
+      {cmd:"sudo apt full-upgrade", desc:"Atualização completa, pode remover pacotes conflitantes"},
+    ],
+    exercises:[
+      {q:"Qual é o fluxo correto para instalar um pacote?", hint:"Sempre atualize a lista antes de instalar", ans:"sudo apt update && sudo apt install nome-do-pacote"},
+      {q:"Como remover um pacote E seus arquivos de configuração?", ans:"sudo apt remove --purge nome-do-pacote"},
+      {q:"Qual comando remove dependências que não são mais necessárias?", ans:"sudo apt autoremove"},
+      {q:"Como buscar pacotes relacionados a database?", ans:"apt search database"},
+    ]
+  },
+  {
+    id:"dpkg", title:"dpkg: Gerenciamento Baixo Nível", icon:"🔧", category:"Administração do Sistema",
+    description:"Entenda o dpkg, o sistema base de pacotes .deb do Debian",
+    content:[
+      "O dpkg (Debian Package) é o gerenciador de baixo nível. Enquanto o APT resolve dependências, o dpkg instala, remove e consulta pacotes .deb diretamente.",
+      "Arquivos .deb podem ser baixados e instalados com dpkg -i. O dpkg NÃO resolve dependências — instale-as separadamente ou use apt -f install.",
+      "O dpkg mantém banco de dados em /var/lib/dpkg/. Consulte com dpkg -l (listar) ou dpkg -L (ver arquivos de um pacote).",
+      "Quando o sistema fica inconsistente após erros, force a configuração com dpkg --configure -a.",
+      "O formato .deb é um arquivo ar contendo: control.tar.gz (metadados), data.tar.gz (arquivos do programa) e debian-binary (versão do formato).",
+    ],
+    commands:[
+      {cmd:"sudo dpkg -i google-chrome.deb", desc:"Instala um pacote .deb local"},
+      {cmd:"sudo dpkg -r nginx", desc:"Remove um pacote instalado", flags:[{f:"-P",d:"Remove e purga arquivos de configuração"}]},
+      {cmd:"dpkg -l | grep python", desc:"Lista todos os pacotes instalados (filtrado)", output:"ii  python3  3.11.2  amd64  interactive high-level object-oriented language"},
+      {cmd:"dpkg -L nginx", desc:"Lista todos os arquivos instalados por um pacote", output:"/etc/nginx\n/etc/nginx/nginx.conf\n/usr/sbin/nginx"},
+      {cmd:"dpkg -S /usr/bin/python3", desc:"Descobre qual pacote instalou determinado arquivo", output:"python3: /usr/bin/python3"},
+      {cmd:"sudo dpkg --configure -a", desc:"Configura todos os pacotes pendentes (útil após erros)"},
+      {cmd:"sudo dpkg-reconfigure tzdata", desc:"Reconfigura interativamente um pacote já instalado"},
+    ],
+    exercises:[
+      {q:"Como instalar um arquivo .deb baixado manualmente?", ans:"sudo dpkg -i arquivo.deb"},
+      {q:"Como ver todos os arquivos que um pacote instalou?", ans:"dpkg -L nome-do-pacote"},
+      {q:"Como descobrir qual pacote é responsável por um arquivo?", ans:"dpkg -S /caminho/do/arquivo"},
+      {q:"O que fazer quando o sistema tem pacotes quebrados após erro?", ans:"sudo dpkg --configure -a e depois sudo apt -f install"},
+    ]
+  },
+  {
+    id:"processos", title:"Processos e Monitoramento", icon:"⚙️", category:"Administração do Sistema",
+    description:"Monitorar e gerenciar processos no Debian: ps, top, htop, kill e signals",
+    content:[
+      "Um processo é um programa em execução com PID único. O processo pai do sistema é o init/systemd com PID 1.",
+      "Sinais: SIGTERM (15) pede encerramento gentil, SIGKILL (9) mata imediatamente sem possibilidade de tratamento. Use SIGKILL só como último recurso.",
+      "top mostra processos em tempo real. htop é mais amigável (apt install htop). atop e glances oferecem monitoramento mais completo.",
+      "Processos em background: use & no fim do comando. fg traz de volta ao foreground. Ctrl+Z pausa e coloca em background.",
+      "journalctl acessa logs do systemd — essencial para diagnóstico de serviços e inicialização.",
+    ],
+    commands:[
+      {cmd:"ps aux | grep nginx", desc:"Lista todos os processos em execução", output:"root 1234 0.0 0.1 ? Ss Mar28 0:00 nginx: master process"},
+      {cmd:"top", desc:"Monitor de processos em tempo real (sair com q)"},
+      {cmd:"htop", desc:"Monitor de processos interativo e colorido (instale com apt install htop)"},
+      {cmd:"kill -9 1234", desc:"Mata um processo pelo PID", flags:[{f:"-15",d:"SIGTERM: encerramento gentil"},{f:"-9",d:"SIGKILL: mata imediatamente"},{f:"-1",d:"SIGHUP: recarrega configuração"}]},
+      {cmd:"killall firefox", desc:"Mata todos os processos com determinado nome"},
+      {cmd:"pgrep nginx", desc:"Busca PID de processo pelo nome", output:"1234\n1235"},
+      {cmd:"nice -n 10 tar czf backup.tar.gz /home", desc:"Inicia processo com prioridade menor"},
+    ],
+    exercises:[
+      {q:"Qual sinal termina um processo de forma gentil?", ans:"SIGTERM (15): kill -15 PID ou apenas kill PID"},
+      {q:"Como matar um processo que não responde?", ans:"kill -9 PID (SIGKILL)"},
+      {q:"Como encontrar o PID de um processo pelo nome?", ans:"pgrep nome-do-processo"},
+      {q:"Qual é o PID do primeiro processo do sistema (init/systemd)?", ans:"PID 1"},
+    ]
+  },
+  {
+    id:"rede", title:"Configuração de Rede", icon:"🌐", category:"Rede e Segurança",
+    description:"Configurar interfaces de rede, IPs estáticos e diagnósticos de conectividade no Debian",
+    content:[
+      "O Debian usa /etc/network/interfaces (tradicional) ou NetworkManager (desktops). Em Debian 12+, systemd-networkd também é uma opção.",
+      "Interfaces: eth0/enp3s0 (ethernet), wlan0 (WiFi). Use ip link show para ver todas. O ip substituiu os antigos ifconfig, route e arp.",
+      "IP estático no /etc/network/interfaces: iface eth0 inet static, address, netmask, gateway, dns-nameservers.",
+      "Para diagnósticos: ping (conectividade), traceroute (caminho dos pacotes), dig/nslookup (DNS), ss (conexões ativas — substituiu netstat).",
+      "Use ip addr (IPs), ip route (rotas), ip link (interfaces). O ifconfig ainda existe via net-tools mas está obsoleto.",
+    ],
+    commands:[
+      {cmd:"ip addr show", desc:"Mostra todas as interfaces e seus IPs", output:"2: eth0: <BROADCAST,MULTICAST,UP>\n    inet 192.168.1.100/24 brd 192.168.1.255"},
+      {cmd:"ip route show", desc:"Mostra a tabela de roteamento", output:"default via 192.168.1.1 dev eth0\n192.168.1.0/24 dev eth0"},
+      {cmd:"ping -c 4 google.com", desc:"Testa conectividade com um host", flags:[{f:"-c n",d:"Envia n pacotes"},{f:"-i n",d:"Intervalo de n segundos"}]},
+      {cmd:"traceroute google.com", desc:"Mostra o caminho dos pacotes até o destino"},
+      {cmd:"sudo ss -tulpn", desc:"Lista portas abertas e processos escutando", flags:[{f:"-t",d:"TCP"},{f:"-u",d:"UDP"},{f:"-l",d:"Apenas em escuta"},{f:"-p",d:"Mostra processo"},{f:"-n",d:"Sem resolução de nomes"}]},
+      {cmd:"dig google.com A", desc:"Consulta DNS detalhada", output:";; ANSWER SECTION:\ngoogle.com. 300 IN A 142.250.185.46"},
+      {cmd:"curl -I https://debian.org", desc:"Faz requisição HTTP e mostra apenas headers"},
+    ],
+    exercises:[
+      {q:"Qual comando moderno substitui o ifconfig?", ans:"ip addr show"},
+      {q:"Como ver quais portas estão abertas no sistema?", ans:"sudo ss -tulpn"},
+      {q:"Qual arquivo configura interfaces de rede de forma tradicional no Debian?", ans:"/etc/network/interfaces"},
+      {q:"Como testar resolução DNS de um domínio?", ans:"dig dominio.com ou nslookup dominio.com"},
+    ]
+  },
+  {
+    id:"firewall", title:"Firewall com UFW", icon:"🛡️", category:"Rede e Segurança",
+    description:"Configure o UFW (Uncomplicated Firewall) para proteger seu sistema Debian",
+    content:[
+      "O UFW (Uncomplicated Firewall) é uma interface simplificada para o iptables — o sistema de firewall nativo do Linux.",
+      "IMPORTANTE: antes de ativar o UFW, libere a porta SSH (22) para não se trancar fora do servidor! Ordem: instalar → liberar SSH → ativar.",
+      "O iptables é a base do firewall Linux. O UFW é uma abstração sobre ele. Para regras complexas, use iptables ou nftables (ferramenta moderna).",
+      "Regras do UFW são persistentes — sobrevivem a reinicializações. Estado salvo em /etc/ufw/.",
+      "O fail2ban complementa a segurança: monitora logs e bloqueia IPs que tentam brute force em SSH e outros serviços.",
+    ],
+    commands:[
+      {cmd:"sudo apt install ufw", desc:"Instala o UFW no Debian"},
+      {cmd:"sudo ufw allow ssh", desc:"Libera a porta SSH ANTES de ativar o firewall"},
+      {cmd:"sudo ufw enable", desc:"Ativa o UFW (faça APÓS liberar o SSH!)"},
+      {cmd:"sudo ufw status verbose", desc:"Mostra status e regras do firewall"},
+      {cmd:"sudo ufw allow 80/tcp", desc:"Libera porta HTTP"},
+      {cmd:"sudo ufw allow from 192.168.1.0/24 to any port 3306", desc:"Libera acesso de uma faixa de IPs"},
+      {cmd:"sudo ufw deny 23", desc:"Bloqueia uma porta"},
+      {cmd:"sudo ufw delete allow 80/tcp", desc:"Remove uma regra existente"},
+    ],
+    exercises:[
+      {q:"Qual é a ordem correta para ativar o UFW com segurança?", hint:"Libere o SSH ANTES de ativar!", ans:"Instalar → sudo ufw allow ssh → sudo ufw enable"},
+      {q:"Como liberar a porta 443 (HTTPS)?", ans:"sudo ufw allow 443/tcp"},
+      {q:"Como verificar as regras ativas do UFW?", ans:"sudo ufw status verbose"},
+      {q:"O UFW persiste após reinicialização?", ans:"Sim, as regras são salvas em /etc/ufw/"},
+    ]
+  },
+  {
+    id:"systemd", title:"Systemd e Serviços", icon:"⚡", category:"Rede e Segurança",
+    description:"Gerenciar serviços, targets e logs com o systemd no Debian",
+    content:[
+      "O systemd é o sistema de init padrão do Debian desde o Debian 8 (Jessie). Inicializa o sistema, gerencia serviços (daemons), monta sistemas de arquivos.",
+      "Serviços no systemd são units (.service). Ficam em /lib/systemd/system/ (sistema) e /etc/systemd/system/ (customizações).",
+      "O systemd organiza estados em targets: multi-user.target (modo texto), graphical.target (com interface gráfica).",
+      "O journald registra logs em /var/log/journal/ em formato binário. Use journalctl para consultá-los com filtros poderosos.",
+      "Crie seus próprios serviços em /etc/systemd/system/meuservico.service. Após criar, execute systemctl daemon-reload.",
+    ],
+    commands:[
+      {cmd:"sudo systemctl start nginx", desc:"Inicia um serviço"},
+      {cmd:"sudo systemctl stop nginx", desc:"Para um serviço"},
+      {cmd:"sudo systemctl restart nginx", desc:"Reinicia um serviço"},
+      {cmd:"sudo systemctl enable nginx", desc:"Habilita serviço para iniciar com o sistema"},
+      {cmd:"sudo systemctl disable bluetooth", desc:"Desabilita inicialização automática do serviço"},
+      {cmd:"systemctl status ssh", desc:"Mostra status detalhado de um serviço"},
+      {cmd:"systemctl list-units --type=service --state=running", desc:"Lista todos os serviços em execução"},
+      {cmd:"journalctl -u nginx -f", desc:"Acompanha logs de um serviço em tempo real", flags:[{f:"-n 100",d:"Últimas 100 linhas"},{f:"--since today",d:"Logs de hoje"},{f:"-p err",d:"Apenas erros"}]},
+    ],
+    exercises:[
+      {q:"Como habilitar o nginx para iniciar automaticamente?", ans:"sudo systemctl enable nginx"},
+      {q:"Como ver os logs de um serviço em tempo real?", ans:"journalctl -u nome-do-servico -f"},
+      {q:"Qual comando lista todos os serviços em execução?", ans:"systemctl list-units --type=service --state=running"},
+      {q:"Onde ficam os arquivos de unit do systemd (sistema)?", ans:"/lib/systemd/system/ (customizações em /etc/systemd/system/)"},
+    ]
+  },
+  {
+    id:"pipes", title:"Pipes e Redirecionamento", icon:"🔀", category:"Produtividade e Shell",
+    description:"Domine pipes, redirecionamento de I/O e combinação de comandos no Bash",
+    content:[
+      "O pipe (|) conecta a saída de um comando na entrada do próximo. Exemplo: cat access.log | grep ERROR | sort | uniq -c lista erros únicos.",
+      "Redirecionamento: > sobrescreve arquivo, >> adiciona ao final, 2> redireciona stderr, &> redireciona stdout e stderr, < usa arquivo como entrada.",
+      "O /dev/null é o 'buraco negro' do Linux — tudo que vai para ele desaparece. Use para suprimir saídas: comando > /dev/null 2>&1.",
+      "Operadores: && (executa próximo só se anterior teve sucesso), || (executa só se anterior falhou), ; (executa sempre).",
+      "O tee exibe no terminal E grava em arquivo: comando | tee arquivo.log. Útil para monitorar e registrar simultaneamente.",
+    ],
+    commands:[
+      {cmd:"ps aux | grep nginx | awk '{print $2}'", desc:"Pipe: saída de ps vira entrada de grep vira entrada de awk"},
+      {cmd:"echo 'teste' > /tmp/teste.txt", desc:"Redireciona stdout para arquivo (sobrescreve)"},
+      {cmd:"echo 'nova linha' >> /tmp/teste.txt", desc:"Adiciona stdout ao final do arquivo"},
+      {cmd:"make build > build.log 2>&1", desc:"Redireciona stderr para o mesmo destino que stdout"},
+      {cmd:"grep -r 'ERROR' /var/log/", desc:"Filtra linhas que contêm o termo", flags:[{f:"-i",d:"Ignora maiúsculas"},{f:"-n",d:"Mostra número da linha"},{f:"-r",d:"Recursivo"},{f:"-v",d:"Linhas que NÃO têm o termo"}]},
+      {cmd:"ps aux | awk '{print $1, $2, $11}'", desc:"Processa texto por colunas"},
+      {cmd:"sed 's/localhost/0.0.0.0/g' nginx.conf", desc:"Substitui texto com expressões regulares"},
+      {cmd:"cat access.log | awk '{print $1}' | sort | uniq -c | sort -rn | head -10", desc:"Ordena e conta ocorrências únicas"},
+    ],
+    exercises:[
+      {q:"Como contar quantas linhas têm error em um log?", ans:"grep -i 'error' /var/log/syslog | wc -l"},
+      {q:"Como executar cmd2 apenas se cmd1 tiver sucesso?", ans:"cmd1 && cmd2"},
+      {q:"Como suprimir toda saída de um comando?", ans:"comando > /dev/null 2>&1"},
+      {q:"Como adicionar saída de um comando ao final de um arquivo?", ans:"comando >> arquivo.txt"},
+    ]
+  },
+  {
+    id:"produtividade", title:"Atalhos e Produtividade", icon:"⚡", category:"Produtividade e Shell",
+    description:"Atalhos do Bash, aliases, variáveis de ambiente e dicas para produtividade",
+    content:[
+      "Atalhos do Bash: Ctrl+R (busca no histórico), Ctrl+A/E (início/fim da linha), Alt+. (último argumento do comando anterior).",
+      "Aliases criam atalhos para comandos longos. Defina no ~/.bashrc para torná-los permanentes: alias ll='ls -la --color=auto'.",
+      "Variáveis de ambiente: PATH (onde o sistema busca executáveis), HOME (diretório home), EDITOR (editor padrão).",
+      "~/.bashrc é executado para cada novo terminal. ~/.bash_profile ou ~/.profile é executado no login.",
+      "Brace expansion: {a,b,c} expande para a, b, c. {1..10} para 1 a 10. Ex: mkdir -p projeto/{src,tests,docs} cria 3 subdiretórios de uma vez.",
+    ],
+    commands:[
+      {cmd:"alias gs='git status'", desc:"Cria um alias temporário"},
+      {cmd:"echo $PATH", desc:"Mostra os diretórios onde o shell busca executáveis", output:"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"},
+      {cmd:"export EDITOR=vim", desc:"Define variável de ambiente para processos filhos"},
+      {cmd:"source ~/.bashrc", desc:"Recarrega o .bashrc sem fechar o terminal"},
+      {cmd:"!!", desc:"Repete o último comando executado"},
+      {cmd:"mkdir -p ~/app/{frontend,backend,database}", desc:"Brace expansion: cria múltiplos diretórios de uma vez"},
+      {cmd:"sleep 60 &", desc:"Executa comando em background"},
+    ],
+    exercises:[
+      {q:"Como criar um alias permanente para ll=ls -la?", ans:"Adicione 'alias ll=\"ls -la\"' no ~/.bashrc e execute source ~/.bashrc"},
+      {q:"Como criar múltiplos diretórios de uma vez?", ans:"mkdir -p projeto/{src,tests,docs}"},
+      {q:"Qual atalho busca no histórico de comandos?", ans:"Ctrl+R"},
+      {q:"Como repetir o último comando digitado?", ans:"!! ou pressione seta para cima e Enter"},
+    ]
+  },
+  {
+    id:"scripting", title:"Shell Scripting Básico", icon:"📜", category:"Shell Scripting",
+    description:"Crie scripts Bash para automatizar tarefas no Debian",
+    content:[
+      "Shell scripting automatiza tarefas repetitivas. Um script Bash começa com #!/bin/bash (shebang). Torne executável com chmod +x.",
+      "Variáveis: use maiúsculas por convenção. Atribua sem espaços: NOME=valor. Acesse com cifrão + nome. Argumentos posicionais: primeiro, segundo argumento etc.",
+      "Estruturas: if/then/else/fi (condições), for (loops), while (loops condicionais), case (múltiplas condições). Colchetes verificam condições.",
+      "Funções organizam código em blocos reutilizáveis. Defina com nome() e chame pelo nome. O código de retorno indica sucesso (0) ou falha.",
+      "Boas práticas: set -e (para em erro), set -u (variáveis não definidas como erro), aspas duplas em variáveis para evitar problemas com espaços.",
+    ],
+    commands:[
+      {cmd:"#!/bin/bash", desc:"Shebang: primeira linha obrigatória de todo script Bash"},
+      {cmd:"chmod +x backup.sh && ./backup.sh", desc:"Torna o script executável e o executa"},
+      {cmd:"if [ -f /etc/nginx/nginx.conf ]; then", desc:"Estrutura condicional: verifica se arquivo existe"},
+      {cmd:"for pkg in nginx git vim curl; do", desc:"Loop for para iterar sobre lista de pacotes"},
+      {cmd:"while [ $contador -lt 10 ]; do", desc:"Loop while condicional"},
+      {cmd:"read -p 'Nome: ' NOME", desc:"Lê entrada do usuário e armazena na variável"},
+    ],
+    exercises:[
+      {q:"Qual é a primeira linha obrigatória de um script Bash?", ans:"#!/bin/bash (o shebang)"},
+      {q:"Como tornar um script executável?", ans:"chmod +x script.sh"},
+      {q:"Como verificar se um arquivo existe em um script bash?", ans:"if [ -f /caminho/arquivo ]; then"},
+      {q:"Qual variável contém o exit code do último comando?", ans:"A variável especial de status de saída (cifrão + interrogação)"},
+    ]
+  },
+  {
+    id:"ajuda", title:"Obtendo Ajuda no Linux", icon:"❓", category:"Referência Rápida",
+    description:"Como usar o man, info, help e encontrar documentação no Debian",
+    content:[
+      "O sistema man (manual) é a documentação oficial. Seções: NAME, SYNOPSIS, DESCRIPTION, OPTIONS, EXAMPLES, SEE ALSO. Sair com q.",
+      "Seções do man: 1 (comandos do usuário), 2 (chamadas de sistema), 3 (funções de biblioteca), 5 (formatos de arquivo), 8 (administração do sistema).",
+      "help mostra ajuda para comandos internos do Bash. A flag --help dá um resumo rápido para a maioria dos programas externos.",
+      "O Debian tem wiki excelente em wiki.debian.org. A Debian Reference (reference.debian.org) é um manual completo. Fóruns e mailing lists da comunidade também são recursos valiosos.",
+      "info mostra documentação GNU info com hiperlinks — mais detalhado que man para ferramentas GNU. apropos busca em páginas man por palavras-chave.",
+    ],
+    commands:[
+      {cmd:"man ls", desc:"Abre o manual do comando ls", flags:[{f:"-k palavra",d:"Busca em todos os manuais (mesmo que apropos)"}]},
+      {cmd:"ls --help | head -20", desc:"Mostra ajuda rápida do comando"},
+      {cmd:"apropos 'disk usage'", desc:"Busca páginas man que mencionam a palavra", output:"du (1) - estimate file space usage\ndf (1) - report file system disk space usage"},
+      {cmd:"info tar", desc:"Documentação GNU info (mais detalhada que man)"},
+      {cmd:"type ls", desc:"Mostra o tipo de um comando (builtin, alias, arquivo)", output:"ls is aliased to 'ls --color=auto'"},
+      {cmd:"whatis grep", desc:"Mostra descrição curta de um comando", output:"grep (1) - print lines that match patterns"},
+    ],
+    exercises:[
+      {q:"Como ver o manual do comando find?", ans:"man find"},
+      {q:"Como buscar manuais relacionados a network?", ans:"apropos network ou man -k network"},
+      {q:"Qual a diferença entre man e --help?", ans:"man mostra a documentação completa. --help mostra um resumo rápido sem o pacote man"},
+      {q:"Em qual seção do man estão os comandos de administração do sistema?", ans:"Seção 8 (man 8 comando)"},
+    ]
+  },
+  {
+    id:"ssh", title:"SSH: Conexão Remota Segura", icon:"🔐", category:"Acesso Remoto e SSH",
+    description:"Configure e use SSH para acesso remoto seguro ao Debian",
+    content:[
+      "O SSH (Secure Shell) é o protocolo padrão para acesso remoto seguro. O servidor é o openssh-server, o cliente é o openssh-client.",
+      "Autenticação por chave SSH é muito mais segura que senha. Gere com ssh-keygen. A chave pública vai para o servidor, a privada fica em você — nunca compartilhe a privada.",
+      "~/.ssh/authorized_keys contém as chaves públicas permitidas no servidor. Copie com ssh-copy-id ou manualmente.",
+      "/etc/ssh/sshd_config configura o servidor. Recomendado: PermitRootLogin no, PasswordAuthentication no, e mude a porta padrão.",
+      "SSH suporta tunelamento: crie túneis para acessar serviços remotos como se fossem locais. Port forwarding local (-L) e remoto (-R).",
+    ],
+    commands:[
+      {cmd:"sudo apt install openssh-server && sudo systemctl enable ssh", desc:"Instala o servidor SSH no Debian"},
+      {cmd:"ssh joao@192.168.1.100", desc:"Conecta a um servidor remoto via SSH", flags:[{f:"-p 2222",d:"Conecta na porta 2222"},{f:"-i chave.pem",d:"Usa chave privada específica"}]},
+      {cmd:"ssh-keygen -t ed25519 -C 'meu@email.com'", desc:"Gera par de chaves SSH (algoritmo moderno ed25519)"},
+      {cmd:"ssh-copy-id joao@192.168.1.100", desc:"Copia chave pública para o servidor"},
+      {cmd:"scp backup.tar.gz joao@servidor:/home/joao/", desc:"Copia arquivo via SSH"},
+      {cmd:"ssh -L 5432:localhost:5432 joao@servidor.com", desc:"Cria túnel SSH para acessar PostgreSQL remoto localmente"},
+      {cmd:"sudo systemctl restart ssh", desc:"Reinicia o servidor SSH após mudanças no sshd_config"},
+    ],
+    exercises:[
+      {q:"Como gerar um par de chaves SSH moderno?", ans:"ssh-keygen -t ed25519"},
+      {q:"Como copiar sua chave pública para um servidor?", ans:"ssh-copy-id usuario@servidor"},
+      {q:"Qual configuração no sshd_config desativa login como root?", ans:"PermitRootLogin no"},
+      {q:"Como conectar SSH em uma porta não padrão (ex: 2222)?", ans:"ssh -p 2222 usuario@servidor"},
+    ]
+  },
+  {
+    id:"servidor-web", title:"Servidor Web no Debian", icon:"🌍", category:"Serviços Linux",
+    description:"Configure Apache ou Nginx como servidor web no Debian",
+    content:[
+      "Dois servidores web principais: Apache (mais antigo, usa .htaccess, ecossistema enorme) e Nginx (usa menos memória, excelente como proxy reverso).",
+      "Apache no Debian usa Virtual Hosts. Sites em /etc/apache2/sites-available/, ativados com a2ensite. Módulos com a2enmod.",
+      "Nginx: configurações em /etc/nginx/sites-available/ (desabilitados) e /etc/nginx/sites-enabled/ (habilitados via symlinks). Config global: /etc/nginx/nginx.conf.",
+      "Let's Encrypt fornece certificados SSL gratuitos. O Certbot obtém e renova automaticamente. Instale o plugin para Apache ou Nginx.",
+      "Logs: Apache em /var/log/apache2/, Nginx em /var/log/nginx/. O GoAccess é ótimo para analisar logs de acesso.",
+    ],
+    commands:[
+      {cmd:"sudo apt install apache2 && sudo systemctl enable apache2", desc:"Instala o Apache no Debian"},
+      {cmd:"sudo apt install nginx && sudo systemctl enable nginx", desc:"Instala o Nginx no Debian"},
+      {cmd:"sudo a2ensite meusite.conf && sudo systemctl reload apache2", desc:"Ativa um Virtual Host no Apache"},
+      {cmd:"sudo a2enmod ssl rewrite headers && sudo systemctl restart apache2", desc:"Ativa módulos do Apache"},
+      {cmd:"sudo nginx -t", desc:"Testa a configuração do Nginx", output:"nginx: the configuration file syntax is ok\nnginx: configuration file test is successful"},
+      {cmd:"sudo certbot --nginx -d meusite.com -d www.meusite.com", desc:"Obtém certificado SSL com Certbot para Nginx"},
+      {cmd:"sudo tail -f /var/log/nginx/error.log", desc:"Monitora logs de erro do Nginx em tempo real"},
+    ],
+    exercises:[
+      {q:"Onde ficam os Virtual Hosts do Apache no Debian?", ans:"/etc/apache2/sites-available/"},
+      {q:"Como testar se a configuração do Nginx está correta?", ans:"sudo nginx -t"},
+      {q:"Como ativar um site no Apache?", ans:"sudo a2ensite nome-do-site.conf && sudo systemctl reload apache2"},
+      {q:"Onde ficam os logs de erro do Nginx?", ans:"/var/log/nginx/error.log"},
+    ]
+  },
+  {
+    id:"banco-dados", title:"Servidor de Banco de Dados", icon:"🗄️", category:"Serviços Linux",
+    description:"Instale e configure PostgreSQL e MariaDB no Debian",
+    content:[
+      "O PostgreSQL é o banco relacional mais avançado do mundo open source. Altamente recomendado para projetos sérios. Bem integrado no Debian.",
+      "O MySQL/MariaDB é popular para aplicações web. O MariaDB é o fork comunitário do MySQL — padrão no Debian. Totalmente compatível com MySQL.",
+      "Segurança: execute mysql_secure_installation após instalar MariaDB. Para PostgreSQL, o usuário padrão é postgres — defina senha imediatamente.",
+      "Backup crítico: pg_dump para PostgreSQL, mysqldump para MySQL/MariaDB. Automatize com cron e armazene em local seguro.",
+      "Para acesso remoto, configure o bind-address e crie usuários com permissões específicas. Em produção, use SSH tunneling.",
+    ],
+    commands:[
+      {cmd:"sudo apt install postgresql postgresql-contrib", desc:"Instala PostgreSQL no Debian"},
+      {cmd:"sudo -u postgres psql", desc:"Acessa o PostgreSQL como superusuário"},
+      {cmd:"sudo apt install mariadb-server && sudo mysql_secure_installation", desc:"Instala MariaDB no Debian"},
+      {cmd:"sudo mysql -u root", desc:"Acessa o MySQL/MariaDB como root"},
+      {cmd:"sudo -u postgres pg_dump meubanco > /backup/meubanco_backup.sql", desc:"Faz backup de banco PostgreSQL"},
+      {cmd:"mysqldump -u root -p meubanco > backup.sql", desc:"Faz backup de banco MySQL/MariaDB"},
+      {cmd:"systemctl status postgresql", desc:"Verifica status do PostgreSQL"},
+    ],
+    exercises:[
+      {q:"Qual usuário padrão do PostgreSQL no sistema Linux?", ans:"postgres"},
+      {q:"Como acessar o PostgreSQL após instalar?", ans:"sudo -u postgres psql"},
+      {q:"Qual comando faz backup de um banco PostgreSQL?", ans:"pg_dump nome_do_banco > backup.sql"},
+      {q:"Qual script deve ser executado após instalar o MariaDB?", ans:"sudo mysql_secure_installation"},
+    ]
+  },
+  {
+    id:"iac", title:"IaC: Script de Provisionamento", icon:"🤖", category:"Infraestrutura como Código",
+    description:"Crie scripts de provisionamento para configurar servidores Debian de forma automatizada",
+    content:[
+      "Infraestrutura como Código (IaC) é definir e gerenciar infraestrutura usando código em vez de processos manuais. Um script Bash já é IaC.",
+      "Um script de provisionamento idempotente pode ser executado múltiplas vezes com o mesmo resultado. Verifique antes de instalar o que já está instalado.",
+      "Ferramentas profissionais: Ansible (simples, usa YAML), Terraform (nuvem), Puppet e Chef. Para servidores Debian, Ansible é a mais comum.",
+      "O cloud-init é o padrão de provisionamento em VMs e nuvem. Você define um YAML e o servidor aplica automaticamente na primeira inicialização.",
+      "Boas práticas: versionamento com Git, testes antes de produção, documentação clara e variáveis para configurações que mudam entre ambientes.",
+    ],
+    commands:[
+      {cmd:"#!/bin/bash\nset -euo pipefail", desc:"Início de script robusto: para em erro, variáveis não definidas como erro, propaga erros em pipes"},
+      {cmd:"dpkg -l | grep -q nginx || sudo apt install -y nginx", desc:"Verifica se pacote está instalado antes de instalar (idempotência)"},
+      {cmd:"systemctl is-active nginx || sudo systemctl start nginx", desc:"Verifica se serviço está rodando antes de iniciar"},
+      {cmd:"sudo apt install -y ansible", desc:"Instala o Ansible no Debian"},
+      {cmd:"ansible-playbook -i inventory/hosts site.yml --check", desc:"Executa um playbook Ansible em modo de verificação"},
+      {cmd:"crontab -e", desc:"Edita as tarefas agendadas (cron) do usuário"},
+    ],
+    exercises:[
+      {q:"O que significa idempotência em IaC?", ans:"Executar o script múltiplas vezes produz sempre o mesmo resultado, sem efeitos colaterais"},
+      {q:"Como verificar se o nginx está instalado em um script?", ans:"dpkg -l | grep -q nginx"},
+      {q:"Qual ferramenta de IaC usa YAML e é comum com Debian?", ans:"Ansible"},
+      {q:"O que o set -euo pipefail faz em um script?", ans:"Para o script em qualquer erro, trata variáveis não definidas como erro e propaga erros em pipes"},
+    ]
+  },
+];
+
+// ────────────────────────────────────────────────────
+// App Logic (plain JS + DOM manipulation)
+// ────────────────────────────────────────────────────
+
+let activeId = MODULES[0].id;
+let expandedExercises = {};
+let expandedHints = {};
+
+function groupByCategory(modules) {
+  const map = new Map();
+  modules.forEach((m, i) => {
+    if (!map.has(m.category)) map.set(m.category, []);
+    map.get(m.category).push({ ...m, globalIndex: i });
+  });
+  return map;
+}
+
+function renderSidebar() {
+  const grouped = groupByCategory(MODULES);
+  let html = '';
+  grouped.forEach((items, category) => {
+    html += `<div class="nav-category">${category}</div>`;
+    items.forEach(m => {
+      const active = m.id === activeId ? 'active' : '';
+      html += `<button class="nav-item ${active}" onclick="selectModule('${m.id}')">
+        <span>${m.icon}</span>
+        <span class="nav-num">${String(m.globalIndex + 1).padStart(2, '0')}</span>
+        <span style="line-height:1.3;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</span>
+      </button>`;
+    });
+  });
+  document.getElementById('nav').innerHTML = html;
+}
+
+function renderContent() {
+  const idx = MODULES.findIndex(m => m.id === activeId);
+  const m = MODULES[idx];
+  const prev = idx > 0 ? MODULES[idx-1] : null;
+  const next = idx < MODULES.length-1 ? MODULES[idx+1] : null;
+
+  let cmdsHtml = m.commands.map((c,ci) => `
+    <div class="cmd-block fade-in">
+      <div class="cmd-label">Comando</div>
+      <code class="cmd-text"><span class="cmd-prompt">$ </span>${escHtml(c.cmd)}</code>
+      <p class="cmd-desc">${escHtml(c.desc)}</p>
+      ${c.flags && c.flags.length ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid #21262d">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#484f58;margin-bottom:6px">Flags / Opções:</div>
+        ${c.flags.map(f=>`<div class="flag-item"><code class="flag-name">${escHtml(f.f)}</code><span class="flag-desc">${escHtml(f.d)}</span></div>`).join('')}
+      </div>` : ''}
+      ${c.output ? `<div class="cmd-example">
+        <div class="cmd-example-label">Saída:</div>
+        <pre class="cmd-output" style="margin-top:4px;white-space:pre-wrap">${escHtml(c.output)}</pre>
+      </div>` : ''}
+    </div>
+  `).join('');
+
+  let exsHtml = m.exercises.map((e,ei) => {
+    const key = m.id+'-'+ei;
+    const showAns = expandedExercises[key];
+    const showHint = expandedHints[key];
+    return `<div class="exercise-card fade-in">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div class="exercise-num">${ei+1}</div>
+        <div style="flex:1">
+          <p style="margin:0;color:#e6edf3;font-weight:500;line-height:1.6">${escHtml(e.q)}</p>
+          <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+            ${e.hint ? `<button class="btn-hint" onclick="toggleHint('${key}')">💡 ${showHint ? 'Esconder dica' : 'Ver dica'}</button>` : ''}
+            <button class="btn-answer" onclick="toggleAnswer('${key}')">
+              ${showAns ? '▼ Esconder resposta' : '▶ Ver resposta'}
+            </button>
+          </div>
+          ${showHint && e.hint ? `<div class="hint-box">${escHtml(e.hint)}</div>` : ''}
+          ${showAns ? `<div class="answer-box"><span style="color:#3d8b66;font-size:14px">✓</span>${escHtml(e.ans)}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('content').innerHTML = `<div class="content-inner fade-in">
+    <div style="margin-bottom:32px">
+      <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:#8b949e;font-family:'JetBrains Mono',monospace;margin-bottom:6px">
+        <span style="text-transform:uppercase;letter-spacing:.1em">${escHtml(m.category)}</span>
+        <span>•</span>
+        <span>Módulo ${String(idx+1).padStart(2,'0')} de ${String(MODULES.length).padStart(2,'0')}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <span style="font-size:2rem">${m.icon}</span>
+        <h1 style="margin:0;font-size:clamp(1.5rem,4vw,2rem);font-weight:800;color:#e6edf3;line-height:1.2">${escHtml(m.title)}</h1>
+      </div>
+      <p style="margin:0;color:#8b949e;font-size:16px;line-height:1.6">${escHtml(m.description)}</p>
+    </div>
+
+    <section style="margin-bottom:40px">
+      <div class="section-title">
+        <span style="color:#c1001f">📖</span>
+        <span>Conceitos</span>
+      </div>
+      ${m.content.map(p=>`<p style="color:#8b949e;line-height:1.8;margin:0 0 16px;font-size:15px">${escHtml(p)}</p>`).join('')}
+    </section>
+
+    <section style="margin-bottom:40px">
+      <div class="section-title">
+        <span style="color:#58d4b2">💻</span>
+        <span>Comandos</span>
+        <span class="tag-badge">${m.commands.length}</span>
+      </div>
+      ${cmdsHtml}
+    </section>
+
+    <section style="margin-bottom:40px">
+      <div class="section-title">
+        <span style="color:#e3b341">🎓</span>
+        <span>Exercícios</span>
+        <span class="tag-badge">${m.exercises.length}</span>
+      </div>
+      <p style="color:#484f58;font-size:13px;margin:0 0 16px">Tente responder antes de ver a resposta! Pratique no terminal para fixar o conteúdo.</p>
+      ${exsHtml}
+    </section>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:24px;border-top:1px solid #21262d">
+      <button onclick="${prev ? `selectModule('${prev.id}')` : ''}" 
+        style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:${prev ? '#8b949e' : '#2d333b'};background:none;border:none;cursor:${prev ? 'pointer' : 'default'};padding:0"
+        ${!prev ? 'disabled' : ''}>
+        ◀ Anterior
+      </button>
+      <button onclick="${next ? `selectModule('${next.id}')` : ''}"
+        style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:${next ? '#c1001f' : '#2d333b'};background:none;border:none;cursor:${next ? 'pointer' : 'default'};padding:0"
+        ${!next ? 'disabled' : ''}>
+        Próximo ▶
+      </button>
+    </div>
+  </div>`;
+
+  document.getElementById('content').scrollTop = 0;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function selectModule(id) {
+  activeId = id;
+  expandedExercises = {};
+  expandedHints = {};
+  renderSidebar();
+  renderContent();
+  closeSidebar();
+}
+
+function toggleAnswer(key) {
+  expandedExercises[key] = !expandedExercises[key];
+  renderContent();
+}
+
+function toggleHint(key) {
+  expandedHints[key] = !expandedHints[key];
+  renderContent();
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── Build DOM ──
+document.getElementById('root').innerHTML = `
+  <div style="display:flex;height:100vh;overflow:hidden">
+    <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+    <div id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="logo">D</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#e6edf3;line-height:1.2">Debian</div>
+            <div style="font-size:11px;color:#8b949e">Guia Completo</div>
+          </div>
+        </div>
+      </div>
+      <nav id="nav" style="padding:8px 0"></nav>
+      <div style="padding:12px 16px;border-top:1px solid #21262d">
+        <div style="font-size:10px;color:#484f58;text-align:center">Debian — Guia Completo v1.0 • PT-BR</div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;padding:12px 16px;background:#0d1117;border-bottom:1px solid #21262d;position:sticky;top:0;z-index:10" class="hamburger">
+        <button onclick="openSidebar()" style="background:none;border:none;color:#e6edf3;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:6px;border:1px solid #30363d">
+          ☰
+        </button>
+        <span style="margin-left:12px;font-size:14px;font-weight:600;color:#e6edf3">Debian — Guia Completo</span>
+      </div>
+      <div id="content" style="flex:1;overflow-y:auto"></div>
+    </div>
+  </div>
+`;
+
+renderSidebar();
+renderContent();
+</script>
+</body>
+</html>
