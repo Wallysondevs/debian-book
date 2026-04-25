@@ -1,97 +1,158 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  @layer base {
-    :root {
-      --background: 220 20% 10%;
-      --foreground: 210 20% 90%;
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 25% 12%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 350 85% 45%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
+    --primary: 350 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 93%;
+    --secondary-foreground: 220 25% 20%;
+    --muted: 220 15% 93%;
+    --muted-foreground: 220 15% 45%;
+    --accent: 350 85% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --radius: 0.5rem;
 
-      --card: 220 18% 13%;
-      --card-foreground: 210 20% 90%;
-
-      --popover: 220 18% 13%;
-      --popover-foreground: 210 20% 90%;
-
-      --primary: 340 90% 43%;
-      --primary-foreground: 0 0% 100%;
-
-      --secondary: 220 15% 18%;
-      --secondary-foreground: 210 20% 85%;
-
-      --muted: 220 15% 16%;
-      --muted-foreground: 215 15% 55%;
-
-      --accent: 340 90% 43%;
-      --accent-foreground: 0 0% 100%;
-
-      --destructive: 0 70% 50%;
-      --destructive-foreground: 0 0% 100%;
-
-      --border: 220 15% 20%;
-      --input: 220 15% 20%;
-      --ring: 340 90% 43%;
-
-      --radius: 0.5rem;
-
-      --terminal: 120 40% 55%;
-      --terminal-bg: 220 25% 8%;
-      --terminal-border: 220 15% 18%;
-
-      --debian-red: 340 90% 43%;
-      --debian-dark-red: 340 90% 30%;
-      --debian-light-red: 340 70% 62%;
-
-      --success: 142 50% 45%;
-      --warning: 38 90% 55%;
-      --info: 214 60% 50%;
-
-      --sidebar-background: 220 22% 8%;
-      --sidebar-foreground: 210 15% 70%;
-      --sidebar-primary: 340 90% 43%;
-      --sidebar-primary-foreground: 0 0% 100%;
-      --sidebar-accent: 220 18% 14%;
-      --sidebar-accent-foreground: 210 20% 90%;
-      --sidebar-border: 220 15% 16%;
-      --sidebar-ring: 340 90% 43%;
-    }
+    --debian-red: 350 85% 45%;
+    --debian-light-red: 350 85% 60%;
+    --debian-dark-red: 350 90% 30%;
+    --terminal: 120 40% 35%;
+    --terminal-bg: 220 25% 12%;
+    --success: 142 70% 40%;
+    --warning: 38 90% 50%;
+    --info: 217 86% 55%;
   }
 
-  @layer base {
-    * { @apply border-border; }
-    body {
-      @apply bg-background text-foreground font-sans;
-      font-family: 'Inter', sans-serif;
-    }
-    code, pre, .font-mono {
-      font-family: 'JetBrains Mono', monospace;
-    }
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 210 20% 92%;
+    --border: 220 18% 18%;
+    --input: 220 18% 18%;
+    --ring: 350 85% 60%;
+    --card: 220 22% 11%;
+    --card-foreground: 210 20% 92%;
+    --popover: 220 22% 11%;
+    --popover-foreground: 210 20% 92%;
+    --primary: 350 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 18% 14%;
+    --secondary-foreground: 210 20% 85%;
+    --muted: 220 18% 14%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 350 85% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --debian-red: 350 85% 58%;
+    --debian-light-red: 350 90% 70%;
+    --debian-dark-red: 350 75% 40%;
+    --terminal: 120 50% 65%;
+    --terminal-bg: 220 30% 6%;
   }
 
-  ::-webkit-scrollbar { width: 6px; }
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: hsl(var(--background)); }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+}
 
-  .code-block {
-    background: hsl(var(--terminal-bg));
-    border: 1px solid hsl(var(--terminal-border));
-    border-radius: var(--radius);
-    overflow-x: auto;
+@layer components {
+  .prose-debian {
+    color: hsl(var(--foreground) / 0.9);
+    line-height: 1.75;
   }
-  .code-block code { color: hsl(var(--terminal)); font-size: 0.875rem; line-height: 1.7; }
-  .code-block .prompt { color: hsl(var(--debian-light-red)); user-select: none; }
-  .code-block .comment { color: hsl(var(--muted-foreground)); font-style: italic; }
-  .code-block .flag { color: hsl(var(--warning)); }
-  .code-block .path { color: hsl(var(--debian-light-red)); }
-
-  .glow-red { box-shadow: 0 0 20px hsl(var(--primary) / 0.15); }
-
-  .sidebar-item-active {
-    background: hsl(var(--primary) / 0.12);
-    border-left: 3px solid hsl(var(--primary));
+  .prose-debian h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: hsl(var(--foreground));
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .prose-debian h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: hsl(var(--foreground));
+  }
+  .prose-debian p {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.75;
+  }
+  .prose-debian ul, .prose-debian ol {
+    padding-left: 1.5rem;
+    margin: 0.75rem 0;
+  }
+  .prose-debian li {
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.7;
+  }
+  .prose-debian strong {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+  .prose-debian a {
     color: hsl(var(--primary));
+    text-decoration: none;
   }
-  
+  .prose-debian a:hover {
+    text-decoration: underline;
+  }
+  .prose-debian code:not(pre code) {
+    background: hsl(var(--muted));
+    color: hsl(var(--primary));
+    padding: 0.1em 0.4em;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background-color: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .text-terminal { color: hsl(var(--terminal)); }
+  .bg-terminal-bg { background-color: hsl(var(--terminal-bg)); }
+}
