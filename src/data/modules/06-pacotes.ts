@@ -32,9 +32,9 @@ export const pacotes: Module[] = [
         command: "sudo apt update",
         description: "Atualiza a LISTA de pacotes disponíveis nos repositórios. Não instala nada — só lê os índices novos.",
         example: "sudo apt update",
-        output: `Hit:1 http://deb.debian.org/debian bookworm InRelease
-Get:2 http://security.debian.org bookworm-security InRelease [48.0 kB]
-Get:3 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+        output: `Hit:1 http://deb.debian.org/debian trixie InRelease
+Get:2 http://security.debian.org trixie-security InRelease [48.0 kB]
+Get:3 http://deb.debian.org/debian trixie-updates InRelease [55.4 kB]
 Reading package lists... Done
 Building dependency tree... Done
 Reading state information... Done
@@ -87,7 +87,7 @@ Setting up neofetch (7.1.0-4) ...`,
         flags: [
           { flag: "-y", description: "Aceita yes em tudo (cuidado em produção)" },
           { flag: "--no-install-recommends", description: "Não instala pacotes apenas recomendados, só os obrigatórios" },
-          { flag: "-t bookworm-backports", description: "Instala da branch backports em vez da stable" },
+          { flag: "-t trixie-backports", description: "Instala da branch backports em vez da stable" },
           { flag: "--reinstall", description: "Reinstala mesmo que o pacote já esteja presente" },
           { flag: "--simulate", description: "Mostra o que faria, sem fazer" },
         ],
@@ -170,7 +170,7 @@ Description: Vi IMproved - enhanced vi editor
   Candidate: 115.7.0esr-1~deb12u1
   Version table:
  *** 115.7.0esr-1~deb12u1 500
-        500 http://security.debian.org bookworm-security/main amd64 Packages
+        500 http://security.debian.org trixie-security/main amd64 Packages
         100 /var/lib/dpkg/status`,
       },
       {
@@ -367,10 +367,10 @@ sudo apt --simulate install docker.io | head -30`,
       },
     ],
     references: [
-      { title: "Manual oficial do APT", url: "https://manpages.debian.org/bookworm/apt/apt.8.en.html" },
+      { title: "Manual oficial do APT", url: "https://manpages.debian.org/trixie/apt/apt.8.en.html" },
       { title: "Wiki Debian — Apt", url: "https://wiki.debian.org/Apt" },
       { title: "Debian Handbook — Capítulo 6 (Maintenance and Updates)", url: "https://debian-handbook.info/browse/stable/sect.apt-get.html" },
-      { title: "Manual apt-cache", url: "https://manpages.debian.org/bookworm/apt/apt-cache.8.en.html" },
+      { title: "Manual apt-cache", url: "https://manpages.debian.org/trixie/apt/apt-cache.8.en.html" },
     ],
   },
 
@@ -637,8 +637,8 @@ dpkg -l | grep ^rc`,
       },
     ],
     references: [
-      { title: "Manual dpkg", url: "https://manpages.debian.org/bookworm/dpkg/dpkg.1.en.html" },
-      { title: "Manual dpkg-reconfigure", url: "https://manpages.debian.org/bookworm/debconf/dpkg-reconfigure.8.en.html" },
+      { title: "Manual dpkg", url: "https://manpages.debian.org/trixie/dpkg/dpkg.1.en.html" },
+      { title: "Manual dpkg-reconfigure", url: "https://manpages.debian.org/trixie/debconf/dpkg-reconfigure.8.en.html" },
       { title: "Debian Policy Manual", url: "https://www.debian.org/doc/debian-policy/" },
       { title: "Wiki Debian — Package Management", url: "https://wiki.debian.org/PackageManagement" },
     ],
@@ -659,10 +659,10 @@ dpkg -l | grep ^rc`,
     ],
     content: [
       "Pense no APT como um cliente fiel de algumas lojas: ele só compra naquelas que você listou para ele. Essa lista de lojas oficiais fica em dois lugares: o arquivo principal /etc/apt/sources.list e a pasta /etc/apt/sources.list.d/, onde cada repositório de terceiro pode ter o próprio arquivo .list separado. Quando você roda apt update, é nesses arquivos que o apt olha para saber em quais servidores buscar a lista de pacotes disponíveis. Mexer aqui é mexer no DNA do gerenciamento de pacotes — vale entender bem antes de editar.",
-      "A sintaxe de uma linha de sources.list parece intimidadora à primeira vista mas é simples. Veja o exemplo clássico: deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware. Decifrando: deb diz 'este é um repositório binário'; deb-src seria para código-fonte. http://deb.debian.org/debian é o servidor. bookworm é o codinome da versão Debian (Debian 12 se chama bookworm; Debian 11 era bullseye; Debian 13 será trixie). Os nomes finais (main, contrib, non-free, non-free-firmware) são os componentes habilitados.",
+      "A sintaxe de uma linha de sources.list parece intimidadora à primeira vista mas é simples. Veja o exemplo clássico: deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware. Decifrando: deb diz 'este é um repositório binário'; deb-src seria para código-fonte. http://deb.debian.org/debian é o servidor. trixie é o codinome da versão do Debian (o Debian 13 se chama trixie, estável desde agosto de 2025; o Debian 12 era bookworm, hoje oldstable; o próximo será o forky). Os nomes finais (main, contrib, non-free, non-free-firmware) são os componentes habilitados.",
       "Esses componentes representam categorias de software com filosofias diferentes. main contém apenas software 100% livre (segundo a Debian Free Software Guidelines), e é o coração do projeto Debian. contrib contém software livre que depende de algo não-livre para funcionar (por exemplo, um driver livre que precisa de firmware proprietário). non-free contém software com licenças proprietárias permitidas, mas não-livres (drivers gráficos NVIDIA, codecs específicos). non-free-firmware foi separado em 2023 para hospedar firmwares proprietários (Wi-Fi, GPU, etc.) que muitos hardwares precisam para funcionar — isso permite o projeto manter main 100% puro mas ainda ter um Debian usável em laptops modernos.",
       "Cada versão do Debian existe em três sabores principais que você pode rastrear: stable, testing e unstable. Stable é a que você quer no servidor e em desktops conservadores: pacotes congelados em versões testadas, atualizações apenas de segurança e correções pontuais. Testing é a próxima stable em construção: pacotes mais novos, instabilidade ocasional. Unstable (também chamada sid) é a vanguarda: pacotes recém-empacotados, podem quebrar. Existe também experimental para coisas ainda mais novas. Como regra: stable para uso real; testing/unstable só se você gosta de aventura e sabe consertar quando quebra.",
-      "Além das categorias e branches, existem 'pockets' que adicionam variações: bookworm-updates traz atualizações de pacotes que não são de segurança mas mereciam vir antes da próxima release; bookworm-security traz correções de vulnerabilidades urgentes (servida pelo deb.security.debian.org); bookworm-backports traz pacotes da testing recompilados para a stable, dando acesso a versões mais novas sem trocar a base. Em uma instalação normal, você quer ter as três habilitadas: a stable de base, updates e security. Backports é opcional, ativada por demanda.",
+      "Além das categorias e branches, existem 'pockets' que adicionam variações: trixie-updates traz atualizações de pacotes que não são de segurança mas mereciam vir antes da próxima release; trixie-security traz correções de vulnerabilidades urgentes (servida pelo deb.security.debian.org); trixie-backports traz pacotes da testing recompilados para a stable, dando acesso a versões mais novas sem trocar a base. Em uma instalação normal, você quer ter as três habilitadas: a stable de base, updates e security. Backports é opcional, ativada por demanda.",
       "Quando você quer instalar software de terceiros (Docker, Google Chrome, Microsoft Edge, VS Code, Spotify), o caminho correto é adicionar o repositório deles em /etc/apt/sources.list.d/, com um arquivo separado por fornecedor. Ao mesmo tempo, é preciso adicionar a chave GPG do fornecedor em /etc/apt/keyrings/ ou /usr/share/keyrings/ — sem isso, o apt update vai reclamar que o repositório não é confiável. O método moderno e seguro é não mais usar apt-key (descontinuado) e sim apontar a chave diretamente no arquivo .list usando a opção [signed-by=/path/to/keyring.gpg].",
       "Pinning é o que permite você ter o melhor de dois mundos: a maior parte do sistema em stable, mas alguns pacotes específicos vindos de testing ou backports. Funciona com prioridades numéricas: cada pacote em cada repositório recebe uma prioridade, e o apt instala/atualiza pela maior. Os defaults são: pacote do release alvo (sua stable) = 500; backports = 100; pacotes não-instalados de outras branches = 100. Você pode subir ou descer essas prioridades em /etc/apt/preferences ou /etc/apt/preferences.d/. Para um pacote vindo dos backports virar prioritário, basta dar prioridade > 500 a ele.",
       "Existe uma confusão comum: 'tenho que mudar de stable para testing para ter Firefox novo'. Não, você não tem. Mudar a base inteira é arriscado. O caminho certo é manter stable como base e usar backports ou Flatpak para casos específicos. Quem migra a base inteira para testing geralmente acaba com algo que quebra a cada update e descobre tarde demais que estabilidade tem valor. Outra confusão: 'non-free = ilegal/pirata'. Não. non-free contém software com licença proprietária mas legal para usar, distribuído pelo projeto Debian para conveniência do usuário. Não usar é uma escolha filosófica, não jurídica.",
@@ -674,9 +674,9 @@ dpkg -l | grep ^rc`,
         command: "cat /etc/apt/sources.list",
         description: "Mostra o conteúdo do arquivo principal de fontes APT.",
         example: "cat /etc/apt/sources.list",
-        output: `deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
-deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
-deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware`,
+        output: `deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware`,
       },
       {
         command: "ls /etc/apt/sources.list.d/",
@@ -711,12 +711,12 @@ deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free
       {
         command: "sudo apt-add-repository",
         description: "Adiciona um repositório de forma assistida (instale antes: sudo apt install software-properties-common).",
-        example: "sudo apt-add-repository 'deb http://deb.debian.org/debian bookworm-backports main'",
+        example: "sudo apt-add-repository 'deb http://deb.debian.org/debian trixie-backports main'",
       },
       {
         command: "echo deb ... | sudo tee /etc/apt/sources.list.d/repo.list",
         description: "Adiciona linha de repositório criando arquivo dedicado em sources.list.d.",
-        example: "echo 'deb http://deb.debian.org/debian bookworm-backports main' | sudo tee /etc/apt/sources.list.d/backports.list",
+        example: "echo 'deb http://deb.debian.org/debian trixie-backports main' | sudo tee /etc/apt/sources.list.d/backports.list",
       },
       {
         command: "sudo apt-mark hold",
@@ -772,7 +772,7 @@ deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free
           "Confirme com apt-cache policy que ele veio da branch certa.",
         ],
         command: `# 1) Adicionar repositório
-echo 'deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware' | sudo tee /etc/apt/sources.list.d/backports.list
+echo 'deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware' | sudo tee /etc/apt/sources.list.d/backports.list
 
 # 2) Atualizar
 sudo apt update
@@ -781,11 +781,11 @@ sudo apt update
 apt list -a 2>/dev/null | grep backports | head -10
 
 # 4) Instalar (exemplo: kernel novo)
-sudo apt install -t bookworm-backports linux-image-amd64
+sudo apt install -t trixie-backports linux-image-amd64
 
 # 5) Confirmar de onde veio
 apt-cache policy linux-image-amd64`,
-        verify: "apt-cache policy deve mostrar a versão instalada com origem em bookworm-backports.",
+        verify: "apt-cache policy deve mostrar a versão instalada com origem em trixie-backports.",
       },
       {
         title: "Adicionar repositório de terceiros com chave GPG segura",
@@ -806,7 +806,7 @@ curl -fsSL https://download.docker.com/linux/debian/gpg | \\
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
 # 3) Adicionar repositório referenciando a chave
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | \\
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian trixie stable" | \\
   sudo tee /etc/apt/sources.list.d/docker.list
 
 # 4) Update e instalar
@@ -840,17 +840,17 @@ apt-mark showhold`,
     exercises: [
       {
         id: 1,
-        question: "O que significa cada parte da linha 'deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware'?",
+        question: "O que significa cada parte da linha 'deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware'?",
         hint: "Cinco partes: tipo, URL, codinome, e três ou mais componentes.",
         answer:
-          "deb = repositório binário; URL = servidor; bookworm = codinome do Debian 12; main = software 100% livre; contrib = software livre que depende de não-livre; non-free = software proprietário; non-free-firmware = firmwares proprietários (separados em 2023 para hardware moderno funcionar).",
+          "deb = repositório binário; URL = servidor; trixie = codinome do Debian 13; main = software 100% livre; contrib = software livre que depende de não-livre; non-free = software proprietário; non-free-firmware = firmwares proprietários (separados em 2023 para hardware moderno funcionar).",
       },
       {
         id: 2,
         question: "Diferença entre stable, testing e unstable?",
         hint: "Pense em estabilidade vs novidade.",
         answer:
-          "stable = pacotes congelados em versões testadas, atualizações só de segurança (bookworm hoje); testing = próxima stable em construção, pacotes novos com ocasional instabilidade (trixie hoje); unstable (sid) = vanguarda, pacotes recém-empacotados, pode quebrar a qualquer momento.",
+          "stable = pacotes congelados em versões testadas, atualizações só de segurança (trixie hoje); testing = próxima stable em construção, pacotes novos com ocasional instabilidade (trixie hoje); unstable (sid) = vanguarda, pacotes recém-empacotados, pode quebrar a qualquer momento.",
       },
       {
         id: 3,
@@ -864,7 +864,7 @@ apt-mark showhold`,
         question: "O que é Debian Backports e quando usar?",
         hint: "Pense em uma versão mais nova de algo específico, sem trocar todo o sistema.",
         answer:
-          "Backports são pacotes da testing recompilados para rodar na stable. Usa-se quando você precisa de uma versão mais nova de UM pacote específico (kernel, libreoffice, podman) sem migrar a base inteira. Para instalar: sudo apt install -t bookworm-backports nome.",
+          "Backports são pacotes da testing recompilados para rodar na stable. Usa-se quando você precisa de uma versão mais nova de UM pacote específico (kernel, libreoffice, podman) sem migrar a base inteira. Para instalar: sudo apt install -t trixie-backports nome.",
       },
       {
         id: 5,
@@ -889,7 +889,7 @@ apt-mark showhold`,
       },
       {
         id: 8,
-        question: "É seguro mudar a linha 'bookworm' para 'testing' no sources.list para ter pacotes mais novos?",
+        question: "É seguro mudar a linha 'trixie' para 'testing' no sources.list para ter pacotes mais novos?",
         hint: "Pense no impacto de mudar a base inteira.",
         answer:
           "NÃO sem cuidado. Trocar a branch inteira fará o próximo full-upgrade tentar atualizar todos os pacotes para versões da testing, o que pode quebrar o sistema. Para casos pontuais, prefira backports. Se quiser de fato migrar para testing, faça em VM/teste e configure pinning antes.",
@@ -897,8 +897,8 @@ apt-mark showhold`,
     ],
     references: [
       { title: "Wiki Debian — SourcesList", url: "https://wiki.debian.org/SourcesList" },
-      { title: "Manual sources.list", url: "https://manpages.debian.org/bookworm/apt/sources.list.5.en.html" },
-      { title: "Manual apt_preferences (pinning)", url: "https://manpages.debian.org/bookworm/apt/apt_preferences.5.en.html" },
+      { title: "Manual sources.list", url: "https://manpages.debian.org/trixie/apt/sources.list.5.en.html" },
+      { title: "Manual apt_preferences (pinning)", url: "https://manpages.debian.org/trixie/apt/apt_preferences.5.en.html" },
       { title: "Debian Handbook — APT Configuration", url: "https://debian-handbook.info/browse/stable/sect.apt-get.html" },
       { title: "Debian Backports", url: "https://backports.debian.org/" },
     ],
@@ -918,8 +918,8 @@ apt-mark showhold`,
       "Configurar permissões granulares de Flatpaks com Flatseal",
     ],
     content: [
-      "Imagine que você comprou uma TV de modelo 2022. Ela é estável, funciona, recebe atualizações de segurança — mas o app de streaming favorito da sua filha lançou uma versão nova com um recurso que ela quer hoje. A TV não recebe mais updates de versão, só de segurança. Você fica com três opções: aceitar a versão antiga, comprar uma TV nova, ou plugar um Chromecast que roda a versão nova por fora. O Debian Stable é exatamente assim: estabilidade vem do congelamento, mas isso significa que LibreOffice fica em 7.4, Firefox em ESR 115 e o kernel em 6.1 durante anos. Para conseguir versões novas sem desistir da estabilidade, existem caminhos paralelos.",
-      "O primeiro caminho é o Debian Backports. É um repositório oficial mantido pela própria comunidade Debian: alguns mantenedores pegam pacotes da branch testing, recompilam para rodar na stable e disponibilizam como pacotes alternativos. Quem ativa o backports tem acesso a kernels mais novos (importante para hardware recente), versões mais recentes do LibreOffice, libvirt para virtualização, podman, e por aí vai. Como é mantido pela mesma comunidade, herda parte da disciplina Debian, ainda que com menos teste que a stable. Para usar, basta adicionar a linha do backports no sources.list e instalar com a flag -t bookworm-backports.",
+      "Imagine que você comprou uma TV de modelo 2022. Ela é estável, funciona, recebe atualizações de segurança — mas o app de streaming favorito da sua filha lançou uma versão nova com um recurso que ela quer hoje. A TV não recebe mais updates de versão, só de segurança. Você fica com três opções: aceitar a versão antiga, comprar uma TV nova, ou plugar um Chromecast que roda a versão nova por fora. O Debian Stable é exatamente assim: estabilidade vem do congelamento, mas isso significa que no trixie o LibreOffice fica em 25.2, o Firefox em ESR 128 e o kernel em 6.12 durante anos. Para conseguir versões novas sem desistir da estabilidade, existem caminhos paralelos.",
+      "O primeiro caminho é o Debian Backports. É um repositório oficial mantido pela própria comunidade Debian: alguns mantenedores pegam pacotes da branch testing, recompilam para rodar na stable e disponibilizam como pacotes alternativos. Quem ativa o backports tem acesso a kernels mais novos (importante para hardware recente), versões mais recentes do LibreOffice, libvirt para virtualização, podman, e por aí vai. Como é mantido pela mesma comunidade, herda parte da disciplina Debian, ainda que com menos teste que a stable. Para usar, basta adicionar a linha do backports no sources.list e instalar com a flag -t trixie-backports.",
       "O segundo caminho é o Flatpak, que segue uma filosofia bem diferente. Em vez de empacotar para uma distro específica, um app Flatpak vem com TODAS as suas dependências bundle (chamadas de runtime). Funciona igual em Debian, Fedora, Arch ou Ubuntu. Cada app roda em um sandbox: ele só vê os arquivos e dispositivos que recebe permissão para acessar. O repositório principal é o Flathub (flathub.org), aberto e comunitário. É a forma moderna de instalar apps gráficos que mudam rápido, como Spotify, Discord, Telegram, OBS Studio, Inkscape, Blender — apps que você quer sempre na versão mais nova mas não dá para esperar a próxima release Debian.",
       "Habilitar Flatpak no Debian leva três comandos: instalar o pacote flatpak via apt, adicionar o remote do Flathub, e fazer logout/login para que o menu de aplicativos enxergue os atalhos novos. Esse logout/login é o ponto que confunde mais iniciantes — você instala um app, não vê no menu, acha que algo deu errado. Não deu. Apenas precisa reiniciar a sessão, porque os atalhos ficam em /var/lib/flatpak/exports/share/applications/ e o menu só varre essa pasta no login.",
       "O terceiro caminho é o Snap, criado pela Canonical (empresa por trás do Ubuntu). Tecnicamente é parecido com Flatpak: cada app vem com dependências, roda em sandbox, atualiza independente do sistema. Mas o Snap tem uma característica polêmica: o repositório oficial (Snap Store) é proprietário e centralizado pela Canonical. Isso vai contra a filosofia do projeto Debian, que prefere infraestrutura aberta. Por isso, no Debian, Snap é instalável (sudo apt install snapd), mas não é a recomendação oficial. A comunidade prefere Flatpak. Você só precisa de Snap se um app específico que você quer só existe em formato snap (raríssimo hoje).",
@@ -932,9 +932,9 @@ apt-mark showhold`,
     ],
     commands: [
       {
-        command: "sudo apt install -t bookworm-backports",
+        command: "sudo apt install -t trixie-backports",
         description: "Instala um pacote da branch backports em vez da stable. A flag -t é OBRIGATÓRIA.",
-        example: "sudo apt install -t bookworm-backports linux-image-amd64",
+        example: "sudo apt install -t trixie-backports linux-image-amd64",
       },
       {
         command: "sudo apt install flatpak",
@@ -1071,7 +1071,7 @@ flatpak list`,
       },
       {
         title: "Habilitar backports e instalar kernel mais novo",
-        goal: "Adicionar o repositório bookworm-backports e instalar um kernel mais recente (útil para hardware novo).",
+        goal: "Adicionar o repositório trixie-backports e instalar um kernel mais recente (útil para hardware novo).",
         steps: [
           "Adicione a linha do backports em /etc/apt/sources.list.d/backports.list.",
           "Atualize a lista de pacotes.",
@@ -1080,7 +1080,7 @@ flatpak list`,
           "Reinicie e confirme com uname -r.",
         ],
         command: `# 1) Adicionar backports
-echo 'deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware' | sudo tee /etc/apt/sources.list.d/backports.list
+echo 'deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware' | sudo tee /etc/apt/sources.list.d/backports.list
 
 # 2) Atualizar
 sudo apt update
@@ -1089,7 +1089,7 @@ sudo apt update
 apt-cache policy linux-image-amd64
 
 # 4) Instalar
-sudo apt install -t bookworm-backports linux-image-amd64
+sudo apt install -t trixie-backports linux-image-amd64
 
 # 5) Reinicie
 # sudo reboot
@@ -1159,7 +1159,7 @@ flatpak override --user --show com.spotify.Client`,
         question: "Qual flag obrigatória para instalar pacote do backports?",
         hint: "Sem ela, o apt pega da stable.",
         answer:
-          "-t bookworm-backports (substitua bookworm pelo codinome da sua versão Debian). Sem essa flag, apt pega a versão da stable normal porque tem prioridade maior por padrão.",
+          "-t trixie-backports (substitua trixie pelo codinome da sua versão Debian). Sem essa flag, apt pega a versão da stable normal porque tem prioridade maior por padrão.",
       },
       {
         id: 7,

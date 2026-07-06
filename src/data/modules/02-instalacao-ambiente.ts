@@ -30,8 +30,8 @@ export const instalacaoAmbiente: Module[] = [
       {
         command: "sha256sum",
         description: "Calcula o hash SHA256 de um arquivo. Use para confirmar que a ISO baixada bate com o oficial publicado pelo Debian.",
-        example: "sha256sum debian-12.5.0-amd64-netinst.iso",
-        output: "0fbb3da0a39c2f8b7f0c5d8a2c3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2  debian-12.5.0-amd64-netinst.iso",
+        example: "sha256sum debian-13.1.0-amd64-netinst.iso",
+        output: "0fbb3da0a39c2f8b7f0c5d8a2c3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2  debian-13.1.0-amd64-netinst.iso",
         flags: [
           { flag: "-c arquivo", description: "Verifica todos os hashes listados em um arquivo SHA256SUMS" },
           { flag: "--ignore-missing", description: "Junto com -c, ignora arquivos que não existem localmente" },
@@ -57,7 +57,7 @@ export const instalacaoAmbiente: Module[] = [
       {
         command: "dd",
         description: "Copia blocos brutos de bytes. PERIGOSO: errar o destino apaga o disco. Use SEMPRE com lsblk antes.",
-        example: "sudo dd if=debian-12.5.0-amd64-netinst.iso of=/dev/sdb bs=4M status=progress oflag=sync",
+        example: "sudo dd if=debian-13.1.0-amd64-netinst.iso of=/dev/sdb bs=4M status=progress oflag=sync",
         flags: [
           { flag: "if=", description: "Input file: a ISO a ser gravada" },
           { flag: "of=", description: "Output file: o pendrive (/dev/sdb), NUNCA uma partição (/dev/sdb1)" },
@@ -202,8 +202,8 @@ export const instalacaoAmbiente: Module[] = [
           "Opcional avançado: importe a chave de assinatura do Debian e valide o SHA256SUMS com gpg --verify.",
         ],
         command: `cd ~/Downloads
-sha256sum debian-12.5.0-amd64-netinst.iso
-grep "debian-12.5.0-amd64-netinst.iso" SHA256SUMS
+sha256sum debian-13.1.0-amd64-netinst.iso
+grep "debian-13.1.0-amd64-netinst.iso" SHA256SUMS
 # Os dois hashes devem ser identicos.
 
 # Validacao avancada da assinatura GPG:
@@ -233,7 +233,7 @@ sudo fdisk -l /dev/sdb | head -3
 sudo umount /dev/sdb* 2>/dev/null
 sudo wipefs -a /dev/sdb
 
-sudo dd if=~/Downloads/debian-12.5.0-amd64-netinst.iso \\
+sudo dd if=~/Downloads/debian-13.1.0-amd64-netinst.iso \\
         of=/dev/sdb bs=4M status=progress oflag=sync
 sync
 sudo eject /dev/sdb`,
@@ -254,7 +254,7 @@ sudo eject /dev/sdb`,
           "Faça login e rode 'sudo apt update && sudo apt full-upgrade -y'.",
         ],
         expected: "Sistema instalado, com login funcional e acesso ao GNOME.",
-        verify: "Abra um terminal dentro da VM e rode 'cat /etc/debian_version' — deve mostrar a versão estável atual (ex: 12.5).",
+        verify: "Abra um terminal dentro da VM e rode 'cat /etc/debian_version' — deve mostrar a versão estável atual (ex: 13.1).",
       },
     ],
     exercises: [
@@ -355,7 +355,7 @@ sudo eject /dev/sdb`,
         command: "sudo apt update",
         description: "Atualiza o índice local de pacotes consultando os repositórios. NÃO instala nada — só sincroniza a lista.",
         example: "sudo apt update",
-        output: "Hit:1 http://deb.debian.org/debian bookworm InRelease\nGet:2 http://security.debian.org bookworm-security InRelease [48.0 kB]\nReading package lists... Done\nAll packages are up to date.",
+        output: "Hit:1 http://deb.debian.org/debian trixie InRelease\nGet:2 http://security.debian.org trixie-security InRelease [48.0 kB]\nReading package lists... Done\nAll packages are up to date.",
       },
       {
         command: "sudo apt full-upgrade",
@@ -829,7 +829,7 @@ sudo apt remove --purge task-gnome-desktop
 sudo apt autoremove --purge
 sudo systemctl set-default multi-user.target
 sudo reboot`,
-        expected: "Após o boot, você vê 'Debian GNU/Linux 12 hostname tty1' e o login em texto.",
+        expected: "Após o boot, você vê 'Debian GNU/Linux 13 hostname tty1' e o login em texto.",
         verify: "Rode 'systemctl get-default' — deve retornar 'multi-user.target'. RAM em ocioso (free -h) deve cair de 1+ GB para algumas centenas de MB.",
       },
     ],

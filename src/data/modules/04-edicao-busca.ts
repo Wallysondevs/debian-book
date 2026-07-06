@@ -376,11 +376,11 @@ diff /tmp/app.conf.bak /tmp/app.conf`,
         command: "cat",
         description: "Despeja o conteúdo do arquivo na saída padrão. Use só para arquivos pequenos.",
         example: "cat /etc/os-release",
-        output: `PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+        output: `PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
 NAME="Debian GNU/Linux"
-VERSION_ID="12"
-VERSION="12 (bookworm)"
-VERSION_CODENAME=bookworm
+VERSION_ID="13"
+VERSION="13 (trixie)"
+VERSION_CODENAME=trixie
 ID=debian`,
         flags: [
           { flag: "-n", description: "Numera todas as linhas" },

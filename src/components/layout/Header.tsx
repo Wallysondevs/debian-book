@@ -3,9 +3,10 @@ import { useTheme } from "@/hooks/use-theme";
 
 interface HeaderProps {
   onMenuClick: () => void;
+  onHome?: () => void;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, onHome }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -19,10 +20,13 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground w-72">
+        <button
+          onClick={onHome}
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground w-72 hover:border-primary/40 hover:text-foreground transition-colors"
+        >
           <span className="text-primary font-mono font-bold">$</span>
-          <span className="font-mono">debian — Guia Completo</span>
-        </div>
+          <span className="font-mono">cd ~/curso-debian</span>
+        </button>
       </div>
 
       <div className="flex items-center gap-2">

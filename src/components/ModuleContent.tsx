@@ -3,6 +3,7 @@ import { PageContainer } from "./layout/PageContainer";
 import { AlertBox } from "./ui/AlertBox";
 import { CodeBlock } from "./ui/CodeBlock";
 import { ParamsTable } from "./ui/ParamsTable";
+import { useProgress } from "@/hooks/useProgress";
 import {
   Target,
   Terminal,
@@ -13,6 +14,8 @@ import {
   Link as LinkIcon,
   BookOpen,
   Lightbulb,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 
 interface ModuleContentProps {
@@ -37,6 +40,8 @@ export default function ModuleContent({
 }: ModuleContentProps) {
   const prev = moduleIndex > 0;
   const next = moduleIndex < totalModules - 1;
+  const { isDone, toggle } = useProgress();
+  const done = isDone(module.id);
 
   return (
     <main className="flex-1 min-w-0">
@@ -244,8 +249,33 @@ export default function ModuleContent({
           </section>
         )}
 
+        {/* Marcar como concluída */}
+        <div className="mt-12">
+          <button
+            type="button"
+            onClick={() => toggle(module.id)}
+            className={
+              done
+                ? "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold transition-colors hover:bg-emerald-500/15"
+                : "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary/40 bg-primary/5 text-primary font-semibold transition-colors hover:bg-primary/10"
+            }
+          >
+            {done ? (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Módulo concluído — clique para desmarcar
+              </>
+            ) : (
+              <>
+                <Circle className="w-5 h-5" />
+                Marcar módulo como concluído
+              </>
+            )}
+          </button>
+        </div>
+
         {/* Navigation */}
-        <nav className="flex items-center justify-between gap-3 mt-12 pt-6 border-t border-border">
+        <nav className="flex items-center justify-between gap-3 mt-6 pt-6 border-t border-border">
           <button
             type="button"
             onClick={() => onNavigate("prev")}

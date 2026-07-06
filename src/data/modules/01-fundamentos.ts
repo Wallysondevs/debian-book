@@ -34,19 +34,19 @@ export const fundamentos: Module[] = [
         example: "uname -a",
         flags: [
           { flag: "-a", description: "Tudo: kernel, hostname, versão, arquitetura, data de compilação" },
-          { flag: "-r", description: "Só a versão do kernel (ex: 6.1.0-21-amd64)" },
+          { flag: "-r", description: "Só a versão do kernel (ex: 6.12.41-amd64)" },
           { flag: "-m", description: "Só a arquitetura da máquina (x86_64, aarch64, armv7l)" },
           { flag: "-n", description: "Só o hostname (nome da máquina na rede)" },
           { flag: "-s", description: "Só o nome do kernel (Linux)" },
           { flag: "-o", description: "Sistema operacional (GNU/Linux)" },
         ],
-        output: "Linux debian 6.1.0-21-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.90-1 (2024-05-19) x86_64 GNU/Linux",
+        output: "Linux debian 6.12.41-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.41-1 (2025-08-01) x86_64 GNU/Linux",
       },
       {
         command: "cat /etc/os-release",
         description: "Exibe informações padronizadas sobre a distribuição: nome, versão, ID, codinome. Funciona em qualquer distro moderna e é o jeito recomendado de identificar o sistema em scripts.",
         example: "cat /etc/os-release",
-        output: 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\nVERSION="12 (bookworm)"\nVERSION_CODENAME=bookworm\nID=debian\nHOME_URL="https://www.debian.org/"',
+        output: 'PRETTY_NAME="Debian GNU/Linux 13 (trixie)"\nNAME="Debian GNU/Linux"\nVERSION_ID="13"\nVERSION="13 (trixie)"\nVERSION_CODENAME=trixie\nID=debian\nHOME_URL="https://www.debian.org/"',
       },
       {
         command: "lsb_release",
@@ -58,19 +58,19 @@ export const fundamentos: Module[] = [
           { flag: "-c", description: "Só o codinome (bookworm, bullseye, trixie)" },
           { flag: "-r", description: "Só o número da release (12, 11)" },
         ],
-        output: "Distributor ID: Debian\nDescription:    Debian GNU/Linux 12 (bookworm)\nRelease:        12\nCodename:       bookworm",
+        output: "Distributor ID: Debian\nDescription:    Debian GNU/Linux 13 (trixie)\nRelease:        13\nCodename:       trixie",
       },
       {
         command: "hostnamectl",
         description: "Mostra um resumo bonito do sistema: hostname, kernel, distribuição, arquitetura, virtualização. Fornecido pelo systemd.",
         example: "hostnamectl",
-        output: " Static hostname: debian\n       Icon name: computer-laptop\n         Chassis: laptop\n      Machine ID: 9f...\nOperating System: Debian GNU/Linux 12 (bookworm)\n          Kernel: Linux 6.1.0-21-amd64\n    Architecture: x86-64",
+        output: " Static hostname: debian\n       Icon name: computer-laptop\n         Chassis: laptop\n      Machine ID: 9f...\nOperating System: Debian GNU/Linux 13 (trixie)\n          Kernel: Linux 6.12.41-amd64\n    Architecture: x86-64",
       },
       {
         command: "cat /proc/version",
         description: "Detalhes do kernel: versão, compilador usado, data do build. /proc é um sistema de arquivos virtual com informações do kernel em tempo real.",
         example: "cat /proc/version",
-        output: "Linux version 6.1.0-21-amd64 (debian-kernel@lists.debian.org) (gcc-12 (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40) #1 SMP PREEMPT_DYNAMIC Debian 6.1.90-1 (2024-05-19)",
+        output: "Linux version 6.12.41-amd64 (debian-kernel@lists.debian.org) (gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP PREEMPT_DYNAMIC Debian 6.12.41-1 (2025-08-01)",
       },
       {
         command: "cat /proc/cpuinfo",
@@ -196,10 +196,10 @@ echo ""
 echo "=== Usuário atual ==="
 whoami && id`,
         expected: `=== Distribuição ===
-PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
 
 === Kernel ===
-6.1.0-21-amd64
+6.12.41-amd64
 
 === Arquitetura ===
 x86_64
@@ -237,7 +237,7 @@ uname -r`,
 cat (GNU coreutils) 9.1
 GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
 ---
-6.1.0-21-amd64`,
+6.12.41-amd64`,
         verify:
           "Se você vê 'GNU coreutils' nas três primeiras linhas, fica clara a separação: o kernel é Linux 6.x, mas os utilitários do dia a dia são GNU. Esses dois mundos coexistem e são atualizados de forma independente.",
       },
@@ -260,7 +260,7 @@ GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
       {
         id: 3,
         question: "Qual comando mostra apenas a versão do seu kernel Linux?",
-        answer: "uname -r — mostra apenas a versão (ex: 6.1.0-21-amd64). 'uname -a' mostra tudo de uma vez (kernel, hostname, arquitetura, data de build).",
+        answer: "uname -r — mostra apenas a versão (ex: 6.12.41-amd64). 'uname -a' mostra tudo de uma vez (kernel, hostname, arquitetura, data de build).",
       },
       {
         id: 4,
@@ -335,19 +335,19 @@ GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
         command: "cat /etc/debian_version",
         description: "Mostra a versão exata do Debian (mais detalhada que /etc/os-release). Para a branch testing, mostra o codinome em vez do número.",
         example: "cat /etc/debian_version",
-        output: "12.5",
+        output: "13.1",
       },
       {
         command: "lsb_release -c",
         description: "Mostra apenas o codinome da release. Útil em scripts (configurar sources.list, por exemplo).",
         example: "lsb_release -c",
-        output: "Codename:       bookworm",
+        output: "Codename:       trixie",
       },
       {
         command: "lsb_release -cs",
         description: "Mesma coisa que -c mas no modo 'short': só o codinome puro, sem o rótulo. Ideal para usar em scripts ($(lsb_release -cs)).",
         example: "lsb_release -cs",
-        output: "bookworm",
+        output: "trixie",
       },
       {
         command: "dpkg --print-architecture",
@@ -365,7 +365,7 @@ GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
         command: "cat /etc/apt/sources.list",
         description: "Mostra de quais repositórios o apt vai buscar pacotes. Cada linha 'deb http://...' é uma fonte ativa.",
         example: "cat /etc/apt/sources.list",
-        output: "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware\ndeb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware\ndeb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware",
+        output: "deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\ndeb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware\ndeb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware",
       },
       {
         command: "ls /etc/apt/sources.list.d/",
@@ -451,7 +451,7 @@ echo ""
 echo "=== Release info completo ==="
 cat /etc/os-release`,
         verify:
-          "Se a versão numérica começa com '12', você está em bookworm (estável atual). Se começa com '11', está em bullseye (oldstable). Se mostra 'trixie/sid' em vez de número, está em testing/unstable.",
+          "Se a versão numérica começa com '13', você está em trixie (estável atual desde agosto de 2025). Se começa com '12', está em bookworm (oldstable); '11' é bullseye. Se mostra 'forky/sid' em vez de número, está em testing/unstable.",
       },
       {
         title: "Explore o Debian Bug Tracker pela linha de comando",
@@ -486,9 +486,9 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
       },
       {
         id: 3,
-        question: "Qual é o codinome da versão estável atual (Debian 12)?",
+        question: "Qual é o codinome da versão estável atual (Debian 13)?",
         hint: "Personagem do Toy Story.",
-        answer: "Bookworm. (Os codinomes seguem personagens do Toy Story: Buster, Bullseye, Bookworm, Trixie, Forky, etc.)",
+        answer: "Trixie (a dinossaura de Toy Story), estável desde agosto de 2025. Bookworm (Debian 12) virou oldstable. Os codinomes seguem personagens do Toy Story: Bullseye, Bookworm, Trixie, Forky (o próximo), etc.",
       },
       {
         id: 4,
@@ -512,7 +512,7 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
         id: 7,
         question: "Você precisa montar um servidor de e-mail que vai rodar 24/7 nos próximos anos. Qual branch escolhe e por quê?",
         answer:
-          "Stable (bookworm hoje). Em servidor o que importa é previsibilidade: a versão dos pacotes não muda durante o ciclo, apenas correções de segurança chegam. Isso evita surpresas quando você aplica 'apt upgrade' às três da manhã.",
+          "Stable (trixie hoje). Em servidor o que importa é previsibilidade: a versão dos pacotes não muda durante o ciclo, apenas correções de segurança chegam. Isso evita surpresas quando você aplica 'apt upgrade' às três da manhã.",
       },
       {
         id: 8,
@@ -549,10 +549,10 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
     content: [
       "Pense em uma loja oficial de uma marca de eletrônicos: você sabe que tudo ali é original, foi inspecionado, tem garantia, e se algum produto vier defeituoso a marca assume. Agora pense em um camelô na rua: pode estar vendendo o mesmo produto, mais barato, mas você não tem nenhuma garantia de origem, autenticidade ou qualidade. Repositórios Debian funcionam parecido: o repositório oficial é a 'loja da marca' (deb.debian.org), e qualquer outro lugar onde você baixe pacotes é o 'camelô' (alguns confiáveis, outros não). Saber configurar repositórios é saber escolher de quem você compra software.",
       "Tecnicamente, repositório é um servidor na internet onde ficam arquivos .deb (pacotes Debian) organizados por versão e categoria. Quando você roda 'sudo apt install vim', o apt consulta uma lista interna de repositórios configurados, escolhe o melhor, baixa o .deb, verifica a assinatura criptográfica para garantir autenticidade, descompacta no lugar certo do sistema, executa scripts pós-instalação e atualiza o banco de dados de pacotes instalados. Tudo isso acontece em segundos, mas a infraestrutura por trás envolve dezenas de mirrors espalhados pelo mundo, equipes de mantenedores e um sistema de assinaturas GPG que garante que ninguém adulterou os pacotes no caminho.",
-      "O arquivo principal de configuração de repositórios é /etc/apt/sources.list. Cada linha não-comentada é uma fonte (source). A sintaxe é simples: a palavra 'deb' (ou 'deb-src' para código-fonte), seguida de opções entre colchetes (geralmente vazias ou contendo a chave GPG), seguida da URL do repositório, do codinome da release e dos componentes habilitados. Uma linha típica é: 'deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware'. Lê-se assim: 'use o repositório em deb.debian.org/debian, da release bookworm, e habilite os componentes main, contrib, non-free e non-free-firmware'.",
+      "O arquivo principal de configuração de repositórios é /etc/apt/sources.list. Cada linha não-comentada é uma fonte (source). A sintaxe é simples: a palavra 'deb' (ou 'deb-src' para código-fonte), seguida de opções entre colchetes (geralmente vazias ou contendo a chave GPG), seguida da URL do repositório, do codinome da release e dos componentes habilitados. Uma linha típica é: 'deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware'. Lê-se assim: 'use o repositório em deb.debian.org/debian, da release trixie, e habilite os componentes main, contrib, non-free e non-free-firmware'.",
       "Os componentes do Debian são quatro, e cada um tem uma razão de existir bem definida. O 'main' contém software 100% livre conforme as DFSG — é o 'verdadeiro Debian', tudo ali passou pela revisão da comunidade e respeita os critérios de liberdade. O 'contrib' contém software livre que depende de algo non-free para funcionar (exemplo clássico: jogos de código aberto que precisam de ROMs proprietárias para rodar). O 'non-free' contém software com restrições (drivers proprietários, fontes Microsoft, codecs com patentes). O 'non-free-firmware' foi separado de non-free no Debian 12 (bookworm) e contém especificamente firmware fechado para hardware (Wi-Fi Intel, BIOS de placa de vídeo, microcódigo de CPU).",
-      "Os repositórios de segurança são absolutamente críticos e merecem atenção especial. Quando uma vulnerabilidade (CVE — Common Vulnerabilities and Exposures) é descoberta em algum pacote, o time de segurança do Debian publica a correção em security.debian.org dentro de horas a poucos dias. Toda instalação saudável tem essa linha no sources.list: 'deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware'. Sem isso, seu sistema não recebe correções urgentes e fica vulnerável a ataques publicamente conhecidos. Atualizações de segurança devem ser aplicadas semanalmente, no mínimo.",
-      "Backports é um repositório especial e muito útil. Imagine que você está na branch stable (bookworm) e precisa de uma versão mais nova de um software específico — por exemplo, o kernel mais recente para suportar uma placa de vídeo nova, ou uma versão recente do LibreOffice. Você não quer migrar o sistema todo para testing, mas quer só esse pacote atualizado. Backports resolve: ele recompila pacotes da branch testing para rodar na stable. A linha é 'deb http://deb.debian.org/debian bookworm-backports main' e a instalação usa a flag '-t': 'sudo apt install -t bookworm-backports nome-pacote'. Sem o '-t', o apt continua preferindo a versão antiga.",
+      "Os repositórios de segurança são absolutamente críticos e merecem atenção especial. Quando uma vulnerabilidade (CVE — Common Vulnerabilities and Exposures) é descoberta em algum pacote, o time de segurança do Debian publica a correção em security.debian.org dentro de horas a poucos dias. Toda instalação saudável tem essa linha no sources.list: 'deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware'. Sem isso, seu sistema não recebe correções urgentes e fica vulnerável a ataques publicamente conhecidos. Atualizações de segurança devem ser aplicadas semanalmente, no mínimo.",
+      "Backports é um repositório especial e muito útil. Imagine que você está na branch stable (trixie) e precisa de uma versão mais nova de um software específico — por exemplo, o kernel mais recente para suportar uma placa de vídeo nova, ou uma versão recente do LibreOffice. Você não quer migrar o sistema todo para testing, mas quer só esse pacote atualizado. Backports resolve: ele recompila pacotes da branch testing para rodar na stable. A linha é 'deb http://deb.debian.org/debian trixie-backports main' e a instalação usa a flag '-t': 'sudo apt install -t trixie-backports nome-pacote'. Sem o '-t', o apt continua preferindo a versão antiga.",
       "Repositórios de terceiros (Google, Microsoft, Spotify, Brave, Docker, NodeSource) precisam de cuidado especial. A regra de ouro: NÃO os adicione em sources.list. Use sempre /etc/apt/sources.list.d/ — uma pasta onde cada arquivo .list pode conter um repositório dedicado. Vantagens: se algo der errado, você apaga só aquele arquivo sem mexer no resto; fica fácil ver quais terceiros você adicionou (basta listar a pasta); não há risco de comentar acidentalmente o repositório principal ao editar. Mas ainda mais importante que a localização do arquivo é a chave GPG: cada repositório de terceiro precisa ter sua chave GPG instalada em /usr/share/keyrings/ e referenciada na linha do sources.list com a opção [signed-by=/usr/share/keyrings/CHAVE.gpg]. Sem isso, o apt vai dar erro.",
       "Aqui mora um dos pontos mais perigosos da administração Debian. Quando você adiciona um repositório de terceiro e a chave GPG dele, está autorizando essa entidade a instalar QUALQUER pacote no seu sistema com privilégios de root. Se a Google for comprometida e seu repositório passar a distribuir pacotes maliciosos, seu apt vai aceitar tudo sem questionar — porque você confiou na chave dela. Por isso: adicione o mínimo possível de repositórios externos, prefira pacotes oficiais Debian sempre que houver, e revise periodicamente o que tem em /etc/apt/sources.list.d/. Para softwares que você usa pouco, considere alternativas como Flatpak ou AppImage, que rodam isolados.",
       "A hierarquia de prioridade do apt segue uma lógica que vale entender. Quando o mesmo pacote existe em mais de um repositório, o apt escolhe baseado em 'pin priorities' definidas em /etc/apt/preferences ou /etc/apt/preferences.d/. Para casos avançados — como rodar testing junto com stable, mantendo a maioria dos pacotes em stable — usa-se 'apt pinning': você define que stable tem prioridade 700 (alta) e testing tem prioridade 100 (baixa, só instala se você pedir explicitamente com '-t testing'). Não vamos cobrir pinning em profundidade aqui, mas saiba que existe e por que.",
@@ -563,7 +563,7 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
         command: "cat /etc/apt/sources.list",
         description: "Mostra os repositórios principais configurados.",
         example: "cat /etc/apt/sources.list",
-        output: "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware\ndeb-src http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware\n\ndeb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware\n\ndeb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware",
+        output: "deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\ndeb-src http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\n\ndeb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware\n\ndeb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware",
       },
       {
         command: "ls /etc/apt/sources.list.d/",
@@ -575,7 +575,7 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
         command: "apt update",
         description: "Atualiza a lista de pacotes disponíveis. Sempre rode antes de instalar algo novo.",
         example: "sudo apt update",
-        output: "Get:1 http://security.debian.org bookworm-security InRelease [48.0 kB]\nGet:2 http://deb.debian.org/debian bookworm InRelease [151 kB]\nGet:3 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]\nReading package lists... Done",
+        output: "Get:1 http://security.debian.org trixie-security InRelease [48.0 kB]\nGet:2 http://deb.debian.org/debian trixie InRelease [151 kB]\nGet:3 http://deb.debian.org/debian trixie-updates InRelease [55.4 kB]\nReading package lists... Done",
         flags: [
           { flag: "-y", description: "Responde 'sim' automaticamente a confirmações futuras (combinado com upgrade/install)" },
           { flag: "--allow-releaseinfo-change", description: "Aceita mudanças de release info (útil quando muda o codinome)" },
@@ -618,17 +618,17 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
         command: "ls /usr/share/keyrings/",
         description: "Lista as chaves GPG (forma moderna) usadas pelos repositórios via signed-by. É aqui que devem ficar as chaves de terceiros.",
         example: "ls /usr/share/keyrings/",
-        output: "debian-archive-bookworm-automatic.gpg\ndebian-archive-bookworm-security-automatic.gpg\nbrave-browser-archive-keyring.gpg",
+        output: "debian-archive-trixie-automatic.gpg\ndebian-archive-trixie-security-automatic.gpg\nbrave-browser-archive-keyring.gpg",
       },
       {
         command: "apt install -t",
         description: "Instala um pacote forçando a release/branch específica (útil para backports).",
-        example: "sudo apt install -t bookworm-backports linux-image-amd64",
+        example: "sudo apt install -t trixie-backports linux-image-amd64",
       },
       {
         command: "add-apt-repository",
         description: "Adiciona um repositório (PPA do Ubuntu, em geral). No Debian é raro — prefira editar .list manualmente. Pacote: software-properties-common.",
-        example: "sudo add-apt-repository 'deb http://example.com/ bookworm main'",
+        example: "sudo add-apt-repository 'deb http://example.com/ trixie main'",
       },
     ],
     tips: [
@@ -677,8 +677,8 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
         command: `# 1) Ver kernel atual
 uname -r
 
-# 2) Adicionar backports (substitua bookworm pelo seu codinome se necessario)
-echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware" \\
+# 2) Adicionar backports (substitua trixie pelo seu codinome se necessario)
+echo "deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" \\
   | sudo tee /etc/apt/sources.list.d/backports.list
 
 # 3) Atualizar
@@ -688,9 +688,9 @@ sudo apt update
 apt-cache policy linux-image-amd64
 
 # 5) (Opcional - so em VM) instalar kernel novo dos backports
-# sudo apt install -t bookworm-backports linux-image-amd64`,
+# sudo apt install -t trixie-backports linux-image-amd64`,
         verify:
-          "Após o 'apt update', você deve ver linhas como 'Get:X http://deb.debian.org/debian bookworm-backports'. O 'apt-cache policy' deve mostrar duas versões disponíveis: a do bookworm normal e a do bookworm-backports (mais recente).",
+          "Após o 'apt update', você deve ver linhas como 'Get:X http://deb.debian.org/debian trixie-backports'. O 'apt-cache policy' deve mostrar duas versões disponíveis: a do trixie normal e a do trixie-backports (mais recente).",
       },
       {
         title: "Adicionar o repositório do Brave Browser corretamente",
@@ -767,7 +767,7 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         id: 4,
         question: "Para que servem os 'backports' e como instalar um pacote vindo dele?",
         answer:
-          "Backports oferece versões mais novas de software (kernel, libreoffice, etc.) na sua versão stable, sem precisar migrar para testing. Os pacotes vêm de testing recompilados para stable. Para instalar, use 'sudo apt install -t bookworm-backports nome-pacote' — sem o '-t', o apt continua preferindo a versão antiga.",
+          "Backports oferece versões mais novas de software (kernel, libreoffice, etc.) na sua versão stable, sem precisar migrar para testing. Os pacotes vêm de testing recompilados para stable. Para instalar, use 'sudo apt install -t trixie-backports nome-pacote' — sem o '-t', o apt continua preferindo a versão antiga.",
       },
       {
         id: 5,
