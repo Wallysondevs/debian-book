@@ -3020,42 +3020,42 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "uptime; nproc",
         description:
-          "Load vs quantidade de CPUs.",
+          "Primeira leitura de servidor lento: compare o load average com o número de núcleos. Load 4 em 4 CPUs é fila cheia mas saudável; load 12 em 2 CPUs é sofrimento. Os três números são 1, 5 e 15 minutos — se o de 1 min for muito maior que o de 15, o problema começou agora.",
       },
       {
         command: "free -h",
         description:
-          "RAM e swap.",
+          "Mostra se a máquina ficou sem RAM ou já caiu no swap. A coluna que importa é `available`, não `free`: `buff/cache` é memória emprestada, devolvida sob pressão. Swap subindo durante o incidente explica lentidão generalizada.",
       },
       {
         command: "ps aux --sort=-%cpu | head -n 15",
         description:
-          "Top CPU.",
+          "Ordena os processos por consumo de CPU e mostra os 15 primeiros. Separa 'a máquina está lenta' de 'um processo está queimando CPU'. Valor de %CPU acima de 100 significa que o processo usa mais de um núcleo.",
       },
       {
         command: "ps aux --sort=-%mem | head -n 15",
         description:
-          "Top memória.",
+          "Mesma lista, agora pela memória residente. Rode duas vezes com alguns minutos de intervalo: um processo cujo RSS só cresce, sem estabilizar, é a assinatura de vazamento de memória.",
       },
       {
         command: "vmstat 1 5",
         description:
-          "CPU runqueue, swap, io.",
+          "Cinco amostras de 1 segundo com as três colunas que decidem o diagnóstico: `r` (processos na fila) maior que o número de CPUs aponta gargalo de CPU; `si`/`so` diferente de zero é swap em uso agora; `wa` alto joga a culpa no disco.",
       },
       {
         command: "sudo apt install -y sysstat && iostat -xz 1 3",
         description:
-          "Utilização e await de disco.",
+          "Instala o sysstat e mede o disco. Olhe `%util` perto de 100 (dispositivo saturado) e `await` em dezenas de milissegundos (cada I/O esperando na fila). O `-z` esconde dispositivos sem atividade, deixando na tela só o que trabalha.",
       },
       {
         command: "df -h; df -i",
         description:
-          "Espaço e inodes.",
+          "Disco cheio tem duas formas e o `-h` só mostra uma. Um `/var` com bytes livres mas sem inodes livres derruba serviço com 'No space left on device' — típico de diretório com milhares de arquivos pequenos de sessão ou cache.",
       },
       {
         command: "systemctl --failed --no-pager",
         description:
-          "Units quebradas somando caos.",
+          "Lista as units que falharam. Em investigação de lentidão serve como contexto: um serviço reiniciando em loop consome CPU, enche o journal e mascara a causa real.",
       },
       {
         command: "pidstat -ur 1 3 2>/dev/null || true",
@@ -3065,7 +3065,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "sudo journalctl -p err..alert --since '1 hour ago' --no-pager | tail -n 40",
         description:
-          "Erros recentes.",
+          "Filtra só as mensagens de erro para cima na última hora. É a leitura que mostra se a lentidão vem acompanhada de OOM killer matando processo, timeout de disco ou serviço reiniciando — cada uma leva a um caminho diferente.",
       },
       {
         command: "cat /proc/pressure/cpu 2>/dev/null || true",
@@ -3075,7 +3075,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "sudo systemd-cgtop -n 1 2>/dev/null | head -n 20 || true",
         description:
-          "Quem no cgroup come recurso.",
+          "Mostra o consumo agrupado por cgroup, isto é, por serviço em vez de por processo. Responde 'qual unit está comendo a máquina' quando o culpado se espalha em dezenas de processos filhos que o `ps` mostra separados.",
       },
     ],
     tips: [
@@ -3545,7 +3545,7 @@ active`,
       {
         command: "journalctl --disk-usage",
         description:
-          "Quanto o journal ocupa.",
+          "Mostra o espaço ocupado pelo journal hoje. Sem limite configurado ele cresce até 10% da partição, então esse número é o ponto de partida para decidir a retenção.",
       },
       {
         command: "sudo mkdir -p /etc/systemd/journald.conf.d && printf '%s\n' '[Journal]' 'SystemMaxUse=200M' 'MaxRetentionSec=14day' | sudo tee /etc/systemd/journald.conf.d/size.conf",
@@ -3555,17 +3555,17 @@ active`,
       {
         command: "sudo systemctl restart systemd-journald",
         description:
-          "Aplica config do journal.",
+          "Reinicia o journald para valer o que você escreveu no drop-in. O log já gravado não se perde; o limite novo passa a ser aplicado na próxima rotação.",
       },
       {
         command: "ls /etc/logrotate.d | head",
         description:
-          "Regras de rotação empacotadas.",
+          "Cada arquivo aí é uma regra de rotação instalada por um pacote (nginx, apt, dpkg). Antes de escrever a sua, confira se o pacote já trouxe uma — regra duplicada rotaciona duas vezes e some com log que você queria.",
       },
       {
         command: "sudo logrotate -d /etc/logrotate.conf 2>&1 | head -n 40",
         description:
-          "Dry-run do logrotate.",
+          "O `-d` é simulação: diz o que seria rotacionado sem tocar em nada. É a forma segura de validar regra nova antes de deixar o cron aplicá-la de madrugada sem ninguém olhando.",
       },
       {
         command: "mkdir -p ~/bin && printf '%s\n' '#!/bin/bash' 'set -euo pipefail' 'systemctl --failed --quiet' 'echo OK $(date -Is)' > ~/bin/health-check.sh && chmod +x ~/bin/health-check.sh",
@@ -3575,7 +3575,7 @@ active`,
       {
         command: "~/bin/health-check.sh || echo 'falhou — investigue failed units'",
         description:
-          "Roda na mão.",
+          "Execute na mão antes de confiar no timer. Se o script sair com código diferente de zero, o `||` dispara o aviso — exatamente o critério que o systemd vai usar para marcar o serviço como falho.",
       },
       {
         command: "mkdir -p ~/.config/systemd/user && printf '%s\n' '[Unit]' 'Description=Health check leve' '' '[Service]' 'Type=oneshot' 'ExecStart=%h/bin/health-check.sh' > ~/.config/systemd/user/health-check.service",
@@ -3595,12 +3595,12 @@ active`,
       {
         command: "man logrotate",
         description:
-          "Referência de rotação.",
+          "Manual da rotação: onde estão documentados `rotate`, `size`, `compress`, `missingok` e o `postrotate`, que avisa o serviço para reabrir o arquivo de log novo.",
       },
       {
         command: "man systemd.timer",
         description:
-          "Timers systemd.",
+          "Referência das opções de timer: `OnCalendar` para agenda, `Persistent` para rodar o que perdeu enquanto a máquina estava desligada e `RandomizedDelaySec` para não ter cem máquinas disparando no mesmo segundo.",
       },
     ],
     tips: [

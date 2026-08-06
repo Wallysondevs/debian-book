@@ -1463,32 +1463,32 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt install -y podman",
         description:
-          "Engine Podman no Debian.",
+          "Instala o Podman do repositório Debian. Diferente do Docker não existe daemon central: cada container roda como processo do seu próprio usuário, então não há grupo privilegiado equivalente ao `docker` para entrar.",
       },
       {
         command: "podman version",
         description:
-          "Cliente/API e versão.",
+          "Confirma a versão do cliente e da API, que define quais recursos esperar. Boa parte da documentação na internet é de versão diferente, e a divergência aparece justo nas opções de rede e de compose.",
       },
       {
         command: "podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null || podman info | head -n 40",
         description:
-          "Confere modo rootless / resumo.",
+          "Responde à pergunta que define todo o resto: você está rootless? `true` significa que o container não tem root real no host — o ganho de segurança principal frente ao Docker com daemon como root.",
       },
       {
         command: "podman run --rm debian:bookworm-slim cat /etc/os-release | head",
         description:
-          "Container efêmero com imagem Debian.",
+          "Baixa a imagem oficial Debian slim, mostra qual release está dentro dela e descarta o container ao sair (`--rm`). Serve de teste de fumaça: se isso funciona, registry, rede e armazenamento estão ok.",
       },
       {
         command: "podman images",
         description:
-          "Imagens locais.",
+          "Lista as imagens baixadas e o espaço que ocupam. Em rootless elas ficam em `~/.local/share/containers`, dentro da sua home — por isso a home enche e o `df` do `/var` não acusa nada.",
       },
       {
         command: "podman ps -a",
         description:
-          "Containers incluindo parados.",
+          "Lista containers, inclusive os que já morreram. Sem o `-a` você não vê justamente o container que caiu e cujo log e código de saída você precisa investigar.",
       },
       {
         command: "podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine",
@@ -1498,17 +1498,17 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "podman logs --tail 20 hello-pod",
         description:
-          "Logs do container.",
+          "Últimas 20 linhas do que o container escreveu na saída padrão. Em rootless o log pertence ao seu usuário, então investigar não exige sudo.",
       },
       {
         command: "podman stop hello-pod && podman rm hello-pod",
         description:
-          "Para e remove o lab.",
+          "Para o container com SIGTERM, dando chance de encerrar limpo, e depois apaga o registro dele. Sem o `rm` o nome continua ocupado e o próximo `run` falha com conflito de nome.",
       },
       {
         command: "man podman",
         description:
-          "Manual principal.",
+          "Manual raiz, com a lista dos subcomandos. Cada subcomando tem página própria (`man podman-run`), e é lá que estão as opções de rede, volume e usuário.",
       },
       {
         command: "podman volume ls; mkdir -p $HOME/podman-lab",
@@ -1523,7 +1523,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "id; grep $USER /etc/subuid /etc/subgid 2>/dev/null | head",
         description:
-          "Mapeamento subuid/subgid para rootless.",
+          "Mostra seu UID e a faixa de UIDs delegada ao seu usuário. É essa faixa que o rootless usa para mapear o root de dentro do container em um usuário sem poder no host; sem faixa atribuída, o container simplesmente não sobe.",
       },
     ],
     tips: [
@@ -2220,47 +2220,47 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt install -y unbound dnsutils",
         description:
-          "Unbound + dig/nslookup.",
+          "Instala o Unbound, um resolvedor que valida DNSSEC por padrão no Debian, e o dnsutils, que traz o `dig` para você conseguir testar o que instalou.",
       },
       {
         command: "systemctl status unbound --no-pager | head -n 15",
         description:
-          "Serviço ativo?",
+          "Confere se o serviço subiu e mostra as últimas linhas de log junto. Erro de sintaxe na configuração aparece aqui como falha na inicialização, com a linha exata do arquivo.",
       },
       {
         command: "sudo systemctl enable --now unbound",
         description:
-          "Sobe e habilita.",
+          "Liga agora e no boot, em um comando. Esquecer o `enable` é o erro que faz o resolvedor desaparecer no próximo reboot e a máquina ficar sem DNS sem motivo aparente.",
       },
       {
         command: "dig @127.0.0.1 debian.org +short",
         description:
-          "Query via Unbound local.",
+          "Pergunta direto ao Unbound local, ignorando o resolvedor configurado no sistema. Se responder o IP, o servidor está funcionando — e isso separa problema de servidor de problema de configuração do cliente.",
       },
       {
         command: "dig @127.0.0.1 debian.org DNSKEY +dnssec | head -n 20",
         description:
-          "Pista de DNSSEC/resposta validada.",
+          "Pede as chaves DNSSEC e olhe a flag `ad` no cabeçalho da resposta: `ad` é authenticated data, ou seja, o Unbound validou a cadeia de assinaturas. Sem `ad`, você tem cache, não validação.",
       },
       {
         command: "sudo unbound-checkconf",
         description:
-          "Valida config antes de reload.",
+          "Valida a configuração sem reiniciar nada. Rode sempre depois de editar: é a diferença entre descobrir o erro de digitação agora ou ficar sem DNS depois do restart.",
       },
       {
         command: "ls /etc/unbound/unbound.conf.d 2>/dev/null | head",
         description:
-          "Drop-ins de configuração.",
+          "Diretório de drop-ins: ponha sua configuração em arquivo próprio aqui em vez de editar o `unbound.conf`, que pode ser substituído em atualização de pacote levando seus ajustes.",
       },
       {
         command: "ss -lntup | grep -E ':53\\b' || true",
         description:
-          "Quem escuta na porta 53.",
+          "Mostra quem está escutando na porta 53. É o comando que revela o conflito clássico: o systemd-resolved já ocupando a porta e impedindo o Unbound de subir.",
       },
       {
         command: "man unbound.conf",
         description:
-          "Referência de opções.",
+          "Referência das diretivas que importam num resolvedor interno: `access-control` (quem pode consultar), `interface`, `cache-min-ttl` e `forward-zone`.",
       },
       {
         command: "apt-cache show bind9 | sed -n '1,12p'",
@@ -2270,12 +2270,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "resolvectl status 2>/dev/null | head -n 30 || cat /etc/resolv.conf",
         description:
-          "DNS do host cliente agora.",
+          "Mostra qual servidor a máquina usa de verdade. Instalar o Unbound não muda isso sozinho: enquanto o cliente apontar para outro resolvedor, seu servidor novo fica no ar sem receber consulta nenhuma.",
       },
       {
         command: "sudo journalctl -u unbound -n 30 --no-pager",
         description:
-          "Logs recentes.",
+          "Últimas 30 linhas de log do serviço. É onde aparecem os dois erros mais comuns: consulta recusada por `access-control` e falha de validação DNSSEC por relógio errado.",
       },
     ],
     tips: [
@@ -3161,53 +3161,53 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt update && apt list --upgradable 2>/dev/null | head",
         description:
-          "Superfície de patch.",
+          "Atualiza o índice e lista o que está pendente. O tamanho dessa lista é sua superfície de patch: cada pacote desatualizado é uma correção de segurança que a máquina exposta ainda não tem.",
       },
       {
         command: "sudo systemctl is-active ssh sshd 2>/dev/null; sudo sshd -T 2>/dev/null | grep -Ei 'passwordauthentication|permitrootlogin' | head",
         description:
-          "SSH ativo e hardening básico.",
+          "Confirma que o SSH está no ar e lê a configuração efetiva: `sshd -T` resolve includes e defaults, mostrando o que vale de verdade, não o que está escrito no arquivo. Numa VPS exposta você quer `passwordauthentication no` e `permitrootlogin` em `no` ou `prohibit-password`.",
       },
       {
         command: "sudo ufw status verbose 2>/dev/null || sudo nft list ruleset 2>/dev/null | head -n 20",
         description:
-          "Firewall.",
+          "Mostra as regras em vigor, pelo ufw ou direto no nftables. O que você quer ver numa VPS: política de entrada em `deny` e apenas as portas que você realmente serve liberadas.",
       },
       {
         command: "systemctl is-active unattended-upgrades 2>/dev/null; ls /var/log/unattended-upgrades 2>/dev/null | head",
         description:
-          "Updates automáticos.",
+          "Verifica se as atualizações de segurança se aplicam sozinhas e se existe registro disso. Serviço ativo com diretório de log vazio costuma significar que ele nunca rodou de verdade.",
       },
       {
         command: "timedatectl",
         description:
-          "Tempo e NTP.",
+          "Hora, fuso e estado da sincronização. Relógio errado quebra handshake TLS, invalida assinatura de repositório e desalinha o horário do log do horário do incidente.",
         example: "timedatectl status",
       },
       {
         command: "systemctl --failed --no-pager",
         description:
-          "Sem failed units surpresa.",
+          "Essa lista deve sair vazia. Qualquer unit falha aqui é dívida que vai cobrar juros no pior momento; resolva antes de considerar a VPS pronta para produção.",
       },
       {
         command: "curl -sI http://127.0.0.1/ 2>/dev/null | head || curl -sI http://127.0.0.1:8080 2>/dev/null | head || echo 'defina seu health local'",
         description:
-          "Health HTTP local.",
+          "Bate no seu próprio serviço e mostra só os cabeçalhos (`-I`). Testar por 127.0.0.1 separa 'a aplicação caiu' de 'o firewall ou o DNS está barrando' — dois problemas com soluções opostas.",
       },
       {
         command: "journalctl --disk-usage",
         description:
-          "Journal sob controle.",
+          "Quanto o log ocupa. Journal sem retenção definida é uma das causas mais comuns de disco cheio em VPS pequena, e disco cheio derruba tudo junto.",
       },
       {
         command: "df -h /; free -h",
         description:
-          "Recursos básicos.",
+          "Espaço na raiz e memória disponível. Numa VPS de 1 GB esses dois números explicam a maioria dos incidentes antes de qualquer investigação mais fina.",
       },
       {
         command: "sudo last -n 5 2>/dev/null || journalctl -u ssh --since today --no-pager | tail",
         description:
-          "Acessos recentes.",
+          "Últimos logins na máquina. Acesso bem-sucedido que você não reconhece muda o plano: passa a ser tratamento de máquina comprometida, não ajuste de configuração.",
       },
       {
         command: "sudo tar -czf /tmp/etc-lab-backup.tgz /etc/hostname /etc/hosts 2>/dev/null; ls -l /tmp/etc-lab-backup.tgz",
