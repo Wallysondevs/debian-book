@@ -1224,4 +1224,960 @@ gpg --verify teste.txt.sig teste.txt`,
       { title: "GnuPG Handbook", url: "https://www.gnupg.org/gph/en/manual.html" },
     ],
   },
+  {
+    id: "stacks-rede",
+    title: "NetworkManager vs ifupdown vs networkd — qual stack e quando",
+    icon: "🔀",
+    category: "Rede e Segurança",
+    description:
+      "Descubra qual gerenciador de rede o seu Debian usa (NetworkManager, ifupdown ou systemd-networkd) e quando migrar — sem misturar três configs e achar que 'a rede sumiu'.",
+    objectives: [
+      "Identificar qual stack está ativa no host",
+      "Relacionar desktop (NM) vs servidor mínimo (ifupdown/networkd)",
+      "Saber onde cada um guarda config",
+      "Evitar dois gerenciadores brigando pela mesma interface",
+      "Ler estado com ip/nmcli/networkctl",
+      "Escolher stack com critério de operação",
+    ],
+    content: [
+      "No Debian a 'rede' não é um único programa: há famílias. **ifupdown** é o clássico `/etc/network/interfaces`. **NetworkManager** (NM) domina notebooks e desktops (Wi-Fi, VPN, hotspot). **systemd-networkd** é o caminho moderno e enxuto em muitos servidores/cloud. O caos começa quando dois deles tentam configurar a **mesma** interface.",
+
+      "Como descobrir o que manda: `systemctl is-active NetworkManager systemd-networkd networking` (nomes variam), `nmcli general` se NM existir, `networkctl` se networkd estiver no jogo, e se `/etc/network/interfaces` ainda é a fonte da verdade. Em cloud image recente, networkd + netplan (ou cloud-init) é comum; em Debian 'puro' de instalador, ainda se vê ifupdown ou NM conforme o tasksel.",
+
+      "Onde cada um mora. ifupdown: `/etc/network/interfaces` e `interfaces.d/`. NM: conexões em `/etc/NetworkManager/system-connections/` e `nmcli`/`nmtui`. networkd: `/etc/systemd/network/*.network`. Renderizadores tipo Netplan (mais Ubuntu, às vezes colado em imagens) geram um dos três por baixo — leia o que realmente aplica.",
+
+      "Jargões. **managed** no NM: interface sob controle dele. **renderer**. **DHCP vs static**. **Predictable names** (enp0s3). **unmanaged** no NM para deixar a NIC para outro stack. Brigar = NM sobe DHCP enquanto interfaces põe IP estático: sintoma 'às vezes pinga, às vezes não'.",
+
+      "Regra prática: desktop/Wi-Fi → NetworkManager. Servidor com poucas NICs estáticas → ifupdown ou networkd, **um só**. Container/VPS cloud → siga a imagem (não reescreva do zero no primeiro dia). Migrar exige: documentar IPs, desabilitar o antigo, habilitar o novo, ter console out-of-band.",
+
+      "Ao terminar você diz em uma frase qual stack está ativa, aponta o arquivo de config principal, e lista o que NÃO deve coexistir na mesma interface.",
+
+    ],
+    commands: [
+      {
+        command: "ip -br link; ip -br addr",
+        description:
+          "Estado bruto das interfaces e endereços — independente do gerenciador.",
+        example: "ip -br link; ip -br addr",
+      },
+      {
+        command: "systemctl is-active NetworkManager 2>/dev/null; systemctl is-active systemd-networkd 2>/dev/null; systemctl is-active networking 2>/dev/null",
+        description:
+          "Quem está active: NM, networkd e/ou serviço networking (ifupdown).",
+        example: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
+      },
+      {
+        command: "nmcli -t -f RUNNING,STATE g 2>/dev/null || echo 'nmcli ausente (sem NetworkManager-cli)'",
+        description:
+          "NM rodando? Estado geral.",
+        example: "nmcli general 2>/dev/null | head",
+      },
+      {
+        command: "networkctl status 2>/dev/null | head -n 30 || echo 'networkctl indisponivel'",
+        description:
+          "Visão systemd-networkd das links e estado operacional.",
+        example: "networkctl 2>/dev/null | head",
+      },
+      {
+        command: "sed -n '1,80p' /etc/network/interfaces 2>/dev/null || echo 'sem interfaces classico'",
+        description:
+          "Config ifupdown se existir.",
+        example: "grep -vE '^#|^$' /etc/network/interfaces 2>/dev/null | head",
+      },
+      {
+        command: "ls /etc/systemd/network/ 2>/dev/null; ls /etc/NetworkManager/system-connections/ 2>/dev/null | head",
+        description:
+          "Arquivos de networkd e conexões NM.",
+        example: "ls -la /etc/systemd/network/ 2>/dev/null; ls /etc/NetworkManager/system-connections/ 2>/dev/null | head",
+      },
+      {
+        command: "man interfaces",
+        description:
+          "Sintaxe do ifupdown clássico.",
+        example: "man interfaces",
+      },
+      {
+        command: "man NetworkManager",
+        description:
+          "Visão geral do NM (quando instalado).",
+        example: "man NetworkManager 2>/dev/null | head",
+      },
+      {
+        command: "man systemd.network",
+        description:
+          "Formato dos arquivos .network do networkd.",
+        example: "man systemd.network",
+      },
+      {
+        command: "resolvectl status 2>/dev/null | head -n 25 || cat /etc/resolv.conf 2>/dev/null | head",
+        description:
+          "DNS costuma ser puxado pelo stack de rede — ponte para o próximo capítulo.",
+        example: "resolvectl status 2>/dev/null | head -n 20 || cat /etc/resolv.conf",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Dois gerentes na mesma NIC",
+        content:
+          "NM + interfaces estático na mesma interface = corrida. Deixe um unmanaged ou desabilite um stack.",
+      },
+      {
+        type: "warning",
+        title: "Migrar sem console",
+        content:
+          "Em VPS, mude rede só com console web/serial e IP documentado.",
+      },
+      {
+        type: "success",
+        title: "ip -br primeiro",
+        content:
+          "Antes de culpar o gerenciador, veja se a link está UP e tem endereço.",
+      },
+      {
+        type: "info",
+        title: "Cloud-init",
+        content:
+          "Em imagens cloud a config 'de verdade' pode ser regenerada no boot — edite o lugar certo.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Identifique a stack",
+        goal: "Uma frase: 'Este host usa X; config em Y; interfaces Z'.",
+        steps: [
+          "ip -br addr",
+          "is-active dos três serviços",
+          "Olhar interfaces, network/*.network e system-connections",
+          "Anotar em ~/stack-rede.txt",
+        ],
+        command: "{ echo '=== ip ==='; ip -br addr; echo; echo '=== services ==='; systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null; echo; echo '=== paths ==='; ls /etc/network/interfaces /etc/systemd/network 2>&1 | head; } | tee ~/stack-rede.txt",
+        verify:
+          "Você nomeia UM stack principal e o arquivo/diretório de config correspondente.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Quais são as três stacks comuns no Debian?",
+        answer:
+          "ifupdown (/etc/network/interfaces), NetworkManager, e systemd-networkd.",
+      },
+      {
+        id: 2,
+        question: "Qual costuma ser natural em laptop com Wi-Fi?",
+        answer:
+          "NetworkManager.",
+      },
+      {
+        id: 3,
+        question: "Onde networkd guarda config?",
+        answer:
+          "/etc/systemd/network/*.network",
+      },
+      {
+        id: 4,
+        question: "Sintoma de dois gerenciadores na mesma NIC?",
+        answer:
+          "IP oscilando, rotas sumindo, ou config 'desfeita' após reboot.",
+      },
+      {
+        id: 5,
+        question: "Comando agnóstico para ver IPs?",
+        answer:
+          "ip addr ou ip -br addr",
+      },
+      {
+        id: 6,
+        question: "Por que console importa ao migrar?",
+        answer:
+          "Se a rede cair, SSH morre; console out-of-band salva.",
+      },
+      {
+        id: 7,
+        question: "nmcli serve para quê?",
+        answer:
+          "Administrar NetworkManager na linha de comando.",
+      },
+      {
+        id: 8,
+        question: "networkctl serve para quê?",
+        answer:
+          "Inspecionar links gerenciados pelo systemd-networkd.",
+      },
+    ],
+    references: [
+      { title: "Wiki — NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
+      { title: "man interfaces", url: "https://manpages.debian.org/interfaces" },
+      { title: "man systemd.network", url: "https://manpages.debian.org/systemd.network" },
+      { title: "NetworkManager docs", url: "https://networkmanager.dev/docs/" },
+    ],
+  },
+  {
+    id: "dns-cliente",
+    title: "DNS no cliente — resolv.conf, resolvectl e split DNS",
+    icon: "🧭",
+    category: "Rede e Segurança",
+    description:
+      "Entenda como o Debian resolve nomes: /etc/resolv.conf, systemd-resolved, stubs e por que 'ping 8.8.8.8 funciona mas o domínio não'.",
+    objectives: [
+      "Ler /etc/resolv.conf com desconfiança iluminada",
+      "Usar resolvectl status quando resolved estiver ativo",
+      "Distinguir falha de DNS de falha de rota",
+      "Testar com dig/getent sem ferramentas obscuras",
+      "Saber o que é o stub 127.0.0.53",
+      "Evitar editar resolv.conf à mão se for gerenciado",
+    ],
+    content: [
+      "Rede no IP e DNS são problemas diferentes. Se `ping 1.1.1.1` vai e `ping debian.org` falha, o culpado clássico é **resolução de nomes**. No Linux moderno o arquivo `/etc/resolv.conf` ainda é a interface legada, mas quem **escreve** nele pode ser NetworkManager, systemd-resolved, dhcpcd ou cloud-init. Editar na mão e ver a mudança sumir no reboot é o rito de passagem.",
+
+      "Com **systemd-resolved**, é comum `resolv.conf` apontar para `127.0.0.53` (stub local). A config 'de verdade' aparece em `resolvectl status`: DNS por link, domínios de busca, DNSSEC. **Split DNS**: VPN manda `*.corp` para um resolver interno e o resto para a internet — se quebrar, um domínio resolve e outro não.",
+
+      "Ferramentas: `getent hosts nome` usa a stack do sistema (nsswitch). `dig`/`drill` falam com um resolver específico. `ping` depende de resolver + ICMP. Ordem de debug: IP ok? → resolv.conf/resolvectl → dig @resolver → /etc/nsswitch.conf se ficar exótico.",
+
+      "Jargões. **stub resolver**. **DNS over TLS** (em setups avançados). **search domain**. **TTL**. **NXDOMAIN** vs timeout (nome não existe vs resolver inalcançável). Timeout cheira a firewall/UDP 53 bloqueado; NXDOMAIN é resposta negativa legítima.",
+
+      "Quando NÃO: hardcodar 8.8.8.8 em todo servidor corporativo que precisa de zonas internas; desligar resolved sem saber quem assume. Quando SIM: VPS nova com DNS errado do DHCP, VPN, troubleshooting 'site não abre' com IP ok.",
+
+      "Ao terminar você lê resolv.conf, interpreta 127.0.0.53, roda dig/getent e classifica o problema como rota vs DNS em uma frase.",
+
+    ],
+    commands: [
+      {
+        command: "cat /etc/resolv.conf",
+        description:
+          "Servidores e search atuais (pode ser symlink gerenciado).",
+        example: "cat /etc/resolv.conf",
+      },
+      {
+        command: "ls -l /etc/resolv.conf",
+        description:
+          "Se é symlink para stub do resolved ou arquivo estático.",
+        example: "ls -l /etc/resolv.conf",
+      },
+      {
+        command: "resolvectl status 2>/dev/null | head -n 40 || echo 'resolvectl indisponivel'",
+        description:
+          "Visão por interface quando systemd-resolved está no circuito.",
+        example: "resolvectl status 2>/dev/null | head -n 40",
+      },
+      {
+        command: "getent hosts debian.org",
+        description:
+          "Resolução via libc/NSS — o que a maioria dos apps usa.",
+        example: "getent hosts debian.org",
+      },
+      {
+        command: "dig +short debian.org @1.1.1.1 2>/dev/null || host debian.org 1.1.1.1 2>/dev/null || echo 'instale dnsutils para dig/host'",
+        description:
+          "Consulta direta a um resolver público (requer pacote dnsutils em muitos hosts).",
+        example: "dig +short debian.org @1.1.1.1",
+      },
+      {
+        command: "dig +short debian.org 2>/dev/null || getent hosts debian.org",
+        description:
+          "Consulta usando o resolver padrão do sistema.",
+        example: "dig debian.org +noall +answer 2>/dev/null | head",
+      },
+      {
+        command: "resolvectl query debian.org 2>/dev/null | head || true",
+        description:
+          "Query via resolved com metadados.",
+        example: "resolvectl query debian.org 2>/dev/null | head",
+      },
+      {
+        command: "grep -vE '^#|^$' /etc/nsswitch.conf | head",
+        description:
+          "Ordem hosts/dns/mdns — raro mexer, útil saber que existe.",
+        example: "grep hosts /etc/nsswitch.conf",
+      },
+      {
+        command: "man resolvectl",
+        description:
+          "Comandos do cliente resolved.",
+        example: "man resolvectl",
+      },
+      {
+        command: "man resolv.conf",
+        description:
+          "Formato clássico nameserver/search/options.",
+        example: "man resolv.conf",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "IP ok + nome falha = DNS",
+        content:
+          "Separe os problemas antes de reiniciar o stack inteiro.",
+      },
+      {
+        type: "warning",
+        title: "Editar resolv.conf gerenciado",
+        content:
+          "A mudança pode sumir; configure NM/networkd/resolved/cloud-init.",
+      },
+      {
+        type: "info",
+        title: "127.0.0.53",
+        content:
+          "Stub local do systemd-resolved — não é 'DNS da operadora' em si.",
+      },
+      {
+        type: "danger",
+        title: "DNS de VPN esquecido",
+        content:
+          "Split DNS mal feito vaza nomes internos ou quebra resolução externa.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Diagnóstico DNS em 5 minutos",
+        goal: "Provar se o problema é DNS ou não, com evidência.",
+        steps: [
+          "ping -c1 a um IP público (se política permitir)",
+          "getent hosts debian.org",
+          "cat resolv.conf + ls -l",
+          "resolvectl status ou dig",
+          "Anotar conclusão em ~/dns-lab.txt",
+        ],
+        command: "{ echo '=== resolv ==='; ls -l /etc/resolv.conf; cat /etc/resolv.conf; echo; echo '=== getent ==='; getent hosts debian.org; } | tee ~/dns-lab.txt",
+        verify:
+          "Você escreve: 'rota OK/NOK; DNS OK/NOK; resolver em uso é …'.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Sinal clássico de falha só de DNS?",
+        answer:
+          "Conectividade por IP funciona e nomes não resolvem (ou o contrário em casos de firewall de ICMP — confirme com tcp/https).",
+      },
+      {
+        id: 2,
+        question: "O que é 127.0.0.53 em resolv.conf?",
+        answer:
+          "Endereço stub típico do systemd-resolved no host local.",
+      },
+      {
+        id: 3,
+        question: "getent hosts vs dig?",
+        answer:
+          "getent usa NSS do sistema; dig consulta DNS diretamente (opcionalmente @servidor).",
+      },
+      {
+        id: 4,
+        question: "Onde ver DNS por interface com resolved?",
+        answer:
+          "resolvectl status",
+      },
+      {
+        id: 5,
+        question: "Por que edição manual de resolv.conf 'não gruda'?",
+        answer:
+          "Outro serviço regenera o arquivo no lease DHCP/boot.",
+      },
+      {
+        id: 6,
+        question: "O que é search domain?",
+        answer:
+          "Sufixo acrescentado a nomes curtos na resolução.",
+      },
+      {
+        id: 7,
+        question: "NXDOMAIN significa?",
+        answer:
+          "O resolver respondeu que o nome não existe.",
+      },
+      {
+        id: 8,
+        question: "Timeout na query sugere?",
+        answer:
+          "Resolver inalcançável, UDP/53 bloqueado, ou rede quebrada até o DNS.",
+      },
+    ],
+    references: [
+      { title: "man resolv.conf", url: "https://manpages.debian.org/resolv.conf" },
+      { title: "man resolvectl", url: "https://manpages.debian.org/resolvectl" },
+      { title: "man systemd-resolved", url: "https://manpages.debian.org/systemd-resolved" },
+      { title: "Wiki — DNS", url: "https://wiki.debian.org/DNS" },
+    ],
+  },
+  {
+    id: "rede-troubleshoot",
+    title: "Roteamento e troubleshooting de rede — ip route, ss e método",
+    icon: "🩺",
+    category: "Rede e Segurança",
+    description:
+      "Um roteiro ético de diagnóstico: link, endereço, rota, porta e DNS — com iproute2 e ss, sem vazar IP/rota da infraestrutura em exemplos públicos.",
+    objectives: [
+      "Seguir uma ordem fixa de diagnóstico",
+      "Usar ip link/addr/route sem ifconfig legado",
+      "Ver portas e processos com ss",
+      "Interpretar default route ausente",
+      "Separar problema local vs gateway vs DNS",
+      "Evitar expor dados sensíveis de VPS em prints",
+    ],
+    content: [
+      "Troubleshooting bom é **checklist**, não feitiçaria. Ordem que evita perda de tempo: (1) cabo/link (`ip link` — state UP/DOWN) (2) endereço (`ip addr`) (3) rota default (`ip route`) (4) alcance do gateway (5) alcance de um IP externo (6) DNS (7) porta da aplicação (`ss`). Pular para 'reinstalar NetworkManager' no passo 1 é teatro.",
+
+      "**iproute2** (`ip`, `ss`) é o padrão atual; `ifconfig`/`netstat` são legado. `ss -tulpn` mostra sockets escutando e o processo (`-p` pode pedir root). `ip route get 1.1.1.1` revela por qual interface/gateway o kernel mandaria o pacote — ouro para multi-homing e VPN.",
+
+      "Sintomas e hipóteses. Tudo DOWN: driver/firmware/NIC desabilitada. UP sem IP: DHCP/static/stack. IP sem default route: DHCP incompleto ou static mal colado. Default ok, externo falha: gateway/firewall/NAT. Localhost da app falha: serviço não escuta ou escuta só em 127.0.0.1.",
+
+      "Ética e privacidade: em material didático e tickets, **não cole** tabelas de rota com IPs internos de cliente, bastion ou RFC1918 sensível sem necessidade. Redija `gateway`/`via` de forma genérica quando for print público. O mesmo espírito da regra do projeto de não vazar IP da VPS da equipe.",
+
+      "Ferramentas extras com parcimônia: `ping` (ICMP pode estar bloqueado e ainda assim HTTP ok), `curl -v` para camada app, `traceroute`/`mtr` só quando a política permitir e sem publicar o caminho inteiro da infra. Em nuvem, security group/NACL é 'firewall fora da máquina'.",
+
+      "Ao terminar você aplica o checklist num host, usa ss para achar quem escuta uma porta, e explica default route em linguagem humana.",
+
+    ],
+    commands: [
+      {
+        command: "ip -br link",
+        description:
+          "Interfaces e estado UP/DOWN de forma compacta.",
+        example: "ip -br link",
+      },
+      {
+        command: "ip -br addr",
+        description:
+          "Endereços por interface.",
+        example: "ip -br addr",
+      },
+      {
+        command: "ip route",
+        description:
+          "Tabela de rotas; procure a default via.",
+        example: "ip route",
+      },
+      {
+        command: "ip route get 1.1.1.1",
+        description:
+          "Rota que o kernel usaria até esse destino (útil com várias NICs/VPN).",
+        example: "ip route get 1.1.1.1",
+      },
+      {
+        command: "ss -tulpn | head -n 30",
+        description:
+          "Sockets TCP/UDP escutando; -p mostra processo (root ajuda).",
+        example: "ss -tulpn | head -n 30",
+        flags: [
+          { flag: "-t", description: "TCP" },
+          { flag: "-u", description: "UDP" },
+          { flag: "-l", description: "listening" },
+          { flag: "-p", description: "processo" },
+          { flag: "-n", description: "numérico" },
+        ],
+      },
+      {
+        command: "ss -tnp | head -n 20",
+        description:
+          "Conexões TCP estabelecidas (amostra).",
+        example: "ss -tnp | head -n 20",
+      },
+      {
+        command: "ping -c 2 -W 2 1.1.1.1 2>&1 | tail -n 5",
+        description:
+          "Alcance IP básico se ICMP for permitido; falha ≠ internet morta sempre.",
+        example: "ping -c 2 1.1.1.1",
+      },
+      {
+        command: "curl -sI -m 5 https://deb.debian.org/ 2>&1 | head -n 10",
+        description:
+          "Teste de saída HTTPS sem despejar HTML.",
+        example: "curl -sI -m 5 https://deb.debian.org/ | head",
+      },
+      {
+        command: "man ip-route",
+        description:
+          "Referência de rotas iproute2.",
+        example: "man ip-route",
+      },
+      {
+        command: "man ss",
+        description:
+          "Substituto moderno do netstat.",
+        example: "man ss",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Checklist fixo",
+        content:
+          "link → addr → route → gateway → DNS → porta.",
+      },
+      {
+        type: "warning",
+        title: "ping bloqueado",
+        content:
+          "Security groups às vezes negam ICMP; teste TCP/HTTP também.",
+      },
+      {
+        type: "danger",
+        title: "Print com rota interna",
+        content:
+          "Não publique topologia sensível em issues/tutoriais.",
+      },
+      {
+        type: "info",
+        title: "ss -p e permissão",
+        content:
+          "Sem root, o processo pode aparecer vazio.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Checklist em uma folha",
+        goal: "Preencher estado de link, IP, default route, uma porta local e DNS.",
+        steps: [
+          "ip -br link e addr",
+          "ip route | head",
+          "ss -tulpn | head",
+          "getent hosts debian.org",
+          "Salvar resumo SEM colar IPs internos sensíveis se for compartilhar",
+        ],
+        command: "{ echo '=== link ==='; ip -br link; echo; echo '=== route (primeiras) ==='; ip route | head -n 8; echo; echo '=== listen (amostra) ==='; ss -tuln | head -n 15; } | tee ~/net-checklist.txt",
+        verify:
+          "Você aponta se há default route e se a porta do seu serviço aparece em ss.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Primeira pergunta do checklist?",
+        answer:
+          "A interface está UP e tem carrier/link?",
+      },
+      {
+        id: 2,
+        question: "Comando para ver rota default?",
+        answer:
+          "ip route (procure default via …)",
+      },
+      {
+        id: 3,
+        question: "ss -tulpn mostra o quê?",
+        answer:
+          "Sockets escutando TCP/UDP com portas e processos.",
+      },
+      {
+        id: 4,
+        question: "ip route get serve para quê?",
+        answer:
+          "Ver por onde o kernel enviaria pacotes a um destino.",
+      },
+      {
+        id: 5,
+        question: "Por que ifconfig é legado?",
+        answer:
+          "iproute2 (ip/ss) é a ferramenta moderna e mantida.",
+      },
+      {
+        id: 6,
+        question: "App não conecta mas ping ao IP funciona — e agora?",
+        answer:
+          "Checar DNS, porta de destino, firewall e se o serviço escuta no endereço certo.",
+      },
+      {
+        id: 7,
+        question: "Serviço escuta só 127.0.0.1 — sintoma?",
+        answer:
+          "Acesso remoto falha; local no host funciona.",
+      },
+      {
+        id: 8,
+        question: "Por que não colar traceroute completo público?",
+        answer:
+          "Pode revelar topologia e IPs internos da infraestrutura.",
+      },
+    ],
+    references: [
+      { title: "man ip", url: "https://manpages.debian.org/ip" },
+      { title: "man ss", url: "https://manpages.debian.org/ss" },
+      { title: "Wiki — NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
+      { title: "iproute2 docs", url: "https://wiki.linuxfoundation.org/networking/iproute2" },
+    ],
+  },
+  {
+    id: "tls-certbot",
+    title: "TLS e Certbot no Debian — certificado, renovação e armadilhas",
+    icon: "🔒",
+    category: "Rede e Segurança",
+    description:
+      "Coloque HTTPS de forma idiomática: conceitos de certificado, Certbot no Debian, renovação e o que quebra quando o relógio ou o DNS estão errados.",
+    objectives: [
+      "Explicar certificado, CA e cadeia em linguagem humana",
+      "Instalar certbot e um plugin comum",
+      "Emitir certificado de laboratório com consciência de DNS público",
+      "Testar renovação dry-run",
+      "Relacionar TLS com porta 80/443 e firewall",
+      "Evitar copiar chaves privadas para chat/git",
+    ],
+    content: [
+      "**TLS** protege o transporte (o cadeado do HTTPS). Um **certificado** amarra uma chave pública a um nome (CN/SAN) e é assinado por uma **CA**. O Let's Encrypt automatizou a emissão gratuita via desafios HTTP-01 ou DNS-01. No Debian, **certbot** é o cliente mais didático; o servidor web (Nginx/Apache) precisa servir o desafio e depois carregar fullchain+privkey.",
+
+      "Fluxo feliz HTTP-01: DNS do domínio aponta para o servidor → portas 80/443 acessíveis do mundo → `certbot --nginx` ou `certbot certonly --webroot` → arquivos em `/etc/letsencrypt/live/dominio/` → reload do web. Renovação: timer/cron do certbot + `renew` + hook de reload.",
+
+      "Armadilhas: DNS ainda no IP velho; firewall cloud bloqueando 80; **relógio errado** (capítulo tempo-ntp); rate limit da CA por tentativas; certificado emitido mas virtual host ainda com caminho velho; copiar só `cert.pem` sem `fullchain.pem` e o celular reclamar da cadeia.",
+
+      "Jargões. **SAN**. **fullchain**. **privkey** (nunca commitar). **staging** do Let's Encrypt para testes sem queimar limite. **OCSP/stapling** (otimização). Self-signed serve para lab interno, não para público sem aviso.",
+
+      "Ética: não rode emissão real contra domínios que você não controla. Em lab sem domínio, use staging, mkcert, ou openssl self-signed. Em produção da equipe, documente quem tem acesso à privkey e backup cifrado.",
+
+      "Ao terminar você explica HTTP-01, sabe onde o Certbot grava os pems, roda renew --dry-run em ambiente preparado, e lista três motivos comuns de falha.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y certbot",
+        description:
+          "Cliente Certbot. Plugins nginx/apache são pacotes separados em muitos releases.",
+        example: "sudo apt install -y certbot",
+      },
+      {
+        command: "apt-cache search certbot | head",
+        description:
+          "Ver plugins disponíveis (python3-certbot-nginx, etc.).",
+        example: "apt-cache search certbot | head",
+      },
+      {
+        command: "sudo certbot certificates 2>/dev/null || echo 'ainda sem certificados ou certbot nao configurado'",
+        description:
+          "Lista certificados gerenciados localmente.",
+        example: "sudo certbot certificates",
+      },
+      {
+        command: "sudo certbot renew --dry-run",
+        description:
+          "Simula renovação — o teste que importa depois do primeiro emit.",
+        example: "sudo certbot renew --dry-run",
+      },
+      {
+        command: "ls -la /etc/letsencrypt/live 2>/dev/null || echo 'sem /etc/letsencrypt/live ainda'",
+        description:
+          "Onde ficam os links fullchain.pem e privkey.pem.",
+        example: "sudo ls -la /etc/letsencrypt/live 2>/dev/null | head",
+      },
+      {
+        command: "openssl version",
+        description:
+          "OpenSSL presente para inspeção de certificados.",
+        example: "openssl version",
+      },
+      {
+        command: "echo | openssl s_client -connect deb.debian.org:443 -servername deb.debian.org 2>/dev/null | openssl x509 -noout -subject -dates 2>/dev/null | head",
+        description:
+          "Inspeciona certificado de um host público (exemplo) sem salvar chave.",
+        example: "echo | openssl s_client -connect deb.debian.org:443 -servername deb.debian.org 2>/dev/null | openssl x509 -noout -subject -dates",
+      },
+      {
+        command: "systemctl list-timers | grep -i certbot || ls /etc/cron*/*certbot* 2>/dev/null | head",
+        description:
+          "Como a renovação automática está agendada neste host.",
+        example: "systemctl list-timers | grep -i cert || true",
+      },
+      {
+        command: "man certbot",
+        description:
+          "Subcomandos certonly, renew, plugins.",
+        example: "man certbot",
+      },
+      {
+        command: "openssl req -x509 -newkey rsa:2048 -keyout /tmp/lab-self.key -out /tmp/lab-self.crt -days 1 -nodes -subj '/CN=lab.local' 2>/dev/null && openssl x509 -in /tmp/lab-self.crt -noout -subject -dates && rm -f /tmp/lab-self.key /tmp/lab-self.crt",
+        description:
+          "Self-signed de 1 dia só para lab local — não é Let's Encrypt, mas ensina o par chave/cert.",
+        example: "openssl req -x509 -newkey rsa:2048 -nodes -subj '/CN=lab.local' -days 1 -keyout /tmp/k.pem -out /tmp/c.pem",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "privkey no git/chat",
+        content:
+          "Chave privada vazada = troque certificado e revogue se aplicável.",
+      },
+      {
+        type: "warning",
+        title: "Rate limit LE",
+        content:
+          "Use staging para testes repetidos.",
+      },
+      {
+        type: "success",
+        title: "renew --dry-run",
+        content:
+          "Depois de emitir, este é o aceite de qualidade.",
+      },
+      {
+        type: "info",
+        title: "Relógio e DNS",
+        content:
+          "TLS e HTTP-01 dependem de tempo certo e nome apontando ao host.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Mapa TLS sem emitir na produção alheia",
+        goal: "Saber se certbot está instalado, se há live certs, e como o renew está agendado.",
+        steps: [
+          "apt-cache policy certbot",
+          "certbot certificates (se houver)",
+          "list-timers/cron certbot",
+          "openssl s_client em um site público só para ler datas",
+          "Anotar em ~/tls-lab.txt",
+        ],
+        command: "{ echo '=== certbot ==='; command -v certbot; dpkg -l certbot 2>/dev/null | tail -n 1; echo; echo '=== live ==='; sudo ls /etc/letsencrypt/live 2>&1 | head; } | tee ~/tls-lab.txt",
+        verify:
+          "Você explica onde estariam fullchain/privkey e o que dry-run testa.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que o Certbot automatiza?",
+        answer:
+          "Obter e renovar certificados (ex.: Let's Encrypt) e opcionalmente configurar o servidor web.",
+      },
+      {
+        id: 2,
+        question: "Onde ficam fullchain e privkey típicos?",
+        answer:
+          "/etc/letsencrypt/live/<dominio>/",
+      },
+      {
+        id: 3,
+        question: "Para que renew --dry-run?",
+        answer:
+          "Simular renovação e validar que o desafio ainda funciona.",
+      },
+      {
+        id: 4,
+        question: "HTTP-01 precisa de quê?",
+        answer:
+          "Domínio apontando ao servidor e porta 80 alcançável (na maioria dos fluxos).",
+      },
+      {
+        id: 5,
+        question: "Por que fullchain e não só cert.pem?",
+        answer:
+          "Inclui intermediários da cadeia que clientes precisam validar.",
+      },
+      {
+        id: 6,
+        question: "Relógio errado quebra TLS como?",
+        answer:
+          "Certificado pode parecer fora da validade (not yet valid / expired).",
+      },
+      {
+        id: 7,
+        question: "Self-signed serve para internet pública?",
+        answer:
+          "Navegadores não confiam sem aviso; use CA pública ou CA interna gerenciada.",
+      },
+      {
+        id: 8,
+        question: "O que nunca versionar no git?",
+        answer:
+          "privkey.pem e qualquer chave privada.",
+      },
+    ],
+    references: [
+      { title: "Certbot docs", url: "https://eff-certbot.readthedocs.io/" },
+      { title: "Let's Encrypt", url: "https://letsencrypt.org/docs/" },
+      { title: "man certbot", url: "https://manpages.debian.org/certbot" },
+      { title: "Debian Wiki — RealtimePKI / TLS intro", url: "https://wiki.debian.org/Certificates" },
+    ],
+  },
+  {
+    id: "proxy-reverso",
+    title: "Proxy reverso com Nginx ou Caddy — um host, vários apps",
+    icon: "🧱",
+    category: "Rede e Segurança",
+    description:
+      "Exponha aplicações internas com proxy reverso: papel do Nginx/Caddy, virtual hosts, proxy_pass/reverse_proxy e TLS na borda — sem colocar o app Node/Python cru na 443 sem necessidade.",
+    objectives: [
+      "Explicar proxy reverso vs apontar o app direto na 443",
+      "Subir Nginx ou Caddy no Debian e servir um backend",
+      "Configurar um virtual host / site",
+      "Encaminhar para 127.0.0.1:porta do app",
+      "Recarregar config com teste (nginx -t)",
+      "Encaixar TLS na borda (ligação com certbot)",
+    ],
+    content: [
+      "**Proxy reverso** fica na frente: o cliente fala HTTPS com Nginx/Caddy na 443; o proxy fala HTTP (ou outro) com o app em `127.0.0.1:3000`. Ganhos: TLS centralizado, vários nomes no mesmo IP (`a.exemplo` e `b.exemplo`), buffers, headers, rate limit, e o app não precisa rodar como root na 443.",
+
+      "**Nginx** é o cavalo de batalha com `server { }` e `proxy_pass`. **Caddy** é mais opinativo e TLS automático em muitos casos. No Debian ambos estão nos repositórios (versões variam). Escolha um por host na aprendizagem; misturar os dois na 80/443 pede conflito de porta.",
+
+      "Fluxo Nginx: instalar → `sites-available` + symlink `sites-enabled` → `proxy_pass http://127.0.0.1:8080` → `nginx -t` → reload. Headers úteis: `Host`, `X-Forwarded-For`, `X-Forwarded-Proto` para o app saber que veio HTTPS. WebSocket pede Upgrade headers extras.",
+
+      "Armadilhas: app escuta só em 127.0.0.1 (bom) mas você testou só de dentro; SELinux/AppArmor raro no Debian default; firewall libera 443 mas o proxy aponta porta errada; body size upload; timeout de proxy em app lento; **não** expor painel admin sem auth na borda.",
+
+      "Relação com o capítulo servidor-web: ali você serve arquivos e PHP clássico; aqui o foco é **encaminhar** para apps. Relação com certbot: termina certificado no proxy, não em cada app.",
+
+      "Ao terminar você desenha cliente→proxy→app, sobe um proxy de lab para um backend local (mesmo que seja `python3 -m http.server`), e valida com curl ao Host header.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y nginx",
+        description:
+          "Nginx do repositório Debian (Caddy: pacote caddy se disponível na sua release).",
+        example: "sudo apt install -y nginx",
+      },
+      {
+        command: "nginx -v 2>&1; systemctl is-active nginx 2>/dev/null",
+        description:
+          "Versão e se o serviço está active.",
+        example: "nginx -v 2>&1; systemctl is-active nginx",
+      },
+      {
+        command: "ls /etc/nginx/sites-available /etc/nginx/sites-enabled 2>/dev/null | head",
+        description:
+          "Layout Debian clássico de virtual hosts.",
+        example: "ls -la /etc/nginx/sites-enabled",
+      },
+      {
+        command: "sudo nginx -t",
+        description:
+          "Testa a config antes do reload — hábito inegociável.",
+        example: "sudo nginx -t",
+      },
+      {
+        command: "sudo systemctl reload nginx",
+        description:
+          "Aplica config sem dropar conexões desnecessariamente (vs restart).",
+        example: "sudo systemctl reload nginx",
+      },
+      {
+        command: "ss -tulpn | grep -E ':80|:443|:8080' | head",
+        description:
+          "Quem escuta as portas web e do backend.",
+        example: "ss -tulpn | grep -E ':80|:443' | head",
+      },
+      {
+        command: "curl -sI -H 'Host: localhost' http://127.0.0.1/ | head -n 15",
+        description:
+          "Fala com o proxy local e mostra headers de resposta.",
+        example: "curl -sI http://127.0.0.1/ | head",
+      },
+      {
+        command: "printf '%s\n' 'server {' '    listen 80 default_server;' '    server_name _;' '    location / {' '        proxy_pass http://127.0.0.1:8080;' '        proxy_set_header Host $host;' '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' '        proxy_set_header X-Forwarded-Proto $scheme;' '    }' '}'",
+        description:
+          "Esqueleto mental de reverse proxy Nginx (adapte em sites-available; não cole cego em produção).",
+        example: "# ver man nginx e docs proxy_pass",
+      },
+      {
+        command: "man nginx",
+        description:
+          "Entrada da documentação local.",
+        example: "man nginx",
+      },
+      {
+        command: "apt-cache search '^caddy' | head",
+        description:
+          "Ver se Caddy está nos repos da sua release como alternativa.",
+        example: "apt-cache search caddy | head",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "nginx -t antes de reload",
+        content:
+          "Evita derrubar o proxy com vírgula faltando.",
+      },
+      {
+        type: "warning",
+        title: "App na 0.0.0.0 exposto",
+        content:
+          "Se o proxy é a borda, o app pode escutar só localhost.",
+      },
+      {
+        type: "info",
+        title: "X-Forwarded-*",
+        content:
+          "Sem isso o backend acha que tudo é HTTP/IP do proxy.",
+      },
+      {
+        type: "danger",
+        title: "Dois serviços na :443",
+        content:
+          "Nginx e Caddy juntos na mesma porta = fail.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Proxy para backend local de lab",
+        goal: "Backend em 8080 + Nginx proxy_pass + curl via :80 (em lab/VM).",
+        steps: [
+          "Subir um backend simples na 8080 (http.server ou app)",
+          "Configurar location / com proxy_pass",
+          "nginx -t && reload",
+          "curl -I http://127.0.0.1/",
+          "ss para confirmar 80 e 8080",
+        ],
+        command: "ss -tulpn | grep -E ':80|:8080' || true; curl -sI http://127.0.0.1/ 2>/dev/null | head || echo 'subir nginx+backend no lab'",
+        verify:
+          "curl na 80 devolve resposta do backend; backend nao precisa estar exposto fora se bind em 127.0.0.1.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é proxy reverso?",
+        answer:
+          "Servidor na borda que recebe o cliente e encaminha ao aplicativo interno.",
+      },
+      {
+        id: 2,
+        question: "Vantagem de TLS no proxy?",
+        answer:
+          "Centraliza certificados e deixa o app em HTTP interno ou mTLS separado.",
+      },
+      {
+        id: 3,
+        question: "Diretiva Nginx típica de encaminhamento?",
+        answer:
+          "proxy_pass.",
+      },
+      {
+        id: 4,
+        question: "Por que nginx -t?",
+        answer:
+          "Validar configuração antes de recarregar.",
+      },
+      {
+        id: 5,
+        question: "Onde ficam sites no Debian/Nginx?",
+        answer:
+          "/etc/nginx/sites-available e sites-enabled.",
+      },
+      {
+        id: 6,
+        question: "Header importante para o IP real do cliente?",
+        answer:
+          "X-Forwarded-For (e similar).",
+      },
+      {
+        id: 7,
+        question: "App escuta 127.0.0.1:3000 — quem expõe 443?",
+        answer:
+          "O proxy reverso na borda.",
+      },
+      {
+        id: 8,
+        question: "Conflito clássico de porta?",
+        answer:
+          "Dois proxies ou app+proxy tentando bind na 80/443.",
+      },
+    ],
+    references: [
+      { title: "Nginx reverse proxy admin guide", url: "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/" },
+      { title: "Debian Wiki — Nginx", url: "https://wiki.debian.org/Nginx" },
+      { title: "Caddy documentation", url: "https://caddyserver.com/docs/" },
+      { title: "man nginx", url: "https://manpages.debian.org/nginx" },
+    ],
+  },
 ];
