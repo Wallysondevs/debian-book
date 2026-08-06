@@ -279,6 +279,8 @@ audacious --help | head -5
 # 5) Caso queira remover depois:
 # sudo apt purge audacious
 # sudo apt autoremove --purge`,
+        expected:
+          "O apt search devolve uma lista com nome, versão e uma linha de descrição por pacote; o apt show acrescenta tamanho instalado e dependências. Depois da instalação, o --help responde na hora com as opções do programa — se vier command not found, a instalação não terminou.",
         verify: "audacious --help deve responder sem erro. No menu gráfico de aplicativos deve aparecer Audacious.",
       },
       {
@@ -301,6 +303,8 @@ apt-cache depends docker.io | head -20
 
 # O que aconteceria se eu instalasse
 sudo apt --simulate install docker.io | head -30`,
+        expected:
+          "O apt show informa Installed-Size e a lista de Depends; o policy mostra a candidata e o repositório de onde ela vem; o --simulate imprime as ações com Inst e Conf sem tocar em nada. Ao final você deve conseguir dizer quantos pacotes novos entram e quantos MB serão baixados.",
         verify: "Você deve conseguir responder: quanto MB serão baixados? Quantos pacotes novos? De qual repositório vem?",
       },
     ],
@@ -526,6 +530,8 @@ ls /etc/apt/sources.list.d/ | grep google
 
 # 5) Limpar download
 rm google-chrome-stable_current_amd64.deb`,
+        expected:
+          "O apt resolve as dependências do arquivo local e instala; o dpkg -l mostra a linha começando com ii. Preste atenção no efeito colateral do passo 4: o pacote cria um google-chrome.list em sources.list.d, ou seja, software de terceiro que passa a se atualizar junto com o sistema.",
         verify:
           "google-chrome --version deve responder com a versão instalada. No menu de aplicativos deve aparecer Google Chrome. Em /etc/apt/sources.list.d/ deve haver um google-chrome.list, garantindo atualizações futuras via apt update normal.",
       },
@@ -549,6 +555,8 @@ dpkg -L bash | head -10
 
 # Configs do nano
 dpkg -L nano | grep '^/etc'`,
+        expected:
+          "O dpkg -S /usr/bin/cat responde coreutils e o /etc/hostname responde base-files. O dpkg -L bash lista caminhos reais, como /bin/bash e /etc/skel/.bashrc. Arquivo criado por você, fora de qualquer pacote, faz o dpkg -S dizer que nenhum pacote corresponde — e isso também é informação útil.",
         verify:
           "/usr/bin/cat vem de coreutils. /etc/hostname vem de base-files. bash instala /bin/bash, /etc/skel/.bashrc, /usr/share/man/, etc.",
       },
@@ -572,6 +580,8 @@ sudo apt purge -y $(dpkg -l | awk '/^rc/ {print $2}')
 
 # Confirmar
 dpkg -l | grep ^rc`,
+        expected:
+          "O primeiro grep lista as linhas iniciadas por rc, com nome e versão; a contagem devolve um número. Se der 0, o comando de purge fica sem argumento e o apt reclama — resultado válido, o sistema já estava limpo. Depois do purge, o grep final não devolve nada.",
         verify: "Após o purge, dpkg -l | grep ^rc não deve retornar nada, e seu /etc/ fica mais limpo.",
       },
     ],
@@ -806,6 +816,8 @@ sudo apt install -t trixie-backports linux-image-amd64
 
 # 5) Confirmar de onde veio
 apt-cache policy linux-image-amd64`,
+        expected:
+          "O apt update passa a incluir a linha do trixie-backports e o apt list -a marca os pacotes com o sufixo da suíte. No policy final, a versão instalada aparece com origem em trixie-backports; sem o -t, o apt teria mantido a do trixie normal por causa da prioridade 100.",
         verify: "apt-cache policy deve mostrar a versão instalada com origem em trixie-backports.",
       },
       {
@@ -833,6 +845,8 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 # 4) Update e instalar
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io`,
+        expected:
+          "O curl não imprime nada, porque o -s é silencioso, e o gpg --dearmor grava o chaveiro binário em /etc/apt/keyrings. O apt update deve terminar sem aviso de chave. Erro clássico: esquecer o chmod a+r e ver o apt reclamar que não consegue ler o chaveiro.",
         verify: "Após o update, não deve aparecer warning de chave inválida. docker --version deve responder.",
       },
       {
@@ -855,6 +869,8 @@ apt-cache policy firefox-esr
 # Método 2 (mais simples): hold
 sudo apt-mark hold firefox-esr
 apt-mark showhold`,
+        expected:
+          "O tee devolve o conteúdo do arquivo de preferences. No apt-cache policy, a versão fixada aparece com prioridade 1001 no lugar dos 500 habituais, e o apt-mark showhold lista o pacote. A partir daí, todo full-upgrade avisa que existem pacotes retidos — se não avisar, o pin não pegou.",
         verify: "apt-cache policy deve mostrar a versão fixada com prioridade 1001. apt-mark showhold deve listar firefox-esr.",
       },
     ],
@@ -1116,6 +1132,8 @@ flatpak install -y flathub com.obsproject.Studio
 
 # 5) Conferir
 flatpak list`,
+        expected:
+          "Cada install baixa o aplicativo e o runtime compartilhado: o primeiro é grande e os seguintes reaproveitam o que já veio. O flatpak list mostra nome, ID da aplicação, versão e branch. Se os apps não aparecerem no menu, faltou o logout e login — é a etapa mais pulada deste lab.",
         verify:
           "Após login, flatpak list mostra os 5 apps. No menu de aplicativos, todos aparecem com seus ícones. Clica e abre.",
       },
@@ -1146,6 +1164,8 @@ sudo apt install -t trixie-backports linux-image-amd64
 
 # 6) Após reiniciar, conferir versão ativa
 uname -r`,
+        expected:
+          "O policy mostra a versão do backports como candidata alternativa, e a instalação termina com as linhas de update-initramfs e update-grub. Depois do reboot o uname -r traz a versão nova; o kernel anterior continua no GRUB, em Advanced options, e é para ele que você volta se algo quebrar.",
         verify: "uname -r após reboot deve mostrar uma versão de kernel mais nova que a anterior.",
       },
       {
@@ -1166,6 +1186,8 @@ flatpak override --user --filesystem=~/Música com.spotify.Client
 
 # Conferir override aplicado
 flatpak override --user --show com.spotify.Client`,
+        expected:
+          "O flatpak override --show imprime as seções do sandbox, com a pasta liberada listada em [Context]. Sem o override o aplicativo simplesmente não enxerga o diretório, mesmo com a permissão do sistema de arquivos correta; com ele, a pasta passa a aparecer no seletor de arquivos do app.",
         verify: "Após o override, abrir Spotify e tentar adicionar pasta local de música deve funcionar sem 'permissão negada'.",
       },
     ],
@@ -1427,6 +1449,8 @@ Suites: trixie
 Components: main contrib non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF`,
+        expected:
+          "A saída é o modelo impresso na tela, para comparar com o /etc/apt/sources.list.d/debian.sources da máquina. O bloco correto tem Types, URIs, Suites, Components e Signed-By, um campo por linha. Erro clássico: jogar trixie-backports em Components ou repetir a URL nesse campo.",
         verify:
           "Seu bloco tem os cinco campos e a Suite é o codinome (não um componente). Components não inclui a URL. Signed-By é caminho de arquivo, não URL da chave.",
       },
@@ -1644,6 +1668,8 @@ echo '--- auto ---'
 cat /etc/apt/apt.conf.d/20auto-upgrades 2>/dev/null || true
 echo '--- dry-run (trecho) ---'
 sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
+        expected:
+          "O 20auto-upgrades precisa ter as duas diretivas em 1. O dry-run imprime as origins consideradas, com codename-security entre elas, e termina sem instalar nada, apenas dizendo o que faria. Log vazio significa que o serviço ainda não rodou — o timer é diário, não imediato.",
         verify:
           "Dry-run menciona origins esperadas e não tenta puxar testing/sid. Arquivo de log existe. Você sabe onde desligar o automático se precisar.",
       },
@@ -1844,6 +1870,8 @@ sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
         ],
         command: `# veja os comandos do capitulo em sequencia no /tmp
 ls -la /tmp/ola-curso_*.deb 2>/dev/null || echo "Construa o deb com o fluxo do capitulo"`,
+        expected:
+          "Depois do build, o dpkg-deb -I mostra o control com Package, Version, Architecture e Maintainer, e o -c lista os arquivos com dono e permissão. Instalado, o dpkg -L aponta o caminho do README; após o purge o pacote some do dpkg -l e o arquivo desaparece do disco.",
         verify:
           "Antes do purge o README existe no path documentado; depois do purge dpkg -l não mostra ii ola-curso e o arquivo sumiu.",
       },
@@ -2048,6 +2076,8 @@ echo '=== holds ==='
 apt-mark showhold
 echo '=== preferences ==='
 ls -la /etc/apt/preferences.d/ 2>/dev/null || true`,
+        expected:
+          "O policy geral lista os arquivos de índice com prioridade 500 por origem. Para o bash aparecem Installed, Candidate e a tabela de versões com o repositório de cada uma. Sem preferences.d e sem holds, os dois últimos blocos vêm vazios — e é isso que confirma que a candidata sai apenas das prioridades padrão.",
         verify:
           "Você identifica o número de prioridade ao lado da candidate e aponta de qual suite ela veio. Se não há preferences, a candidate deve bater com a stable/codinome das fontes.",
       },

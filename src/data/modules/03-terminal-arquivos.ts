@@ -217,6 +217,8 @@ pwd`,
           "Digite '!ls' e Enter — o Bash repete o último comando que começou com ls.",
           "Use Alt+. para colar o último argumento do comando anterior.",
         ],
+        expected:
+          "Não há saída para copiar: aqui você observa comportamento. O Tab completa para /var/ sozinho; dois Tabs listam as subpastas em colunas; o Ctrl+R troca o prompt por (reverse-i-search) e vai montando o comando conforme você digita. Tab que não completa nada quase sempre significa caminho inexistente.",
         verify:
           "Se o Tab completou os caminhos, se Ctrl+R achou comandos antigos e se !ls funcionou, você já está usando o terminal como gente grande.",
       },

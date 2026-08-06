@@ -243,6 +243,8 @@ sudo -u nobody cat /tmp/site/index.html
 namei -l /tmp/site/index.html
 chmod 755 /tmp/site
 sudo -u nobody cat /tmp/site/index.html`,
+        expected:
+          "A primeira leitura como nobody devolve Permission denied. O namei -l imprime uma linha por componente do caminho com as permissões de cada um, e /tmp/site aparece como drwx------. Depois do chmod 755 no diretório, o mesmo cat imprime o conteúdo do HTML — o arquivo nunca mudou, só o caminho até ele.",
         verify: "A primeira leitura como nobody falha porque /tmp/site não tem x para outros. namei mostra exatamente em qual diretório o acesso é negado. Após chmod 755 no diretório, a leitura passa.",
       },
     ],
@@ -542,6 +544,8 @@ last -10
 sudo grep sudo /var/log/auth.log | tail -20
 sudo grep "Failed password" /var/log/auth.log | tail -10
 sudo lastb/wtmpdb -20`,
+        expected:
+          "who e w listam as sessões abertas com terminal e horário; o last -10 mostra logins com data e duração. Os greps trazem linhas com USER=root e COMMAND=. Em Debian recente o /var/log/auth.log pode não existir, com tudo indo para o journal — nesse caso use journalctl -t sudo. A última linha do roteiro pede que você escolha entre lastb e wtmpdb, não é um comando único.",
         verify: "Você deve ver registros datados de cada login e cada uso de sudo. Em servidor exposto à internet, lastb costuma estar lotado de tentativas de root, admin, oracle, etc.",
       },
       {
@@ -794,6 +798,8 @@ sudo userdel -r temp`,
 
 sudo -u deploy sudo -l
 sudo su - deploy -c "sudo systemctl reload nginx"`,
+        expected:
+          "O sudo -l pelo usuário deploy lista as três entradas de systemctl marcadas com (root) NOPASSWD. O reload roda sem pedir senha e sem imprimir nada — silêncio aqui é sucesso. Se a sintaxe estiver errada, o visudo recusa salvar e oferece reeditar; aceite reeditar, nunca force a gravação.",
         verify: "'sudo -u deploy sudo -l' mostra a regra. Como deploy, 'sudo systemctl reload nginx' executa SEM pedir senha. Tentar 'sudo systemctl restart apache' (não listado) pede senha ou recusa.",
       },
       {
@@ -809,6 +815,8 @@ sudo su - deploy -c "sudo systemctl reload nginx"`,
 sudo grep 'sudo:' /var/log/auth.log | grep maria
 sudo grep 'sudo:' /var/log/auth.log | grep apt
 sudo grep 'sudo:' /var/log/auth.log | grep -E "incorrect password|not in the sudoers"`,
+        expected:
+          "Cada linha traz usuário, TTY, PWD, USER=root e COMMAND com o caminho absoluto do que foi executado. Os filtros por maria e por apt costumam voltar vazios em máquina de estudo, e vazio também é resposta: ninguém rodou aquilo. Sem auth.log no sistema, troque por journalctl -t sudo.",
         verify: "Você verá linhas com TTY, PWD, USER e COMMAND. As tentativas falhas aparecem com 'incorrect password attempts' ou 'is not in the sudoers file'.",
       },
       {

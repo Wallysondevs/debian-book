@@ -207,6 +207,8 @@ pkill yes
 
 # 5) Confirmar
 pgrep yes`,
+        expected:
+          "O yes em segundo plano devolve algo como [1] 12345 e um núcleo vai a 100% no htop. O pgrep imprime o PID enquanto o processo vive e não imprime nada depois do pkill, quando o próprio shell avisa Terminated. Se nem o pkill -9 resolver, o processo está em estado D esperando disco — aí o problema é hardware ou driver, não o programa.",
         verify:
           "Após matar, 'pgrep yes' não retorna nada. O htop mostra zero processos chamados 'yes'. CPU volta ao normal.",
       },
@@ -231,6 +233,8 @@ ps aux --sort=-%cpu | head -11
 # Em tempo real (htop)
 htop
 # Aperte F6, escolha PERCENT_MEM`,
+        expected:
+          "O free -h mostra total, used, free, buff/cache e available — leia available, não free. No ps ordenado, as primeiras linhas trazem %MEM e RSS em KB: em desktop costumam ser navegador e ambiente gráfico; em servidor, o banco. Cache alto com available folgado não é problema de memória, é o kernel usando RAM ociosa.",
         verify:
           "Você identifica os 3 processos que mais consomem RAM no seu sistema. Em desktop típico: navegador, IDE, gerenciador de janelas.",
       },
@@ -269,6 +273,8 @@ disown
 
 # 8) Feche o terminal, abra outro:
 pgrep -a sleep`,
+        expected:
+          "O Ctrl+Z imprime [1]+ Stopped; o bg mostra o job retomado com & no fim; o jobs lista [1]+ Running. Depois de fechar e reabrir o terminal, o pgrep -a sleep ainda encontra o processo iniciado com nohup, agora com PPID 1 — ele foi adotado pelo init quando o shell pai morreu.",
         verify:
           "Após reabrir terminal, pgrep ainda mostra o sleep com nohup rodando. Sem nohup, ele teria morrido com SIGHUP no fechamento.",
       },
@@ -500,6 +506,8 @@ sudo journalctl -u ssh -n 20
 
 # 6) Tempo real
 sudo journalctl -u ssh -f`,
+        expected:
+          "O is-active responde apenas active. O status traz Loaded com enabled e Active: active (running) com o tempo desde o start. No journal deve existir a linha Server listening on 0.0.0.0 port 22 — se ela não aparecer, o serviço subiu mas não abriu a porta, e não adianta procurar culpa no firewall ainda.",
         verify:
           "'systemctl is-active ssh' responde 'active'. 'systemctl status ssh' mostra Active: active (running). De outra máquina: ssh USUARIO@IP_DO_DEBIAN.",
       },
@@ -560,6 +568,8 @@ systemctl status meu-script.service
 # sudo systemctl disable --now meu-script.service
 # sudo rm /etc/systemd/system/meu-script.service
 # sudo systemctl daemon-reload`,
+        expected:
+          "Depois do enable --now, o status mostra Active: active (running) e o journal recebe uma linha a cada 30 segundos. Após o pkill, o serviço passa por failed e em cinco segundos volta a running com outro PID — é o Restart=on-failure agindo. Esquecer o daemon-reload faz o systemd insistir que a unit não existe.",
         verify:
           "'systemctl status meu-script.service' mostra Active: active. journalctl mostra a mensagem aparecendo a cada 30s. Após pkill, em 5s o serviço reinicia com novo PID.",
       },
@@ -589,6 +599,8 @@ systemctl cat ssh
 # 4) Reverter
 sudo systemctl revert ssh
 sudo systemctl daemon-reload`,
+        expected:
+          "O systemctl cat imprime primeiro o arquivo original, com o caminho comentado no topo, e depois o seu override.conf, contendo apenas as linhas alteradas. Após o revert, só o original continua. Editar direto o arquivo do pacote faria a mudança sumir na próxima atualização — esse é o motivo do override existir.",
         verify:
           "Após editar, 'systemctl cat ssh' mostra o conteúdo do /lib/systemd/system/ssh.service e em seguida o seu override.conf. Após revert, o override some.",
       },
@@ -820,6 +832,8 @@ sudo journalctl -u ssh --since '1 day ago' \\
 
 # Versao classica via auth.log
 sudo grep 'Failed password' /var/log/auth.log | tail -20`,
+        expected:
+          "Cada linha traz data, host, sshd com o PID e Failed password for ... from IP. A contagem devolve um número e o pipeline de IPs sai ordenado do mais insistente para o menos. Em máquina de estudo o resultado costuma ser zero, o que não é erro; em VPS exposta, centenas por dia são rotina.",
         verify:
           "Em servidor exposto à internet, espere ver muitas tentativas (centenas/milhares por dia de bots). Em servidor interno, deve ser zero. Se ver muitas, considere mudar a porta SSH ou instalar fail2ban.",
       },
@@ -849,6 +863,8 @@ sudo systemctl restart systemd-journald
 # 4) Confirmar
 sudo journalctl --disk-usage
 sudo journalctl --list-boots`,
+        expected:
+          "O --disk-usage responde com uma frase informando quanto os journals ocupam. O --list-boots passa a listar mais de um boot depois do primeiro reinicio com persistência ativa; enquanto só aparecer o boot atual, o journal ainda é volátil e você perde o log justamente do reboot que quer investigar.",
         verify:
           "'journalctl --disk-usage' mostra uso < 1G após algumas semanas. 'journalctl --list-boots' lista todos os boots desde a habilitação.",
       },
@@ -880,6 +896,8 @@ journalctl -t meu-backup --since '5 min ago'
 
 # 4) So warnings ou pior
 journalctl -t meu-backup -p warning --since '5 min ago'`,
+        expected:
+          "As três mensagens aparecem no journal com a tag meu-backup e o horário de cada uma. O filtro -p warning devolve só a do meio, provando que a prioridade foi gravada junto do texto. Mensagem que não aparece é quase sempre tag digitada diferente na consulta.",
         verify:
           "journalctl mostra as 3 mensagens com a tag meu-backup. O filtro -p warning mostra só a do meio.",
       },
@@ -1087,6 +1105,8 @@ crontab -l
 ~/scripts/backup-home.sh
 ls -lh /tmp/backup_home_*.tar.gz
 cat ~/scripts/backup.log`,
+        expected:
+          "O crontab -l mostra a linha com os cinco campos de tempo antes do caminho do script. A execução manual cria o .tar.gz em /tmp e acrescenta uma linha ao backup.log. Erro clássico deste lab: funcionar na mão e falhar no cron, porque o cron roda com PATH mínimo e sem as suas variáveis — por isso tudo usa caminho absoluto.",
         verify:
           "'crontab -l' mostra a linha. O backup manual cria /tmp/backup_home_*.tar.gz e atualiza o log.",
       },
@@ -1135,6 +1155,8 @@ systemctl list-timers backup-home.timer
 # 5) Testar manualmente o servico
 sudo systemctl start backup-home.service
 sudo journalctl -u backup-home.service -n 20`,
+        expected:
+          "O list-timers mostra NEXT com a data do próximo disparo às 03:00, LEFT com o tempo que falta e LAST vazio até a primeira execução. O journal da service registra início, fim e código de saída. Com Persistent=true, se a máquina estiver desligada às 3h, ele roda assim que ela voltar — vantagem que o cron não tem.",
         verify:
           "'systemctl list-timers backup-home.timer' mostra próximo disparo às 03:00. journalctl mostra a execução.",
       },
@@ -1154,6 +1176,8 @@ systemd-analyze calendar 'weekly'
 
 # Mostra proximas execucoes
 systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
+        expected:
+          "Para cada expressão o comando imprime Original form, Normalized form e Next elapse com data completa; com --iterations=5 saem cinco datas futuras. Sintaxe inválida devolve Failed to parse calendar expression — muito melhor descobrir aqui do que num timer que simplesmente nunca dispara.",
         verify:
           "Cada expressão devolve 'Normalized form' e 'Next elapse'. Se aparecer erro, a sintaxe está errada — ajuste antes de gravar no .timer.",
       },
@@ -1378,6 +1402,8 @@ free -h
 
 # 6) Persistir no /etc/fstab
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab`,
+        expected:
+          "O mkswap imprime rótulo e UUID do novo espaço; o swapon --show lista o /swapfile com TYPE file e SIZE 2G; o free -h passa a mostrar 2Gi na linha Swap. Em sistema de arquivos Btrfs o fallocate não serve para swap: sem dd mais chattr +C, o swapon recusa o arquivo.",
         verify:
           "'swapon --show' lista o /swapfile com tamanho 2G. 'free -h' mostra Swap aumentou em 2GB. Após reboot, ainda está ativo (graças ao fstab).",
       },
@@ -1404,6 +1430,8 @@ sudo sysctl -p /etc/sysctl.d/99-swappiness.conf
 
 # 5) Conferir
 cat /proc/sys/vm/swappiness`,
+        expected:
+          "O primeiro cat mostra 60, que é o padrão do Debian. O sysctl ecoa vm.swappiness = 10 e o cat final confirma o novo valor. O arquivo em /etc/sysctl.d é o que garante isso após o reboot — mudar só pela linha de comando dura até desligar a máquina.",
         verify:
           "Valor passa de 60 para 10. Após reboot, ainda é 10 (graças ao /etc/sysctl.d/99-swappiness.conf).",
       },
@@ -1437,6 +1465,8 @@ cat /proc/$PID/maps | head -10
 
 # Compare com ps
 ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
+        expected:
+          "O status traz Name, State, PPID, VmRSS e Threads; o cmdline devolve a linha de comando com os argumentos; o ls dos descritores mostra 0, 1 e 2 apontando para o terminal. O RSS visto aqui é o mesmo número que o ps informa — as ferramentas apenas leem e formatam esses arquivos.",
         verify:
           "Você obtém todas as informações sobre o processo direto do /proc, equivalente a ferramentas como ps, lsof e pmap, sem instalar nada.",
       },
@@ -1628,6 +1658,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "Salvar em ~/mapa-boot.txt",
         ],
         command: "{ echo '=== kernel ==='; uname -a; echo; echo '=== cmdline ==='; cat /proc/cmdline; echo; echo '=== default ==='; systemctl get-default; echo; echo '=== grub defaults ==='; grep -vE '^#|^$' /etc/default/grub 2>/dev/null; } | tee ~/mapa-boot.txt",
+        expected:
+          "O arquivo fica com quatro blocos: kernel e arquitetura, a linha de comando com root=UUID=... e ro quiet, o target padrão (graphical.target em desktop, multi-user.target em servidor) e as linhas ativas do /etc/default/grub. Se o root do cmdline não bater com o UUID real do disco, você achou a causa do boot que para no initramfs.",
         verify:
           "Você explica em voz alta a sequência até o login e aponta um possível ponto de falha se cmdline/root estivesse errado.",
       },
@@ -1813,6 +1845,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "Salvar em ~/kernel-firmware.txt",
         ],
         command: "{ echo '=== uname ==='; uname -a; echo; echo '=== images ==='; dpkg -l 'linux-image-*' | grep ^ii; echo; echo '=== firmware msgs ==='; journalctl -k -b --no-pager 2>/dev/null | grep -i firmware | tail -n 15; } | tee ~/kernel-firmware.txt",
+        expected:
+          "O arquivo mostra o kernel em uso, as imagens instaladas (normalmente duas, a atual e a anterior) e as mensagens de firmware do boot. Linhas com firmware failed to load citam o arquivo que faltou, e esse nome indica o pacote a instalar; nenhuma linha é o resultado bom.",
         verify:
           "Você sabe qual kernel roda, quantas imagens estão instaladas e se há firmware failed to load no boot.",
       },
@@ -1997,6 +2031,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "Anotar qual identificador usaria no fstab vs script",
         ],
         command: "lsblk -f; echo '---'; ls /dev/disk/by-uuid 2>/dev/null | head",
+        expected:
+          "O lsblk -f lista dispositivo, sistema de arquivos, rótulo, UUID e ponto de montagem; o ls de by-uuid mostra links com o mesmo UUID apontando para ../../sda1 e semelhantes. O aprendizado está na comparação: sdb pode virar sdc no próximo boot, enquanto UUID e by-id continuam iguais.",
         verify:
           "Você aponta o UUID que colocaria no fstab e explica por que não usaria sdb1 puro.",
       },
@@ -2183,6 +2219,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "Registrar saída em ~/tempo.txt",
         ],
         command: "timedatectl | tee ~/tempo.txt",
+        expected:
+          "O timedatectl responde com Local time, Time zone, System clock synchronized: yes e NTP service: active. Logo depois do boot é normal ver synchronized: no por alguns segundos; se persistir, ou a UDP 123 está bloqueada, ou o serviço de hora não está rodando.",
         verify:
           "Timezone intencional; NTP service active / synchronized yes (ou chrony tracking OK).",
       },
@@ -2371,6 +2409,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "disable --now e remover arquivo + daemon-reload",
         ],
         command: "systemctl cat lab-hello.service 2>/dev/null || echo 'crie a unit do capitulo'; ls -la /tmp/lab-hello.log 2>/dev/null || true",
+        expected:
+          "Com a unit criada, o systemctl cat imprime o arquivo e o status mostra a execução concluída. Atenção ao que parece erro e não é: em oneshot sem RemainAfterExit, o estado final é inactive (dead) e isso é sucesso. Depois da limpeza, o cat responde que não encontra a unit.",
         verify:
           "Após start, o log tem timestamp; após limpeza, systemctl cat não acha a unit.",
       },
@@ -2558,6 +2598,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "disable --now e apagar arquivos",
         ],
         command: "systemctl list-timers lab-tick.timer --no-pager 2>/dev/null || echo 'timer lab nao ativo (ok se ja limpou)'",
+        expected:
+          "Com o timer ativo, o list-timers traz uma linha com NEXT, LEFT, LAST e a unit; o arquivo de log ganha uma entrada a cada disparo. Depois da limpeza o comando não acha mais o timer e cai na mensagem alternativa — que também é resultado esperado, sinal de que você desfez o lab.",
         verify:
           "Log com ticks; apos limpeza o timer some de list-timers.",
       },
@@ -2741,6 +2783,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "tee ~/targets-lab.txt",
         ],
         command: "{ echo '=== default ==='; systemctl get-default; echo; echo '=== failed ==='; systemctl --failed --no-pager; echo; echo '=== blame ==='; systemd-analyze blame 2>/dev/null | head -n 15; } | tee ~/targets-lab.txt",
+        expected:
+          "O arquivo traz o target padrão, as units em falha (o ideal é a mensagem de 0 loaded units listed) e o ranking do blame, do mais lento para o mais rápido. Serviço de rede esperando endereço costuma liderar o blame e é o primeiro suspeito quando o boot demora.",
         verify:
           "Você nomeia o default target e aponta o serviço mais lento do blame (se houver).",
       },
@@ -2926,6 +2970,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "Registrar em ~/journal-lab.txt",
         ],
         command: "{ echo '=== usage ==='; journalctl --disk-usage; echo; echo '=== persist? ==='; ls -ld /var/log/journal 2>&1 | head; echo; echo '=== errs ==='; journalctl -b -p err --no-pager | tail -n 15; } | tee ~/journal-lab.txt",
+        expected:
+          "O primeiro bloco diz quanto o journal ocupa; o segundo revela se /var/log/journal existe, ou seja, se o log sobrevive ao reboot; o terceiro traz os erros de prioridade err do boot atual. Bloco de erros vazio é ótimo resultado — significa boot limpo, não comando errado.",
         verify:
           "Você afirma se o journal sobrevive a reboot e cita um erro real (ou a ausência) do boot atual.",
       },
@@ -3115,6 +3161,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "df -h",
         ],
         command: "{ echo '=== uptime ==='; uptime; echo; echo '=== free ==='; free -h; echo; echo '=== top cpu ==='; ps aux --sort=-%cpu | head -n 10; echo; echo '=== df ==='; df -h; } | tee ~/slow-snap.txt",
+        expected:
+          "Quatro blocos no arquivo. Compare o load average com o número de núcleos, olhe o available do free e o Use% do df. Load alto com CPU ociosa aponta espera de disco ou de rede; partição em 100% costuma explicar sozinha a lentidão e as falhas de serviço que vieram junto.",
         verify:
           "Arquivo com quatro blocos para anexar em chamado.",
       },
@@ -3304,6 +3352,8 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
           "journalctl -b -p err | tail",
         ],
         command: "{ echo '=== cmdline ==='; cat /proc/cmdline; echo; echo '=== lsblk ==='; lsblk -f; echo; echo '=== failed ==='; systemctl --failed --no-pager; } | tee ~/boot-snap.txt",
+        expected:
+          "O arquivo reúne a linha de comando do kernel, a tabela de discos com UUID e a lista de units em falha. É o mínimo que alguém precisa para te ajudar remotamente: sem cmdline e sem lsblk, qualquer diagnóstico de boot vira adivinhação.",
         verify:
           "~/boot-snap.txt pronto para colar em chamado de recovery.",
       },
@@ -3472,6 +3522,8 @@ active`,
           "Classifique em uma frase: link? IP? rota? DNS?",
         ],
         command: "{ ip -br link; ip -br addr; ip route; ping -c1 -W2 1.1.1.1; } | tee ~/laudo-rede.txt",
+        expected:
+          "O laudo mostra as interfaces e o estado do link, os endereços, a tabela de rotas com a linha default e o resultado do ping. Leia nessa ordem: sem link nada mais importa; com link e sem IP, é DHCP; com IP e sem rota default, é gateway; com ping por IP funcionando e nome falhando, é DNS.",
         verify: "Arquivo existe e você classifica a camada do problema.",
       },
     ],
@@ -3640,6 +3692,8 @@ active`,
           "rodar na mão",
         ],
         command: "test -x ~/bin/health-check.sh && journalctl --disk-usage && ~/bin/health-check.sh",
+        expected:
+          "O teste só segue se o script existir e for executável — saída vazia aqui significa que faltou o chmod +x. Depois vem o uso em disco do journal, que precisa respeitar o limite do drop-in, e por fim a saída do health check, com uma linha por verificação.",
         verify:
           "Script OK e disk-usage do journal visível.",
       },

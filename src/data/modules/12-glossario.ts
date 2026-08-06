@@ -92,6 +92,8 @@ export const glossario: Module[] = [
           "Abra o capítulo indicado se travar",
         ],
         command: "true",
+        expected:
+          "Não há saída de comando: o true está ali só para o bloco não ficar vazio. A verificação é oral. Uma resposta boa diz que o APT resolve dependências consultando os repositórios, que unit é o arquivo que descreve algo gerenciado pelo systemd e que 3-2-1 são três cópias, em dois meios, com uma fora do local.",
         verify: "Você consegue ensinar os três termos a outra pessoa em 2 minutos.",
       },
     ],

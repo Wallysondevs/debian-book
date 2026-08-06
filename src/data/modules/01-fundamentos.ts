@@ -453,6 +453,8 @@ lsb_release -c 2>/dev/null || grep CODENAME /etc/os-release
 echo ""
 echo "=== Release info completo ==="
 cat /etc/os-release`,
+        expected:
+          "Três blocos na tela: um número como 13.x (ou 12.x), o codinome correspondente em Codename: ou VERSION_CODENAME= e o /etc/os-release completo, com PRETTY_NAME, VERSION_ID e as URLs do projeto. Em instalação mínima o lsb_release não existe e só o grep responde — isso é normal, não é erro.",
         verify:
           "Se a versão numérica começa com '13', você está em trixie (estável atual desde agosto de 2025). Se começa com '12', está em bookworm (oldstable); '11' é bullseye. Se mostra 'forky/sid' em vez de número, está em testing/unstable.",
       },
@@ -469,6 +471,8 @@ cat /etc/os-release`,
 apt show bash | head -20
 echo ""
 echo "Veja bugs em: https://bugs.debian.org/bash"`,
+        expected:
+          "O apt mostra o bash com Package, Version, Maintainer, Installed-Size, Depends e Description. Repare no tamanho da instalação do devscripts: ele puxa dezenas de dependências por ser uma caixa de ferramentas de empacotamento, então é download grande para um utilitário pequeno.",
         verify:
           "Você deve ver descrição, mantenedor, versão e dependências do pacote bash. Visitando a URL do bug tracker, vai ver bugs abertos e fechados — abertura total é marca registrada do projeto.",
       },
@@ -715,6 +719,8 @@ apt-cache policy linux-image-amd64
 
 # 5) (Opcional - so em VM) instalar kernel novo dos backports
 # sudo apt install -t trixie-backports linux-image-amd64`,
+        expected:
+          "Depois do apt update aparece uma linha de trixie-backports junto das demais fontes. No apt-cache policy surgem duas candidatas com prioridades diferentes: a do trixie normal com 500 e a do backports com 100. A prioridade baixa é proposital — é por isso que instalar de lá exige o -t.",
         verify:
           "Após o 'apt update', você deve ver linhas como 'Get:X http://deb.debian.org/debian trixie-backports'. O 'apt-cache policy' deve mostrar duas versões disponíveis: a do trixie normal e a do trixie-backports (mais recente).",
       },
@@ -741,6 +747,8 @@ sudo apt update
 
 # 4) Instalar
 sudo apt install -y brave-browser`,
+        expected:
+          "O tee ecoa a linha do repositório que acabou de gravar e o apt update baixa o índice do domínio da Brave sem NO_PUBKEY. Se a chave estiver no formato errado, o erro fala em assinatura que não pôde ser verificada e nenhum pacote da Brave fica disponível para instalar.",
         verify:
           "Se 'apt update' não dá erro 'NO_PUBKEY' nem 'signature invalid', o setup está correto. O Brave deve aparecer no menu de aplicativos depois de instalado, e você pode confirmar a origem dele com 'apt-cache policy brave-browser'.",
       },
@@ -766,6 +774,8 @@ ls /usr/share/keyrings/ 2>/dev/null
 echo ""
 echo "=== Pacotes nao-oficiais (origem != Debian) ==="
 apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
+        expected:
+          "Quatro blocos: as linhas ativas do sources.list, os arquivos extras em sources.list.d, os chaveiros em /usr/share/keyrings e uma amostra dos pacotes instalados. Em sistema recém-instalado o bloco de repositórios extras vem vazio — cada arquivo que aparecer ali é uma fonte que você precisa saber justificar.",
         verify:
           "Você terá um inventário do que está configurado. Se ver algum repositório que não lembra de ter adicionado, vale investigar — pode ser resíduo de uma instalação antiga ou, em casos raros, indício de comprometimento.",
       },
@@ -1021,6 +1031,8 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         command: `echo "Codinome atual: $(. /etc/os-release; echo $VERSION_CODENAME)"
 echo "Leia: https://www.debian.org/releases/"
 echo "Leia também: https://wiki.debian.org/DebianReleases"`,
+        expected:
+          "A tela mostra apenas o codinome atual e dois links; o resultado do lab é o texto que você escreve. Uma lista honesta traz, do lado FICAR, serviço em produção e hardware que hoje funciona; do lado MIGRAR, um pacote novo de que você realmente precisa ou o fim do suporte de segurança da sua release.",
         verify:
           "Você tem uma lista escrita de prós/contras. Se a única justificativa for ‘porque saiu vídeo’, a decisão correta costuma ser ficar no stable atual e aplicar só security.",
       },
@@ -1292,6 +1304,8 @@ echo "sudo apt full-upgrade -s | tee /tmp/plano-upgrade.txt"`,
 # 5) sudo apt full-upgrade
 # 6) sudo reboot
 # 7) cat /etc/os-release`,
+        expected:
+          "Ao final, /etc/os-release traz VERSION_CODENAME=trixie e o dpkg --audit sai vazio. Durante o full-upgrade o apt para em telas perguntando o que fazer com arquivos de /etc que você modificou: mantenha a versão local e compare depois com o .dpkg-dist, em vez de aceitar tudo no automático.",
         verify:
           "VERSION_CODENAME=trixie, rede ok, sem dpkg --audit sujo, serviço de teste respondendo. Se falhou, restaure snapshot e anote em qual passo quebrou.",
       },

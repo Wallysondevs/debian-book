@@ -264,6 +264,8 @@ ping -c 2 1.1.1.1
 sudo atq
 # pegue o numero do job e:
 sudo atrm <numero>`,
+        expected:
+          "O ip a passa a mostrar o endereço fixo na interface, e o ping ao gateway e ao 1.1.1.1 responde. O atq lista o job agendado até você removê-lo com atrm. Errar o nome da interface derruba a rede na hora — e é exatamente para isso que existe o plano B: em cinco minutos o at devolve o arquivo antigo e o acesso volta.",
         verify:
           "ip a mostra o IP estático configurado, ping ao gateway e ao 1.1.1.1 respondem. O job agendado pelo at foi removido. Se algo der errado, o at restaura sozinho em 5 minutos.",
       },
@@ -530,6 +532,8 @@ sudo nft list table inet ufw-before-input 2>/dev/null
 
 # Compatibilidade iptables
 sudo iptables -L INPUT -n -v --line-numbers`,
+        expected:
+          "O nft list ruleset imprime tabelas e cadeias com nomes começados por ufw-, e cada regra traz contadores de packets e bytes que sobem conforme o tráfego chega. O iptables -L mostra as mesmas regras na sintaxe antiga. Contador parado em zero é regra que nunca casou com nada — ou sobra, ou está na ordem errada.",
         verify:
           "Você consegue identificar as regras INPUT que o UFW criou e ver os contadores (packets, bytes) subindo conforme conexões legítimas chegam.",
       },
@@ -1175,6 +1179,8 @@ grep -A1 'Suggestion' /var/log/lynis-report.dat | head -40
 # 5) Apos aplicar mudancas, re-auditar
 sudo lynis audit system
 # Comparar score - deve subir`,
+        expected:
+          "O Lynis vai imprimindo seções com marcações OK, WARNING e SUGGESTION e termina com o Hardening index, de 0 a 100. Em Debian recém-instalado o índice costuma ficar entre 55 e 65. Nem toda sugestão serve para a sua máquina: leia a justificativa antes de aplicar, principalmente as que mexem em SSH e em opções de montagem.",
         verify:
           "Score inicial provavelmente 50-65. Após aplicar suggestions de prioridade alta, sobe para 75+. Suggestions vêm com explicação e link para documentação.",
       },
@@ -1206,6 +1212,8 @@ gpg --decrypt teste.txt.gpg
 # 5) Bonus: assinar
 gpg --detach-sign teste.txt
 gpg --verify teste.txt.sig teste.txt`,
+        expected:
+          "A geração pede nome, e-mail e frase secreta e termina imprimindo a impressão digital da chave; o --list-keys mostra as linhas pub e uid. O arquivo cifrado é binário, então um cat nele só devolve lixo, enquanto o --decrypt imprime o texto original. O --verify responde Good signature com o dono da chave.",
         verify:
           "teste.txt.gpg é binário ilegível. gpg --decrypt produz o conteúdo original. gpg --verify confirma assinatura como Good signature.",
       },
@@ -1397,6 +1405,8 @@ active`,
           "Salve o laudo em ~/stack-rede.txt",
         ],
         command: "{ echo \"=== link ===\"; ip -br link; echo; echo \"=== addr ===\"; ip -br addr; echo; echo \"=== units ===\"; systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null; echo; echo \"=== dirs ===\"; ls /etc/network/interfaces /etc/NetworkManager/system-connections /etc/systemd/network 2>/dev/null; } | tee ~/stack-rede.txt",
+        expected:
+          "O laudo traz as interfaces com estado UP ou DOWN, os endereços, o resultado de is-active para cada serviço e os diretórios de configuração que existem. Apenas um gerenciador deveria estar active; dois ao mesmo tempo é o achado clássico deste lab e a explicação para configuração que some sozinha.",
         verify: "O arquivo tem quatro blocos e você consegue dizer em uma frase qual stack manda.",
       },
     ],
@@ -1573,6 +1583,8 @@ active`,
           "Anotar conclusão em ~/dns-lab.txt",
         ],
         command: "{ echo '=== resolv ==='; ls -l /etc/resolv.conf; cat /etc/resolv.conf; echo; echo '=== getent ==='; getent hosts debian.org; } | tee ~/dns-lab.txt",
+        expected:
+          "O ls revela se o /etc/resolv.conf é um link para o stub do systemd-resolved ou um arquivo comum, e o cat mostra as linhas nameserver. O getent devolve os IPs do domínio quando a resolução funciona e não imprime nada quando falha — esse silêncio é a prova de que o problema é DNS, e não rota.",
         verify:
           "Você escreve: 'rota OK/NOK; DNS OK/NOK; resolver em uso é …'.",
       },
@@ -1762,6 +1774,8 @@ active`,
           "Salvar resumo SEM colar IPs internos sensíveis se for compartilhar",
         ],
         command: "{ echo '=== link ==='; ip -br link; echo; echo '=== route (primeiras) ==='; ip route | head -n 8; echo; echo '=== listen (amostra) ==='; ss -tuln | head -n 15; } | tee ~/net-checklist.txt",
+        expected:
+          "Três blocos: interfaces com UP ou DOWN, as primeiras rotas (a linha default é a que importa) e as portas em escuta. Olhe a coluna do endereço local: serviço preso a 127.0.0.1 funciona na máquina e falha de fora, e essa é a checagem a fazer antes de culpar o firewall.",
         verify:
           "Você aponta se há default route e se a porta do seu serviço aparece em ss.",
       },
@@ -1947,6 +1961,8 @@ active`,
           "Anotar em ~/tls-lab.txt",
         ],
         command: "{ echo '=== certbot ==='; command -v certbot; dpkg -l certbot 2>/dev/null | tail -n 1; echo; echo '=== live ==='; sudo ls /etc/letsencrypt/live 2>&1 | head; } | tee ~/tls-lab.txt",
+        expected:
+          "O command -v devolve o caminho do certbot quando ele existe e nada quando falta. O ls de /etc/letsencrypt/live lista uma pasta por domínio; sem certificados, vem a mensagem de diretório inexistente, resultado perfeitamente válido em laboratório. Dentro de cada pasta é que ficariam fullchain.pem e privkey.pem.",
         verify:
           "Você explica onde estariam fullchain/privkey e o que dry-run testa.",
       },
@@ -2133,6 +2149,8 @@ active`,
           "ss para confirmar 80 e 8080",
         ],
         command: "ss -tulpn | grep -E ':80|:8080' || true; curl -sI http://127.0.0.1/ 2>/dev/null | head || echo 'subir nginx+backend no lab'",
+        expected:
+          "O ss deve mostrar duas linhas: o Nginx na 80 e o backend na 8080, este preso a 127.0.0.1. O curl -I devolve o cabeçalho com HTTP/1.1 200 vindo do backend. Se aparecer 502, o Nginx está de pé e o backend não — o proxy funciona, quem não responde é quem está atrás dele.",
         verify:
           "curl na 80 devolve resposta do backend; backend nao precisa estar exposto fora se bind em 127.0.0.1.",
       },
@@ -2316,6 +2334,8 @@ active`,
           "tee ~/apparmor-lab.txt",
         ],
         command: "{ echo '=== active ==='; systemctl is-active apparmor 2>&1; echo; echo '=== status head ==='; sudo aa-status 2>&1 | head -n 25; } | tee ~/apparmor-lab.txt",
+        expected:
+          "O is-active responde active em instalação padrão do Debian. O aa-status traz a contagem de perfis carregados, quantos estão em enforce e quantos em complain, além dos processos confinados. A diferença importa: complain apenas registra a violação no log, enforce bloqueia de verdade.",
         verify:
           "Você afirma se AppArmor está ativo e cita enforce vs complain em números aproximados.",
       },
@@ -2461,6 +2481,8 @@ active`,
           "enable --now e status",
         ],
         command: "sudo fail2ban-client status || echo \"instale e ative primeiro\"",
+        expected:
+          "Com o serviço rodando, o status mostra Number of jail e a linha Jail list com sshd. Sem instalação, aparece a mensagem alternativa do próprio comando, o que também é resposta. Em seguida, fail2ban-client status sshd detalha tentativas encontradas, IPs banidos agora e o total desde o início.",
         verify: "status lista sshd.",
       },
     ],
@@ -2624,6 +2646,8 @@ active`,
           "tee ~/pam-lab.txt",
         ],
         command: "{ echo '=== common-password ==='; grep -vE '^#|^$' /etc/pam.d/common-password 2>/dev/null; echo; echo '=== pwquality.conf ==='; grep -vE '^#|^$' /etc/security/pwquality.conf 2>/dev/null | head -n 20; } | tee ~/pam-lab.txt",
+        expected:
+          "O primeiro bloco traz as linhas ativas da pilha password, com pam_unix e, se instalado, pam_pwquality com opções como retry e minlen. O segundo lista as diretivas não comentadas do pwquality.conf. Se pam_pwquality não aparecer na pilha, qualquer regra de complexidade escrita no arquivo simplesmente não é aplicada.",
         verify:
           "Você aponta se pam_pwquality aparece na pilha password.",
       },
@@ -2805,6 +2829,8 @@ active`,
           "confirmar + sumiu",
         ],
         command: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && setfacl -m u:$USER:rw /tmp/acl-lab/arq.txt && getfacl /tmp/acl-lab/arq.txt | tee ~/acl-lab.txt && setfacl -b /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
+        expected:
+          "O getfacl imprime user::, a entrada user: com o seu nome e rw, mais group::, mask:: e other::. No ls -l aparece um sinal de mais no fim das permissões — é o único indício visual de que há ACL ali. Depois do setfacl -b, o sinal some e o arquivo volta ao esquema tradicional.",
         verify:
           "Durante a ACL, getfacl mostra user:…:rw e ls tem +; apos -b, entradas extras somem.",
       },
@@ -2992,6 +3018,8 @@ active`,
           "Anotar anomalias em ~/audit-week.txt",
         ],
         command: "{ echo '=== failed ==='; systemctl --failed --no-pager; echo; echo '=== journal disk ==='; journalctl --disk-usage; echo; echo '=== apt installs ==='; grep -h ' install ' /var/log/apt/history.log 2>/dev/null | tail -n 10; } | tee ~/audit-week.txt",
+        expected:
+          "O bloco de falhas idealmente informa 0 loaded units listed; o do journal mostra o uso em disco; o do apt lista as últimas instalações com data e nomes. O valor está na comparação semana a semana: pacote instalado que ninguém reconhece e unit em falha nova são os dois sinais que pedem investigação.",
         verify:
           "Você tem um arquivo com quatro blocos e sabe o que investigaria se algo estranho aparecer.",
       },

@@ -312,6 +312,8 @@ sudo nano /etc/fstab
 # 4) Validar
 sudo mount -a
 echo "Sem erros = seguro para reiniciar"`,
+        expected:
+          "Com a linha ruim, o mount -a devolve erro dizendo que não encontrou o UUID ou o ponto de montagem, e termina com código diferente de zero. Depois do nofail, ou da remoção da linha, ele não imprime nada — o silêncio é o sinal verde para reiniciar. Testar antes do reboot é a diferença entre um lab e um servidor preso no modo de emergência.",
         verify: "mount -a executa silenciosamente, sem mensagens de erro.",
       },
     ],
@@ -743,6 +745,8 @@ rsync -avzP /home/wallyson/ /mnt/espelho/wallyson/
 # 3) Sincronizacoes seguintes (com --delete, depois de validar com dry-run)
 rsync -avzP --delete --dry-run /home/wallyson/ /mnt/espelho/wallyson/
 rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
+        expected:
+          "O dry-run lista os arquivos que seriam copiados e fecha com o resumo de bytes, sem escrever nada. A cópia real mostra o progresso arquivo por arquivo. No modo com --delete, leia as linhas deleting antes de rodar pra valer: se o disco externo estiver desmontado, você espelha uma pasta vazia e apaga o destino.",
         verify: "Compare 'du -sh /home/wallyson' e 'du -sh /mnt/espelho/wallyson' — devem ser próximos.",
       },
     ],
@@ -950,6 +954,8 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
           "Desmonte; opcional lvremove ao final do lab",
         ],
         command: "sudo pvs; sudo vgs; sudo lvs; df -h | grep -E 'Filesystem|lab-lvm|vgdata' || true",
+        expected:
+          "O pvs, o vgs e o lvs devolvem uma linha por item, com nome, grupo, tamanho e atributos; sem LVM configurado, saem apenas os cabeçalhos. Depois do lvextend com resize2fs, o df já mostra o tamanho novo com o sistema montado — o ext4 cresce a quente e o arquivo de teste continua lá.",
         verify:
           "lvs mostra o LV; df no mount point reflete o tamanho pós-extend; arquivo ok.txt sobrevive ao resize a quente do ext4.",
       },
@@ -1136,6 +1142,8 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
           "delete do snap ao final",
         ],
         command: "command -v btrfs && echo 'btrfs-progs ok' || echo 'instale btrfs-progs'",
+        expected:
+          "O command -v devolve o caminho do btrfs quando o btrfs-progs está instalado e a mensagem alternativa quando falta. Com o lab feito, o subvolume list mostra @lab e o snapshot com IDs diferentes, e o snapshot read-only recusa escrita: ele não é uma cópia, é uma foto que compartilha os mesmos blocos.",
         verify:
           "subvolume list mostra @lab e o snap; arquivo original intacto; delete remove só o snap.",
       },
@@ -1324,6 +1332,8 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
           "Opcional: fail/remove/add e observar rebuild",
         ],
         command: "cat /proc/mdstat 2>/dev/null; ls /dev/md* 2>/dev/null || echo 'sem array (ok se ainda nao criou)'",
+        expected:
+          "O /proc/mdstat traz a linha do md0 com os discos e, no fim, a notação [2/2] com dois U. Cada U é um disco saudável; [2/1] com um traço significa array degradado, ainda funcionando com um disco só. Sem array criado, o arquivo sai quase vazio, apenas com a linha Personalities.",
         verify:
           "detail mostra raid1 com 2/2; arquivo no mount sobrevive a remount; voce sabe ler degraded.",
       },
@@ -1510,6 +1520,8 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
           "reverter se for ambiente compartilhado de lab temporário",
         ],
         command: "lsblk -f; echo '---'; tail -n 5 /etc/fstab",
+        expected:
+          "O lsblk -f traz o UUID de cada sistema de arquivos e o tail mostra as últimas linhas do fstab, onde a sua deve aparecer com defaults,nofail. O mount -a precisa terminar sem mensagem nenhuma: erro aqui vira falha de boot, e o nofail é justamente o que impede a máquina de parar no modo de emergência.",
         verify:
           "findmnt mostra o target; mount -a exit 0; reboot so depois disso.",
       },
@@ -1694,6 +1706,8 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
           "luksOpen de novo e ler o teste",
         ],
         command: "command -v cryptsetup && ls -la /tmp/luks-lab.img 2>/dev/null || echo 'crie a imagem no lab'",
+        expected:
+          "Com o cryptsetup instalado, o command -v devolve o caminho e o ls mostra a imagem de 512M. No ciclo completo, o luksOpen pede a frase secreta e cria o dispositivo em /dev/mapper; depois do luksClose ele some da listagem e o .img volta a ser dado ilegível — mesma imagem, agora sem chave aberta.",
         verify:
           "Após reabrir, o arquivo teste.txt ainda está legível; apos luksClose o mapper some.",
       },

@@ -1563,6 +1563,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "podman rm -f hello-pod",
         ],
         command: "podman rm -f hello-pod 2>/dev/null; podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine >/dev/null && curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080 && podman rm -f hello-pod >/dev/null",
+        expected:
+          "Na primeira execução o podman baixa a imagem, com uma linha por camada, e depois o curl imprime apenas o código: 200. Ao final o container é removido e some do podman ps -a. Em modo rootless não dá para usar portas abaixo de 1024 — por isso 8080; insistir na 80 devolve erro de permissão.",
         verify:
           "HTTP 200 (ou 301) na resposta e container removido ao final.",
       },
@@ -1751,6 +1753,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "down",
         ],
         command: "test -f ~/lab-compose/compose.yaml && curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8088 || echo 'suba a stack antes'",
+        expected:
+          "Com o arquivo no lugar e a stack de pé, o curl imprime 200. Sem isso, aparece a mensagem pedindo para subir a stack, e o código 000 quer dizer que ninguém atendeu na porta. O down remove containers e rede, mas o volume do banco sobrevive — é ele que preserva os dados entre uma subida e outra.",
         verify:
           "Arquivo compose existe; com stack up, HTTP do nginx responde.",
       },
@@ -1939,6 +1943,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "apply de novo e ler o recap",
         ],
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml 2>&1 | tail -n 15",
+        expected:
+          "O recap final traz ok, changed, unreachable e failed por host. Na primeira execução há vários changed; na segunda o esperado é changed=0, o que prova que as tarefas são idempotentes. Tarefa que aparece como changed toda vez costuma ser comando solto no lugar de um módulo próprio.",
         verify:
           "Play recap aparece; segunda execução não deveria sair reinstalando tudo como changed eterno.",
       },
@@ -2127,6 +2133,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "Salvar resumo em ~/cloud-init-report.txt",
         ],
         command: "{ echo '=== status ==='; cloud-init status --long 2>/dev/null; echo; echo '=== id ==='; cloud-id 2>/dev/null; } | tee ~/cloud-init-report.txt",
+        expected:
+          "O status --long informa status: done com o datasource usado, ou status: error com os módulos que falharam. Em máquina sem cloud-init os comandos nem existem e o relatório fica com os blocos vazios — o que também responde à pergunta: este host não foi provisionado por cloud-init.",
         verify:
           "Relatório criado; se o host não tiver cloud-init, o arquivo registra a ausência — ainda assim válido como diagnóstico.",
       },
@@ -2315,6 +2323,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "ss na 53",
         ],
         command: "dig @127.0.0.1 debian.org +time=2 +tries=1 +short | head",
+        expected:
+          "Com o Unbound respondendo, o dig +short imprime só os endereços, um por linha. Sem resolvedor local, o comando fica em silêncio até estourar o tempo que você definiu. A partir daí a checagem é ver se algo escuta na porta 53 do loopback e ler o journal do serviço.",
         verify:
           "Retorna IPs ou você diagnostica pelo status/journal se falhar.",
       },
@@ -2504,6 +2514,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "anotar status deferred/sent",
         ],
         command: "mailq; ls /var/log/mail.log 2>/dev/null || journalctl -u postfix -n 5 --no-pager",
+        expected:
+          "Fila vazia responde Mail queue is empty. Com mensagens presas, cada entrada mostra ID, tamanho, data, remetente e destinatário. No log você procura uma palavra: status=sent, status=deferred ou status=bounced, sempre seguida do motivo devolvido pelo servidor do outro lado.",
         verify:
           "Você sabe se a mensagem saiu, ficou em fila ou falhou e onde ler o motivo.",
       },
@@ -2692,6 +2704,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "umount",
         ],
         command: "sudo exportfs -v | grep nfs-lab || true; ls /srv/nfs-lab",
+        expected:
+          "O exportfs -v imprime o caminho exportado seguido do cliente autorizado e das opções entre parênteses, como rw, sync e no_subtree_check. O ls confirma o conteúdo no servidor. Se o grep não achar nada, o arquivo exports não foi recarregado com exportfs -ra.",
         verify:
           "Export listado e arquivo README visível no servidor.",
       },
@@ -2880,6 +2894,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "wg show (pode estar vazio)",
         ],
         command: "test -f /tmp/wg-lab-priv && test -f /tmp/wg-lab-pub && wc -c /tmp/wg-lab-priv",
+        expected:
+          "O wc -c devolve 45 bytes para a chave privada: são 44 caracteres em base64 mais a quebra de linha. Se um dos arquivos não existir, o teste falha em silêncio. Confira também a permissão — chave privada legível por qualquer usuário invalida a segurança do túnel inteiro.",
         verify:
           "Par de chaves criado com permissões restritas pelo umask.",
       },
@@ -3068,6 +3084,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "psql < dump",
         ],
         command: "test -f /tmp/app-lab.sql && sudo -u postgres psql -tAc \"SELECT 1 FROM pg_database WHERE datname='app_restore'\"",
+        expected:
+          "O teste confirma que o arquivo de dump existe e o psql devolve 1 quando o banco app_restore está presente, ou nada quando não está. Saída vazia significa restore que não aconteceu — e a lição do lab é essa: backup só vale depois que você restaurou em outro banco e conferiu o conteúdo.",
         verify:
           "Dump existe e database app_restore está presente (1).",
       },
@@ -3257,6 +3275,8 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
           "releitura do DoD",
         ],
         command: "test -f ~/capstone-dod.md && systemctl --failed --no-pager && timedatectl | head -n 5",
+        expected:
+          "A checagem só continua se o arquivo do DoD existir. Depois vêm as units em falha, idealmente nenhuma, e as primeiras linhas do timedatectl com fuso e sincronização. Cada item do documento precisa de saída colada como prova; marcar como feito sem evidência é exatamente o que este lab combate.",
         verify:
           "DoD existe e você tem saída fresca de failed units + tempo.",
       },
