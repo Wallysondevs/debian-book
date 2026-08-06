@@ -1064,4 +1064,297 @@ echo "Leia também: https://wiki.debian.org/DebianReleases"`,
       { title: "Debian Free Software Guidelines (DFSG)", url: "https://www.debian.org/social_contract#guidelines" },
     ],
   },
+  {
+    id: "upgrade-release",
+    title: "Upgrade bookworm → trixie — checklist que evita madrugada",
+    icon: "⬆️",
+    category: "Fundamentos Teóricos",
+    description:
+      "Como subir de uma stable para a seguinte com método: backup, release notes, fontes no codinome, limpeza da release atual e full-upgrade — com pontos de quebra e plano B.",
+    objectives: [
+      "Separar atualização dentro da release de upgrade entre releases",
+      "Montar um checklist mínimo antes de tocar em sources",
+      "Trocar bookworm por trixie nas fontes sem misturar ramos",
+      "Rodar a sequência apt update → upgrade → full-upgrade com intenção",
+      "Reconhecer sintomas clássicos de upgrade pela metade (dpkg, serviços, rede)",
+      "Saber quando abortar e restaurar em vez de 'mais um apt' no escuro",
+    ],
+    content: [
+      "Upgrade de release no Debian não é o botão 'atualizar tudo' do celular. É mudar o trilho em que o trem roda: você sai do bookworm (12) e passa a pedir pacotes do trixie (13). Se o trilho estiver torto — fonte misturada, pacote de terceiro pinado, disco cheio, kernel custom — o apt até tenta, mas o resultado pode ser um sistema que boota pela metade e um SSH que some no pior momento.",
+
+      "Primeiro, o vocabulário. **Atualizar dentro da release** é `apt update` + `apt upgrade` (ou `full-upgrade` pontual) enquanto as fontes ainda dizem bookworm: você só puxa correções e point releases da mesma stable. **Upgrade de release** é alterar as fontes para o próximo codinome e deixar o apt recalcular o mundo. Confundir os dois é o erro número um dos tutoriais apressados.",
+
+      "A ordem canônica, em linguagem humana: (1) backup que você já restaurou pelo menos uma vez na vida; (2) ler as **Release Notes** da versão de destino; (3) remover ou desativar repositórios de terceiro que não tenham linha trixie; (4) deixar o bookworm **inteiramente atualizado** e sem pacotes pela metade; (5) trocar codinome nas fontes; (6) `apt update`; (7) `apt full-upgrade` em janela com console/IPMI/VNC se for remoto; (8) reiniciar se kernel/initramfs mudou; (9) validar serviços. Pular o passo 3 e 4 é o atalho clássico para conflito de dependência.",
+
+      "Três jargões que aparecem no meio do caminho. **full-upgrade** (antigo dist-upgrade) pode **remover** pacotes se isso for necessário para completar a transição — por isso não é o mesmo que um upgrade 'tímido'. **dpkg --configure -a** é o 'termine o que ficou pela metade' depois de uma interrupção. **hold** (`apt-mark hold`) trava um pacote e pode sabotar o upgrade se você esqueceu que travou o libc ou o systemd há seis meses.",
+
+      "Nas fontes, prefira o **codinome** (`bookworm` → `trixie`) em vez da palavra `stable`. Se você só trocar `stable` por `stable`, no dia do lançamento o apelido já aponta para o novo e você pode migrar sem perceber. O procedimento limpo é: editar `/etc/apt/sources.list` e cada arquivo em `/etc/apt/sources.list.d/` (e os `.sources` DEB822) trocando bookworm→trixie e bookworm-security→trixie-security (e updates/backports se existirem). Depois `grep` em tudo para garantir que não sobrou bookworm esquecido nem uma linha `sid`.",
+
+      "Repositórios de terceiro são a mina terrestre. Chrome, Docker CE, Spotfy, drivers, PPAs copiados de Ubuntu: muitos não publicam `trixie` no dia um. A regra prática: **comente ou remova** antes do full-upgrade; reinstale depois, quando houver build para a nova stable. Manter um `.list` de bookworm no meio do trixie é convite para o apt puxar lixo ou falhar com 404 eterno.",
+
+      "Durante o full-upgrade o dpkg vai parar em prompts de arquivos de configuração: manter o seu (`N` / keep local) ou instalar o do mantenedor (`Y`). Não há resposta única — se você customizou `sshd_config` ou nginx, em geral mantém o local e compara depois com `.dpkg-dist` / `.dpkg-new`. Deixar a sessão SSH única sem `tmux`/`screen` num upgrade remoto é pedir para a conexão cair no meio do unpack.",
+
+      "Pontos de quebra recorrentes: disco cheio em `/` ou `/var` (unpack explode); kernel novo sem firmware (máquina some da rede no reboot); `libc6`/`systemd` em hold; pacotes `rc` esquecidos; misturar backports antigos; energia/cota da VPS matando o processo. Sintoma típico de upgrade interrompido: `dpkg was interrupted` e serviços que não sobem. Aí a prioridade é **terminar a configuração** (`dpkg --configure -a`, `apt -f install`), não inventar novo codinome.",
+
+      "Plano B não é otimismo: é snapshot da VPS, imagem de disco, ou backup restic/borg testado + acesso out-of-band. Se depois do reboot não há rede, você precisa de console no painel do provedor — não de mais uma aba SSH. Se o upgrade falhou feio e há snapshot de cinco minutos antes, restaurar costuma ser mais barato do que 'consertar no feeling' por quatro horas.",
+
+      "Este capítulo ensina o **método** com bookworm→trixie como exemplo atual. Os mesmos passos valem para o próximo par de stables (trixie→forky, etc.): só mudam codinomes e notas de release. Ao terminar, você deve conseguir explicar a sequência de cor, montar um checklist escrito antes de editar sources, e recusar upgrade 'no horário de pico sem backup' — que é a definição operacional de azar evitável.",
+    ],
+    commands: [
+      {
+        command: "cat /etc/os-release",
+        description:
+          "Confirme de onde você parte (VERSION_CODENAME=bookworm ou trixie). Sem isso o resto do checklist é chute.",
+        example: "cat /etc/os-release | egrep 'VERSION|CODENAME'",
+        output:
+          'VERSION_ID="12"\nVERSION="12 (bookworm)"\nVERSION_CODENAME=bookworm',
+      },
+      {
+        command: "df -h / /var /boot",
+        description:
+          "Upgrade unpacka gigabytes. Se `/` ou `/var` estiver no limite, pare e limpe (apt clean, logs, kernels velhos) antes de continuar.",
+        example: "df -h / /var /boot",
+        output:
+          "Filesystem      Size  Used Avail Use% Mounted on\n/dev/vda1        40G   22G   16G  58% /\n/dev/vda1        40G   22G   16G  58% /var\n/dev/vda1        40G   22G   16G  58% /boot",
+      },
+      {
+        command: "apt-mark showhold",
+        description:
+          "Lista pacotes em hold. Hold em libc/systemd/apt no meio de upgrade de release é sabotagem acidental — revise um a um.",
+        example: "apt-mark showhold",
+        output: "",
+      },
+      {
+        command: "sudo apt update && sudo apt upgrade",
+        description:
+          "Ainda no bookworm: deixe a release atual limpa e atualizada. Não mude sources antes disso.",
+        example: "sudo apt update && sudo apt upgrade",
+        flags: [
+          { flag: "update", description: "Recarrega índices das fontes atuais" },
+          { flag: "upgrade", description: "Atualiza pacotes sem remover outros (mais conservador)" },
+        ],
+      },
+      {
+        command: "dpkg --audit",
+        description:
+          "Reporta pacotes quebrados ou pela metade. Tem que sair limpo antes de trocar o codinome.",
+        example: "dpkg --audit; apt -f install -s",
+        output: "",
+      },
+      {
+        command: "grep -RInE 'bookworm|trixie|stable|sid' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null",
+        description:
+          "Inventário das fontes antes e depois da troca. Você quer ver só trixie (e security/updates) no final — zero sid, zero bookworm esquecido.",
+        example:
+          "grep -RInE 'bookworm|trixie|stable|sid' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null",
+        output:
+          "/etc/apt/sources.list:1:deb http://deb.debian.org/debian bookworm main contrib non-free-firmware\n/etc/apt/sources.list:2:deb http://security.debian.org/debian-security bookworm-security main",
+      },
+      {
+        command: "sudo sed -i 's/bookworm/trixie/g' /etc/apt/sources.list",
+        description:
+          "Exemplo de troca em massa no sources.list clássico. Revise com diff/grep depois; arquivos em sources.list.d e formato DEB822 precisam do mesmo cuidado (Suite:/codinome).",
+        example:
+          "sudo cp -a /etc/apt/sources.list /etc/apt/sources.list.bak-$(date +%F) && sudo sed -i 's/bookworm/trixie/g' /etc/apt/sources.list",
+        flags: [
+          { flag: "-i", description: "Edita o arquivo no lugar" },
+          { flag: "s/a/b/g", description: "Substitui todas as ocorrências de a por b" },
+        ],
+      },
+      {
+        command: "sudo apt update",
+        description:
+          "Depois de apontar para trixie: recarrega índices. Erros 404 em repo de terceiro = desabilite esse repo e tente de novo.",
+        example: "sudo apt update",
+      },
+      {
+        command: "sudo apt full-upgrade",
+        description:
+          "O coração do upgrade de release. Pode remover pacotes para resolver dependências — leia o resumo antes de confirmar. Em sessão remota, use tmux.",
+        example: "sudo apt full-upgrade",
+        flags: [
+          { flag: "full-upgrade", description: "Permite instalar/remover o necessário para a nova release" },
+          { flag: "-y", description: "Assume yes (evite na primeira vez em produção)" },
+          { flag: "-s", description: "Simulação: mostra o plano sem aplicar" },
+        ],
+      },
+      {
+        command: "sudo apt full-upgrade -s",
+        description:
+          "Simulação seca: veja o que seria instalado/removido antes de aceitar. Se aparecer remoção de pacotes essenciais do seu stack, investigue antes do upgrade real.",
+        example: "sudo apt full-upgrade -s | tail -n 50",
+      },
+      {
+        command: "sudo dpkg --configure -a",
+        description:
+          "Se o upgrade for interrompido: termine configurações pendentes antes de qualquer outra ideia criativa.",
+        example: "sudo dpkg --configure -a && sudo apt -f install",
+      },
+      {
+        command: "sudo apt autoremove --purge",
+        description:
+          "Depois do upgrade bem-sucedido e validado: remove dependências órfãs e restos. Não rode no meio de um conflito ainda aberto.",
+        example: "sudo apt autoremove --purge",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "SSH remoto sem console = risco",
+        content:
+          "Em VPS, confirme acesso ao console web/serial do provedor antes do full-upgrade. Se a rede cair no reboot, só o console salva. Use tmux/screen e evite upgrade no link de hotel.",
+      },
+      {
+        type: "warning",
+        title: "Repositórios de terceiro fora",
+        content:
+          "Comente Docker CE, navegadores, painéis e PPAs antes de migrar. Reative um a um depois, quando existir build para trixie. 404 no meio do update é sinal de fonte morta, não de 'apt quebrado'.",
+      },
+      {
+        type: "info",
+        title: "full-upgrade pode remover pacotes",
+        content:
+          "Isso é normal na troca de release. Leia a lista. Se for remover o seu servidor web ou o banco sem você querer, cancele e investigue o porquê (hold, conflito, pacote órfão).",
+      },
+      {
+        type: "success",
+        title: "Checklist de 60 segundos antes do Enter",
+        content:
+          "Backup ok? Release notes lidas? Fontes só com trixie? Bookworm já atualizado e dpkg limpo? Disco com folga? Console out-of-band? tmux aberto? Só então full-upgrade.",
+      },
+      {
+        type: "warning",
+        title: "Prompts de conffile",
+        content:
+          "Quando o dpkg perguntar sobre arquivo de config, não aperte Y no automático. Compare depois com os arquivos .dpkg-new/.dpkg-dist. sshd_config errado = lockout.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Ensaio sem migrar (simulação)",
+        goal: "Treinar o inventário e a simulação sem alterar a release real da máquina de produção.",
+        steps: [
+          "Anote o codinome atual com /etc/os-release",
+          "Rode df -h e apt-mark showhold; registre folga de disco e holds",
+          "Liste fontes com grep de bookworm/trixie/stable/sid",
+          "Se estiver em bookworm de laboratório (VM), faça backup/snapshot",
+          "Só em VM de teste: troque fontes, apt update, apt full-upgrade -s e leia o plano",
+          "Em host real de cliente: pare no -s e na checklist escrita — não aplique sem janela",
+        ],
+        command: `echo "=== release ==="
+cat /etc/os-release | egrep 'PRETTY|VERSION|CODENAME'
+echo
+echo "=== disco ==="
+df -h / /var /boot 2>/dev/null
+echo
+echo "=== holds ==="
+apt-mark showhold
+echo
+echo "=== fontes ==="
+grep -RInE 'bookworm|trixie|stable|sid' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 40
+echo
+echo "=== simulacao so faz sentido DEPOIS de apontar fontes ao destino ==="
+echo "sudo apt full-upgrade -s | tee /tmp/plano-upgrade.txt"`,
+        expected: "Um relatório textual da origem + consciência de que -s só vale após mudar fontes em ambiente de teste",
+        verify:
+          "Você consegue explicar se a máquina está pronta (disco, holds, fontes limpas) sem ter quebrado produção. Se qualquer hold crítico ou repo de terceiro aparecer, o upgrade real fica bloqueado até resolver.",
+      },
+      {
+        title: "VM dedicada: bookworm → trixie de ponta a ponta",
+        goal: "Executar o upgrade completo só em máquina descartável e validar boot + rede + um serviço.",
+        steps: [
+          "Crie VM ou container com Debian 12 bookworm",
+          "Snapshot/backup",
+          "apt update && apt upgrade até zerar",
+          "Remova repos de terceiro",
+          "Troque bookworm→trixie nas fontes e confira com grep",
+          "apt update && apt full-upgrade (dentro de tmux)",
+          "Reboot, confira os-release=trixie, rede e serviço de teste",
+        ],
+        command: `# Esqueleto — rode so em lab
+# 1) sudo apt update && sudo apt upgrade
+# 2) backup das fontes: sudo cp -a /etc/apt /root/apt-backup-$(date +%F)
+# 3) trocar codinome nas fontes (list e .sources)
+# 4) sudo apt update
+# 5) sudo apt full-upgrade
+# 6) sudo reboot
+# 7) cat /etc/os-release`,
+        verify:
+          "VERSION_CODENAME=trixie, rede ok, sem dpkg --audit sujo, serviço de teste respondendo. Se falhou, restaure snapshot e anote em qual passo quebrou.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Qual a diferença entre apt upgrade na mesma stable e upgrade de release?",
+        answer:
+          "Upgrade na mesma stable mantém o codinome e só atualiza pacotes daquela release. Upgrade de release muda as fontes para o próximo codinome (ex.: bookworm→trixie) e recalcula o sistema inteiro, em geral com full-upgrade.",
+      },
+      {
+        id: 2,
+        question: "Por que full-upgrade e não só upgrade na troca de release?",
+        hint: "Pense em pacotes que precisam sair para outros entrarem.",
+        answer:
+          "Porque a nova release pode exigir remover ou substituir pacotes para satisfazer dependências. O upgrade 'simples' evita remoções e pode deixar a transição incompleta; o full-upgrade está autorizado a remover quando necessário.",
+      },
+      {
+        id: 3,
+        question: "Cite quatro itens do checklist antes de editar as fontes.",
+        answer:
+          "Backup/snapshot testado; ler release notes; limpar/atualizar a release atual e dpkg saudável; remover ou desativar repos de terceiro; folga de disco; acesso console out-of-band; revisar holds.",
+      },
+      {
+        id: 4,
+        question: "O que fazer com repositórios de terceiros no upgrade?",
+        answer:
+          "Desabilitar ou remover antes da migração e só reativar depois, quando houver suporte explícito à nova stable. Manter linhas da release antiga gera 404 e conflitos.",
+      },
+      {
+        id: 5,
+        question: "O upgrade caiu no meio e o dpkg reclama de interrupção. Qual o primeiro movimento?",
+        answer:
+          "Não mudar sources de novo. Rodar sudo dpkg --configure -a e sudo apt -f install para terminar pacotes pendentes; só então avaliar o estado.",
+      },
+      {
+        id: 6,
+        question: "Por que apt full-upgrade -s é amigo antes do -y?",
+        answer:
+          "Porque mostra o plano (instalações e remoções) sem aplicar. Dá para cancelar se for remover peça crítica do seu stack.",
+      },
+      {
+        id: 7,
+        question: "Por que preferir codinome fixo em vez de 'stable' nas fontes ao planejar migração?",
+        answer:
+          "Porque 'stable' muda de alvo no lançamento. Com bookworm/trixie explícitos, a migração acontece só quando você edita as fontes de propósito.",
+      },
+      {
+        id: 8,
+        question: "Depois do reboot, quais três verificações mínimas?",
+        answer:
+          "cat /etc/os-release (codinome novo); rede/SSH; dpkg --audit / serviços principais (web, banco, docker, etc.) respondendo.",
+      },
+    ],
+    references: [
+      {
+        title: "Release Notes — Debian stable (escolha a versão de destino)",
+        url: "https://www.debian.org/releases/stable/releasenotes",
+      },
+      {
+        title: "Wiki — DebianUpgrade",
+        url: "https://wiki.debian.org/DebianUpgrade",
+      },
+      {
+        title: "Wiki — DebianReleases",
+        url: "https://wiki.debian.org/DebianReleases",
+      },
+      {
+        title: "man apt-get (full-upgrade / dist-upgrade)",
+        url: "https://manpages.debian.org/apt-get",
+      },
+      {
+        title: "Debian — sources.list",
+        url: "https://wiki.debian.org/SourcesList",
+      },
+    ],
+  },
 ];
