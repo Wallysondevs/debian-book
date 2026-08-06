@@ -2180,4 +2180,946 @@ gpg --verify teste.txt.sig teste.txt`,
       { title: "man nginx", url: "https://manpages.debian.org/nginx" },
     ],
   },
+  {
+    id: "apparmor-debian",
+    title: "AppArmor no Debian — perfis enforce e complain",
+    icon: "🛡️",
+    category: "Rede e Segurança",
+    description:
+      "Use AppArmor no Debian: status do serviço, aa-status, modos enforce/complain e o hábito de ler logs antes de desligar proteção ‘porque deu trabalho’.",
+    objectives: [
+      "Explicar MAC (AppArmor) vs só permissões Unix",
+      "Ver se AppArmor está ativo e listar perfis",
+      "Distinguir enforce, complain e unconfined",
+      "Achar logs de negação",
+      "Saber onde moram os perfis no Debian",
+      "Evitar disable global como primeiro reflexo",
+    ],
+    content: [
+      "Permissão Unix (rwx) diz o que o **usuário** pode. **AppArmor** é MAC: mesmo root de um serviço pode ser enjaulado pelo **perfil** daquele binário. Se o nginx for comprometido, o perfil limita o estrago (arquivos e capacidades que ele pode tocar). No Debian o AppArmor costuma vir habilitado; não é SELinux do RHEL, mas a ideia de confinamento é prima.",
+
+      "Ferramentas do dia a dia: `aa-status` (ou `apparmor_status`), `systemctl status apparmor`, perfis em `/etc/apparmor.d/`. **enforce** bloqueia o que foge da política; **complain** só registra (ótimo para afiar perfil sem derrubar app); processo **unconfined** não tem perfil ativo.",
+
+      "Quando algo ‘só funciona se eu desligar o AppArmor’, o caminho adulto é: ler o log de negação → ajustar perfil ou put da app → voltar enforce. Desligar o serviço inteiro em produção é abrir mão da camada. Em lab, complain ensina sem drama.",
+
+      "Jargões. **profile**. **hat** (subperfil). **aa-enforce / aa-complain**. **utils** (`apparmor-utils`) para helpers. Pacotes de app muitas vezes instalam perfil pronto; upgrade pode trazer perfil novo — confira após mudanças grandes.",
+
+      "Ao terminar você roda aa-status, interpreta enforce vs complain, e sabe onde olhar log antes de culpar ‘o Linux’.",
+
+    ],
+    commands: [
+      {
+        command: "systemctl is-active apparmor 2>/dev/null; aa-enabled 2>/dev/null || true",
+        description:
+          "Serviço e se o kernel/userspace reportam AppArmor habilitado.",
+        example: "systemctl is-active apparmor; aa-enabled 2>/dev/null",
+      },
+      {
+        command: "sudo aa-status 2>/dev/null || sudo apparmor_status 2>/dev/null || echo 'instale apparmor e apparmor-utils'",
+        description:
+          "Resumo de perfis em enforce/complain e processos confinados.",
+        example: "sudo aa-status | head -n 40",
+      },
+      {
+        command: "ls /etc/apparmor.d/ | head",
+        description:
+          "Onde os perfis vivem no Debian.",
+        example: "ls /etc/apparmor.d/ | head",
+      },
+      {
+        command: "dpkg -l 'apparmor*' | grep ^ii",
+        description:
+          "Pacotes AppArmor instalados.",
+        example: "dpkg -l 'apparmor*' | grep ^ii",
+      },
+      {
+        command: "journalctl -b -g apparmor --no-pager 2>/dev/null | tail -n 20 || sudo dmesg | grep -i apparmor | tail -n 15",
+        description:
+          "Negações/eventos recentes ligados ao AppArmor.",
+        example: "journalctl -b -g apparmor --no-pager | tail -n 20",
+      },
+      {
+        command: "man aa-status",
+        description:
+          "Manual do status.",
+        example: "man aa-status",
+      },
+      {
+        command: "man apparmor",
+        description:
+          "Visão geral do framework.",
+        example: "man apparmor",
+      },
+      {
+        command: "apt-cache search apparmor | head",
+        description:
+          "Utils e perfis extras nos repositórios.",
+        example: "apt-cache search apparmor | head",
+      },
+      {
+        command: "sudo aa-complain /etc/apparmor.d/* 2>/dev/null | tail -n 5 || echo 'aa-complain exige apparmor-utils e critério — nao rode em massa na producao'",
+        description:
+          "Exemplo de ferramenta complain (CUIDADO: em massa só em lab). Prefira um perfil por vez.",
+        example: "# lab: sudo aa-complain /etc/apparmor.d/usr.sbin.nginx",
+      },
+      {
+        command: "sudo aa-enforce /etc/apparmor.d/usr.sbin.sshd 2>/dev/null || echo 'perfil sshd pode ter nome diferente; liste apparmor.d'",
+        description:
+          "Voltar um perfil a enforce (ajuste o path ao perfil real do host).",
+        example: "ls /etc/apparmor.d/ | grep -i ssh || true",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Log antes de disable",
+        content:
+          "Quase sempre é ajuste de perfil, não ‘AppArmor inútil’.",
+      },
+      {
+        type: "warning",
+        title: "complain em massa na produção",
+        content:
+          "Pode silenciar bloqueios que você queria. Um perfil por vez.",
+      },
+      {
+        type: "info",
+        title: "Não é SELinux",
+        content:
+          "Comandos e semântica diferem; não misture tutoriais RHEL cegamente.",
+      },
+      {
+        type: "danger",
+        title: "Desligar apparmor.service por preguiça",
+        content:
+          "Remove a camada de todo o sistema.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Raio-X AppArmor",
+        goal: "Saber se está active, quantos perfis enforce e se há eventos no boot.",
+        steps: [
+          "is-active apparmor",
+          "aa-status | head",
+          "ls /etc/apparmor.d | wc -l",
+          "journal/dmesg grep apparmor",
+          "tee ~/apparmor-lab.txt",
+        ],
+        command: "{ echo '=== active ==='; systemctl is-active apparmor 2>&1; echo; echo '=== status head ==='; sudo aa-status 2>&1 | head -n 25; } | tee ~/apparmor-lab.txt",
+        verify:
+          "Você afirma se AppArmor está ativo e cita enforce vs complain em números aproximados.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "AppArmor protege em que camada?",
+        answer:
+          "MAC: confina processos segundo perfis, além de rwx Unix.",
+      },
+      {
+        id: 2,
+        question: "Diferença enforce vs complain?",
+        answer:
+          "enforce bloqueia; complain só registra violações.",
+      },
+      {
+        id: 3,
+        question: "Comando clássico de visão geral?",
+        answer:
+          "aa-status ou apparmor_status.",
+      },
+      {
+        id: 4,
+        question: "Onde ficam os perfis?",
+        answer:
+          "/etc/apparmor.d/",
+      },
+      {
+        id: 5,
+        question: "Primeiro passo se um app ‘quebra com AppArmor’?",
+        answer:
+          "Ler logs de negação e ajustar perfil/modo, não desligar tudo.",
+      },
+      {
+        id: 6,
+        question: "O que é processo unconfined?",
+        answer:
+          "Sem perfil AppArmor ativo restritivo.",
+      },
+      {
+        id: 7,
+        question: "Pacote útil de helpers?",
+        answer:
+          "apparmor-utils (aa-enforce, aa-complain, etc.).",
+      },
+      {
+        id: 8,
+        question: "AppArmor é o mesmo que SELinux?",
+        answer:
+          "Não; ambos são MAC, mas stack e ferramentas diferem.",
+      },
+    ],
+    references: [
+      { title: "Wiki — AppArmor", url: "https://wiki.debian.org/AppArmor" },
+      { title: "man apparmor", url: "https://manpages.debian.org/apparmor" },
+      { title: "man aa-status", url: "https://manpages.debian.org/aa-status" },
+      { title: "AppArmor desktop guide", url: "https://gitlab.com/apparmor/apparmor/-/wikis/home" },
+    ],
+  },
+  {
+    id: "fail2ban",
+    title: "fail2ban e defesa de SSH — jails, ban e whitelist",
+    icon: "🚫",
+    category: "Rede e Segurança",
+    description:
+      "Instale e leia o fail2ban no Debian: jail do sshd, ban/unban, ignoreip e o hábito de não banir a si mesmo no IP do escritório.",
+    objectives: [
+      "Explicar o papel do fail2ban (log → filtro → ban)",
+      "Instalar e ver status dos jails",
+      "Inspecionar jail sshd",
+      "Banir/desbanir IP de lab com consciência",
+      "Configurar ignoreip para não se autoexcluir",
+      "Relacionar com UFW/firewalld sem duplicar caos",
+    ],
+    content: [
+      "Bots batem em SSH o dia inteiro. **fail2ban** lê logs, conta falhas segundo um **filtro**, e manda o firewall **banir** o IP por um tempo (jail). Não substitui chave SSH, disable root login nem fail2ban ‘resolve senha fraca’ — é cinto além do cinto.",
+
+      "No Debian: pacote `fail2ban`, jails em `/etc/fail2ban/jail.conf` (não edite só ele) e overrides em `jail.local` ou `jail.d/*.local`. `fail2ban-client status` lista jails; `status sshd` mostra IPs banidos. Backend típico interage com iptables/nftables/ufw conforme config.",
+
+      "Armadilha clássica: você erra a senha do notebook 5 vezes no 4G e se bane sozinho. **ignoreip** com o IP fixo do escritório/VPN evita o drama. Outra: banear rede inteira de CGNAT compartilhado — ajuste findtime/maxretry com critério.",
+
+      "Jargões. **jail**. **filter**. **action**. **bantime**, **findtime**, **maxretry**. **whois**/geoblock não vêm no núcleo — plugins e cuidado ético. fail2ban não é IDS completo.",
+
+      "Ao terminar você instala, vê jail sshd, entende status, documenta ignoreip e sabe unban se prender a si mesmo (via console).",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y fail2ban",
+        description:
+          "Instala o serviço e filtros padrão.",
+        example: "sudo apt install -y fail2ban",
+      },
+      {
+        command: "systemctl is-active fail2ban; sudo fail2ban-client status",
+        description:
+          "Serviço ativo e jails carregados.",
+        example: "sudo fail2ban-client status",
+      },
+      {
+        command: "sudo fail2ban-client status sshd 2>/dev/null || sudo fail2ban-client status ssh 2>/dev/null || echo 'jail ssh com nome diferente — veja status'",
+        description:
+          "Detalhe do jail SSH: currently banned, total.",
+        example: "sudo fail2ban-client status sshd",
+      },
+      {
+        command: "ls /etc/fail2ban/jail.d/ 2>/dev/null; ls /etc/fail2ban/*.conf | head",
+        description:
+          "Onde customizar sem lutar com o arquivo do pacote puro.",
+        example: "ls -la /etc/fail2ban/jail.d/",
+      },
+      {
+        command: "sudo fail2ban-client get sshd ignoreip 2>/dev/null || true",
+        description:
+          "IPs ignorados no jail (se jail existir).",
+        example: "sudo fail2ban-client get sshd ignoreip 2>/dev/null",
+      },
+      {
+        command: "printf '%s\n' '[DEFAULT]' 'ignoreip = 127.0.0.1/8 ::1' '# adicione seu IP fixo/VPN:' '# ignoreip = 127.0.0.1/8 ::1 203.0.113.10' '[sshd]' 'enabled = true'",
+        description:
+          "Esqueleto mental para /etc/fail2ban/jail.d/sshd.local — ajuste antes de copiar.",
+        example: "# sudo nano /etc/fail2ban/jail.d/sshd.local",
+      },
+      {
+        command: "sudo fail2ban-client set sshd unbanip 127.0.0.1 2>/dev/null || echo 'unbanip: use o IP real banido e o nome certo do jail'",
+        description:
+          "Forma de desbanir (lab). Em lockout real, use console do provedor.",
+        example: "sudo fail2ban-client set sshd unbanip 203.0.113.50",
+      },
+      {
+        command: "journalctl -u fail2ban -n 30 --no-pager",
+        description:
+          "Logs do serviço fail2ban.",
+        example: "journalctl -u fail2ban -n 30 --no-pager",
+      },
+      {
+        command: "man fail2ban",
+        description:
+          "Visão geral e apontadores.",
+        example: "man fail2ban",
+      },
+      {
+        command: "man jail.conf",
+        description:
+          "Parâmetros de jail (bantime, backend, etc.).",
+        example: "man jail.conf",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Auto-ban sem console",
+        content:
+          "Tenha out-of-band antes de apertar maxretry em produção.",
+      },
+      {
+        type: "success",
+        title: "ignoreip do escritório/VPN",
+        content:
+          "Salva o admin de si mesmo.",
+      },
+      {
+        type: "warning",
+        title: "fail2ban ≠ senha forte",
+        content:
+          "Continue com chaves SSH e root login desligado.",
+      },
+      {
+        type: "info",
+        title: "jail.local / jail.d",
+        content:
+          "Não edite só jail.conf do pacote se quiser upgrades limpos.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Status do jail SSH",
+        goal: "fail2ban active e status do jail ssh visível.",
+        steps: [
+          "apt install fail2ban se preciso",
+          "systemctl status",
+          "fail2ban-client status e status sshd",
+          "Planejar ignoreip",
+          "tee ~/fail2ban-lab.txt",
+        ],
+        command: "{ echo '=== active ==='; systemctl is-active fail2ban; echo; echo '=== jails ==='; sudo fail2ban-client status 2>&1; } | tee ~/fail2ban-lab.txt",
+        verify:
+          "Você lista os jails e sabe o comando de unbanip.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que o fail2ban faz em resumo?",
+        answer:
+          "Monitora logs, detecta abusos por filtros e bane IPs via firewall por um tempo.",
+      },
+      {
+        id: 2,
+        question: "Comando para ver jails?",
+        answer:
+          "fail2ban-client status",
+      },
+      {
+        id: 3,
+        question: "Para que ignoreip?",
+        answer:
+          "IPs/CIDRs que nunca devem ser banidos (localhost, escritório, VPN).",
+      },
+      {
+        id: 4,
+        question: "Onde customizar jails no Debian?",
+        answer:
+          "/etc/fail2ban/jail.local ou jail.d/*.local",
+      },
+      {
+        id: 5,
+        question: "Como desbanir um IP?",
+        answer:
+          "fail2ban-client set <jail> unbanip <ip>",
+      },
+      {
+        id: 6,
+        question: "fail2ban substitui chave SSH?",
+        answer:
+          "Não; é camada extra.",
+      },
+      {
+        id: 7,
+        question: "Risco de maxretry baixo demais?",
+        answer:
+          "Banir usuários legítimos e a si mesmo com facilidade.",
+      },
+      {
+        id: 8,
+        question: "Onde ver log do serviço?",
+        answer:
+          "journalctl -u fail2ban (e logs do próprio fail2ban conforme config).",
+      },
+    ],
+    references: [
+      { title: "fail2ban wiki", url: "https://www.fail2ban.org/wiki/index.php/Main_Page" },
+      { title: "man fail2ban-client", url: "https://manpages.debian.org/fail2ban-client" },
+      { title: "Debian Wiki — fail2ban", url: "https://wiki.debian.org/fail2ban" },
+      { title: "man jail.conf", url: "https://manpages.debian.org/jail.conf" },
+    ],
+  },
+  {
+    id: "pam-senhas",
+    title: "PAM e políticas de senha — pwquality e limites básicos",
+    icon: "🔑",
+    category: "Rede e Segurança",
+    description:
+      "Entenda PAM no Debian o suficiente para política de senha com pwquality, sem desmontar autenticação SSH no primeiro sed errado.",
+    objectives: [
+      "Explicar PAM como pilha de módulos de autenticação",
+      "Achar configs em /etc/pam.d/",
+      "Instalar e ver pwquality",
+      "Ler /etc/security/pwquality.conf",
+      "Relacionar com login local vs SSH por chave",
+      "Testar mudança com conta de lab, não com root único",
+    ],
+    content: [
+      "**PAM** (Pluggable Authentication Modules) é a camada que decide ‘como autentica’ em login, sudo, SSH (se usar senha), etc. Cada serviço tem um arquivo em `/etc/pam.d/` que empilha módulos `auth`, `account`, `password`, `session`. Errar uma linha pode fechar a casa — por isso backup e sessão root de reserva.",
+
+      "Política de senha moderna no Debian costuma passar por **pam_pwquality** (pacote `libpam-pwquality`) e `/etc/security/pwquality.conf`: tamanho mínimo, créditos de classes de caracteres, reject username, etc. Isso age quando a senha é **definida/alterada**, não mágicamente em chaves SSH.",
+
+      "SSH com **só chave** continua sendo o caminho servidor; PAM de senha ainda importa para consoles locais, contas humanas e o dia em que alguém usa `PasswordAuthentication yes`. Não misture tutorial antigo de `pam_cracklib` sem ver o que sua release usa.",
+
+      "Jargões. **requisite/required/sufficient/optional** controlam o fluxo da pilha. **nullok**. **try_first_pass**. Você não precisa memorizar todos no primeiro dia; precisa saber que a ordem importa e que `common-*` é incluído por vários serviços.",
+
+      "Ao terminar você lista /etc/pam.d, lê pwquality.conf, sabe onde a política de senha se encaixa, e não testa break-glass na única sessão da VPS da equipe.",
+
+    ],
+    commands: [
+      {
+        command: "ls /etc/pam.d/ | head",
+        description:
+          "Serviços com pilha PAM (sshd, login, sudo, passwd…).",
+        example: "ls /etc/pam.d/ | head",
+      },
+      {
+        command: "grep -vE '^#|^$' /etc/pam.d/common-password 2>/dev/null | head",
+        description:
+          "Pilha comum de password — onde pwquality costuma aparecer.",
+        example: "grep -vE '^#|^$' /etc/pam.d/common-password | head",
+      },
+      {
+        command: "dpkg -l libpam-pwquality 2>/dev/null | tail -n 1; sudo apt install -y libpam-pwquality",
+        description:
+          "Garante o módulo de qualidade de senha.",
+        example: "sudo apt install -y libpam-pwquality",
+      },
+      {
+        command: "grep -vE '^#|^$' /etc/security/pwquality.conf 2>/dev/null | head -n 30",
+        description:
+          "Política efetiva comentada/ativa (minlen, etc.).",
+        example: "grep -vE '^#|^$' /etc/security/pwquality.conf | head",
+      },
+      {
+        command: "man pam_pwquality",
+        description:
+          "Opções do módulo.",
+        example: "man pam_pwquality",
+      },
+      {
+        command: "man pwquality.conf",
+        description:
+          "Arquivo de configuração de qualidade.",
+        example: "man pwquality.conf",
+      },
+      {
+        command: "man pam",
+        description:
+          "Visão geral da arquitetura PAM.",
+        example: "man pam",
+      },
+      {
+        command: "grep -n 'password' /etc/pam.d/sshd 2>/dev/null | head",
+        description:
+          "Como o sshd inclui a pilha (se senha estiver no circuito).",
+        example: "grep -n password /etc/pam.d/sshd | head",
+      },
+      {
+        command: "passwd -S $USER 2>/dev/null || true",
+        description:
+          "Status da senha da conta atual (P/L/NP…).",
+        example: "passwd -S $USER",
+      },
+      {
+        command: "sudo cp -a /etc/pam.d/common-password /etc/pam.d/common-password.bak-$(date +%F) 2>/dev/null || true",
+        description:
+          "Hábito: backup antes de qualquer edição PAM.",
+        example: "sudo cp -a /etc/pam.d/common-password /etc/pam.d/common-password.bak",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Editar PAM na única sessão SSH",
+        content:
+          "Tenha console; um slip bloqueia autenticação.",
+      },
+      {
+        type: "success",
+        title: "Backup de common-*",
+        content:
+          "Restaurar é mais rápido que live rescue.",
+      },
+      {
+        type: "info",
+        title: "Chave SSH ≠ pwquality",
+        content:
+          "Política de senha não substitui endurecer sshd_config.",
+      },
+      {
+        type: "warning",
+        title: "minlen absurdo",
+        content:
+          "Política impossível gera post-its sob o teclado — busque equilíbrio.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Mapa PAM + pwquality",
+        goal: "Saber se pwquality está na pilha e quais opções não comentadas existem.",
+        steps: [
+          "ls /etc/pam.d | head",
+          "grep common-password",
+          "instalar libpam-pwquality se faltar",
+          "ler pwquality.conf ativo",
+          "tee ~/pam-lab.txt",
+        ],
+        command: "{ echo '=== common-password ==='; grep -vE '^#|^$' /etc/pam.d/common-password 2>/dev/null; echo; echo '=== pwquality.conf ==='; grep -vE '^#|^$' /etc/security/pwquality.conf 2>/dev/null | head -n 20; } | tee ~/pam-lab.txt",
+        verify:
+          "Você aponta se pam_pwquality aparece na pilha password.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é PAM?",
+        answer:
+          "Framework de módulos empilháveis que implementa autenticação e sessões para serviços.",
+      },
+      {
+        id: 2,
+        question: "Onde ficam as pilhas?",
+        answer:
+          "/etc/pam.d/",
+      },
+      {
+        id: 3,
+        question: "Arquivo comum de política de senha?",
+        answer:
+          "/etc/security/pwquality.conf com pam_pwquality.",
+      },
+      {
+        id: 4,
+        question: "Por que backup antes de editar?",
+        answer:
+          "Erro pode impedir login/sudo até recuperação.",
+      },
+      {
+        id: 5,
+        question: "pwquality age quando?",
+        answer:
+          "Na definição/alteração de senhas via PAM, não em autenticação por chave SSH.",
+      },
+      {
+        id: 6,
+        question: "common-password serve para quê?",
+        answer:
+          "Pilha compartilhada incluída por vários serviços no Debian.",
+      },
+      {
+        id: 7,
+        question: "Pacote Debian do módulo?",
+        answer:
+          "libpam-pwquality",
+      },
+      {
+        id: 8,
+        question: "SSH só com chave ainda precisa de PAM?",
+        answer:
+          "sshd ainda usa PAM para session/account em muitos setups; password pode estar off.",
+      },
+    ],
+    references: [
+      { title: "man pam", url: "https://manpages.debian.org/pam" },
+      { title: "man pam_pwquality", url: "https://manpages.debian.org/pam_pwquality" },
+      { title: "man pwquality.conf", url: "https://manpages.debian.org/pwquality.conf" },
+      { title: "Debian Wiki — PAM", url: "https://wiki.debian.org/PAM" },
+    ],
+  },
+  {
+    id: "acl-capabilities",
+    title: "ACL e capabilities — setfacl e setcap sem misticismo",
+    icon: "🏷️",
+    category: "Rede e Segurança",
+    description:
+      "Vá além de rwx clássico: ACLs finas com setfacl/getfacl e capabilities com getcap/setcap — poder pontual sem chmod 777 nem binário full root.",
+    objectives: [
+      "Ler getfacl e explicar entradas de usuário/grupo",
+      "Aplicar setfacl em lab e remover com -b/-x",
+      "Ver o ‘+’ no ls -l como pista de ACL",
+      "Explicar capability vs setuid root",
+      "Usar getcap em binários do sistema",
+      "Evitar 777 e setuid como primeira resposta",
+    ],
+    content: [
+      "rwx de dono/grupo/outros é grosso. **ACL** (Access Control List) deixa você dizer ‘usuário maria lê, grupo dev escreve’ no mesmo arquivo sem criar grupo descartável toda hora. `getfacl`/`setfacl` são as ferramentas; o `ls -l` mostra um `+` no modo quando há ACL estendida.",
+
+      "**Capabilities** quebram o ‘poder root’ em pedaços (bind em porta <1024, raw network, etc.). Em vez de setuid root no binário inteiro, `setcap` entrega só a fatia necessária. `getcap -r /usr/bin 2>/dev/null` revela o que o sistema já usa. Menos superfície se o binário for comprometido — ainda não é mágica.",
+
+      "Filesystem precisa de suporte a ACL (ext4 etc. ok na maioria dos defaults). Montagens especiais e alguns network FS têm limitações. Mask em ACL confunde iniciantes: leia `man acl` quando o getfacl mostrar mask efetiva.",
+
+      "Quando NÃO: ACL emaranhada em vez de grupos bem desenhados; setcap em script interpretado sem entender o modelo; chmod 777 ‘para testar’ em produção. Quando SIM: diretório compartilhado de time, serviço que só precisa de net_bind_service.",
+
+      "Ao terminar você seta e remove uma ACL de lab, lê getfacl, e interpreta um getcap de binário do sistema.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y acl libcap2-bin",
+        description:
+          "Ferramentas setfacl/getfacl e getcap/setcap.",
+        example: "sudo apt install -y acl libcap2-bin",
+      },
+      {
+        command: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
+        description:
+          "Arquivo de lab e modo clássico inicial.",
+        example: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
+      },
+      {
+        command: "setfacl -m u:$USER:rw /tmp/acl-lab/arq.txt 2>/dev/null; getfacl /tmp/acl-lab/arq.txt",
+        description:
+          "ACL de usuário e leitura completa das entradas.",
+        example: "setfacl -m u:$USER:rw /tmp/acl-lab/arq.txt; getfacl /tmp/acl-lab/arq.txt",
+      },
+      {
+        command: "ls -l /tmp/acl-lab/arq.txt",
+        description:
+          "O + no modo indica ACL estendida.",
+        example: "ls -l /tmp/acl-lab/arq.txt",
+      },
+      {
+        command: "setfacl -b /tmp/acl-lab/arq.txt; getfacl /tmp/acl-lab/arq.txt; ls -l /tmp/acl-lab/arq.txt",
+        description:
+          "Remove ACLs estendidas (-b) e volta ao modo simples.",
+        example: "setfacl -b /tmp/acl-lab/arq.txt",
+      },
+      {
+        command: "getcap /usr/bin/ping 2>/dev/null; getcap /usr/bin/traceroute 2>/dev/null; getcap -r /usr/bin 2>/dev/null | head",
+        description:
+          "Capabilities em binários comuns (nomes variam por release).",
+        example: "getcap /usr/bin/ping 2>/dev/null; getcap -r /usr/bin 2>/dev/null | head",
+      },
+      {
+        command: "man setfacl",
+        description:
+          "Sintaxe -m -x -b -R default ACL em diretórios.",
+        example: "man setfacl",
+      },
+      {
+        command: "man capabilities",
+        description:
+          "Lista e significado das capabilities do Linux.",
+        example: "man capabilities",
+      },
+      {
+        command: "man getcap",
+        description:
+          "Ler capabilities de arquivos.",
+        example: "man getcap",
+      },
+      {
+        command: "namei -l /tmp/acl-lab/arq.txt",
+        description:
+          "Permissões ao longo do path — ACL no arquivo não salva se o diretório bloqueia traverse.",
+        example: "namei -l /tmp/acl-lab/arq.txt",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "+ no ls -l",
+        content:
+          "Pista rápida de ACL.",
+      },
+      {
+        type: "warning",
+        title: "ACL sem x no diretório pai",
+        content:
+          "Sem execute no path, não chega no arquivo.",
+      },
+      {
+        type: "info",
+        title: "capability < setuid root",
+        content:
+          "Prefira o menor poder quando fizer sentido.",
+      },
+      {
+        type: "danger",
+        title: "chmod 777",
+        content:
+          "Ainda é a pior resposta padrão em servidor.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "ACL ida e volta",
+        goal: "Arquivo com ACL visível no getfacl e no ls +; depois limpo com -b.",
+        steps: [
+          "criar /tmp/acl-lab/arq.txt",
+          "setfacl -m u:$USER:rw",
+          "getfacl e ls -l",
+          "setfacl -b",
+          "confirmar + sumiu",
+        ],
+        command: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && setfacl -m u:$USER:rw /tmp/acl-lab/arq.txt && getfacl /tmp/acl-lab/arq.txt | tee ~/acl-lab.txt && setfacl -b /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
+        verify:
+          "Durante a ACL, getfacl mostra user:…:rw e ls tem +; apos -b, entradas extras somem.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Para que serve ACL?",
+        answer:
+          "Permissões finas por usuário/grupo além do trio owner/group/other.",
+      },
+      {
+        id: 2,
+        question: "Comandos principais de ACL?",
+        answer:
+          "getfacl e setfacl.",
+      },
+      {
+        id: 3,
+        question: "O que o + no ls -l indica?",
+        answer:
+          "Presença de ACL estendida.",
+      },
+      {
+        id: 4,
+        question: "setfacl -b faz o quê?",
+        answer:
+          "Remove ACLs estendidas do objeto.",
+      },
+      {
+        id: 5,
+        question: "O que são capabilities?",
+        answer:
+          "Fatias do poder de root atribuíveis a processos/binários.",
+      },
+      {
+        id: 6,
+        question: "getcap serve para quê?",
+        answer:
+          "Listar capabilities gravadas em arquivos.",
+      },
+      {
+        id: 7,
+        question: "Por que não preferir setuid root sempre?",
+        answer:
+          "Qualquer exploração do binário herda root total; capability limita o escopo.",
+      },
+      {
+        id: 8,
+        question: "ACL no arquivo basta se o dir é 700 de outro user?",
+        answer:
+          "Não; precisa percorrer o path (execute nos diretórios).",
+      },
+    ],
+    references: [
+      { title: "man acl", url: "https://manpages.debian.org/acl" },
+      { title: "man setfacl", url: "https://manpages.debian.org/setfacl" },
+      { title: "man capabilities", url: "https://manpages.debian.org/capabilities" },
+      { title: "man getcap", url: "https://manpages.debian.org/getcap" },
+    ],
+  },
+  {
+    id: "auditoria-leve",
+    title: "Auditoria leve — integridade e trilhas sem montar SOC",
+    icon: "🔍",
+    category: "Rede e Segurança",
+    description:
+      "Monte uma postura mínima de auditoria no Debian: o que logar, AIDE/integridade em alto nível, auditd intro e o hábito de revisar before/after de mudanças.",
+    objectives: [
+      "Separar logging, integridade e audit trail",
+      "Saber o que journal/syslog já cobrem",
+      "Instalar e entender a ideia do AIDE (baseline)",
+      "Conhecer auditd em nível introdutório",
+      "Definir o que vale alertar num VPS solo",
+      "Não confundir ferramenta com processo (revisão humana)",
+    ],
+    content: [
+      "Segurança sem **observabilidade** é fé. Em VPS solo você não precisa de SIEM caro no primeiro dia, mas precisa de: (1) logs que sobrevivem (journal persistente, logrotate) (2) noção de **integridade** (arquivos críticos mudaram?) (3) trilha de eventos de auth (ssh, sudo). Isso é auditoria leve.",
+
+      "**AIDE** (Advanced Intrusion Detection Environment) gera um banco de hashes/metadados e depois compara. Fluxo: init → baseline confiável → check periódico → investigar diffs. Se a baseline for tirada com host já comprometido, você só ‘congela’ o mal — por isso baseline em momento limpo importa.",
+
+      "**auditd** (Linux Audit) registra syscalls/eventos segundo regras (quem abriu /etc/shadow, execs, etc.). É poderoso e barulhento; em intro basta saber que existe, `auditctl -l`, logs em audit.log/journal, e que regras ruins enchem disco. Muitos hosts Debian não vêm com regras pesadas por default.",
+
+      "Checklist prático VPS: journald com teto de disco; fail2ban+sshd log; unattended-upgrades log; `last`/`lastlog`/wtmp onde ainda fizer sentido (e wtmpdb no Debian novo); revisão semanal de `systemctl --failed` e pacotes instalados (`apt history`). Ferramenta sem ritual de olhar output = enfeite.",
+
+      "Quando NÃO: ligar auditd com regras de paper da internet em disco de 10G; AIDE sem cron/timer de check; alertar tudo e ignorar tudo. Quando SIM: após hardening inicial, antes de expor serviço novo, após suspeita de invasão (com cuidado forense).",
+
+      "Ao terminar você explica AIDE em uma frase, sabe onde olhar auth e failed units, e monta um mini ritual semanal — sem achar que instalou ‘antivírus mágico’.",
+
+    ],
+    commands: [
+      {
+        command: "systemctl --failed --no-pager",
+        description:
+          "Units em falha — higiene diária barata.",
+        example: "systemctl --failed --no-pager",
+      },
+      {
+        command: "journalctl -u ssh -u sshd -n 30 --no-pager 2>/dev/null | tail -n 30",
+        description:
+          "Amostra de auth SSH recente.",
+        example: "journalctl -u ssh --no-pager -n 20 2>/dev/null || journalctl -u sshd -n 20 --no-pager",
+      },
+      {
+        command: "sudo apt install -y aide 2>/dev/null || sudo apt install -y aide-common aide",
+        description:
+          "Pacote AIDE (nomes podem incluir aide-common).",
+        example: "sudo apt install -y aide",
+      },
+      {
+        command: "man aide",
+        description:
+          "init, check, update do banco de integridade.",
+        example: "man aide",
+      },
+      {
+        command: "dpkg -l aide 2>/dev/null | tail -n 1; ls /etc/aide 2>/dev/null | head",
+        description:
+          "Se instalou, config costuma viver sob /etc/aide.",
+        example: "ls /etc/aide 2>/dev/null | head",
+      },
+      {
+        command: "dpkg -l auditd 2>/dev/null | tail -n 1; systemctl is-active auditd 2>/dev/null || true",
+        description:
+          "auditd presente/ativo? Intro apenas.",
+        example: "systemctl is-active auditd 2>/dev/null; dpkg -l auditd 2>/dev/null | tail -n 1",
+      },
+      {
+        command: "sudo auditctl -l 2>/dev/null || echo 'auditctl indisponivel ou sem permissao'",
+        description:
+          "Lista regras ativas do Linux Audit (se houver).",
+        example: "sudo auditctl -l 2>/dev/null | head",
+      },
+      {
+        command: "grep -h ' install ' /var/log/apt/history.log 2>/dev/null | tail -n 15 || zgrep -h ' install ' /var/log/apt/history.log* 2>/dev/null | tail -n 15",
+        description:
+          "O que foi instalado via apt recentemente — mudança de superfície.",
+        example: "grep -h ' install ' /var/log/apt/history.log 2>/dev/null | tail -n 15",
+      },
+      {
+        command: "last -n 10 2>/dev/null || lastlog 2>/dev/null | head || echo 'use journal/wtmpdb conforme a release'",
+        description:
+          "Logins recentes (ferramenta varia no Debian novo — veja também journal).",
+        example: "last -n 10 2>/dev/null || journalctl -u ssh --since today --no-pager | tail",
+      },
+      {
+        command: "man auditctl",
+        description:
+          "Controle de regras do audit (avançado).",
+        example: "man auditctl",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Ritual > ferramenta",
+        content:
+          "Timer que ninguém lê não protege.",
+      },
+      {
+        type: "warning",
+        title: "Baseline suja",
+        content:
+          "AIDE em host já invadido valida o invasor.",
+      },
+      {
+        type: "info",
+        title: "Comece pelo journal e apt history",
+        content:
+          "Barato e imediatamente útil.",
+      },
+      {
+        type: "danger",
+        title: "auditd barulhento em disco cheio",
+        content:
+          "Regras amplas enchem partição e derrubam serviço.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Checklist semanal de 10 minutos",
+        goal: "failed units + amostra SSH + apt history + disk-usage journal.",
+        steps: [
+          "systemctl --failed",
+          "journalctl SSH recente",
+          "apt history install",
+          "journalctl --disk-usage",
+          "Anotar anomalias em ~/audit-week.txt",
+        ],
+        command: "{ echo '=== failed ==='; systemctl --failed --no-pager; echo; echo '=== journal disk ==='; journalctl --disk-usage; echo; echo '=== apt installs ==='; grep -h ' install ' /var/log/apt/history.log 2>/dev/null | tail -n 10; } | tee ~/audit-week.txt",
+        verify:
+          "Você tem um arquivo com quatro blocos e sabe o que investigaria se algo estranho aparecer.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Três pilares da auditoria leve?",
+        answer:
+          "Logs confiáveis, integridade de arquivos, trilha de autenticação/mudanças.",
+      },
+      {
+        id: 2,
+        question: "AIDE serve para quê?",
+        answer:
+          "Detectar mudanças em arquivos comparando com uma baseline de hashes/metadados.",
+      },
+      {
+        id: 3,
+        question: "Por que baseline limpa importa?",
+        answer:
+          "Baseline comprometida esconde o atacante.",
+      },
+      {
+        id: 4,
+        question: "auditd registra o quê em geral?",
+        answer:
+          "Eventos de auditoria do kernel segundo regras (acessos, execs, etc.).",
+      },
+      {
+        id: 5,
+        question: "Comando rápido de units falhas?",
+        answer:
+          "systemctl --failed",
+      },
+      {
+        id: 6,
+        question: "Onde ver histórico de pacotes apt?",
+        answer:
+          "/var/log/apt/history.log (e arquivos rotacionados).",
+      },
+      {
+        id: 7,
+        question: "Ferramenta sem revisão humana?",
+        answer:
+          "Gera dados; não substitui o hábito de ler e agir.",
+      },
+      {
+        id: 8,
+        question: "Risco de regras audit amplas?",
+        answer:
+          "Volume enorme de log, disco cheio, ruído que esconde incidente real.",
+      },
+    ],
+    references: [
+      { title: "man aide", url: "https://manpages.debian.org/aide" },
+      { title: "AIDE project", url: "https://aide.github.io/" },
+      { title: "man auditctl", url: "https://manpages.debian.org/auditctl" },
+      { title: "Debian secure", url: "https://www.debian.org/doc/manuals/securing-debian-manual/" },
+    ],
+  },
 ];
