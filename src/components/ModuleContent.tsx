@@ -5,6 +5,7 @@ import { AlertBox } from "./ui/AlertBox";
 import { CodeBlock } from "./ui/CodeBlock";
 import { ParamsTable } from "./ui/ParamsTable";
 import { useProgress } from "@/hooks/useProgress";
+import { RichText } from "@/lib/inline";
 import {
   Target,
   Terminal,
@@ -76,7 +77,7 @@ export default function ModuleContent({
             <ul className="m-0 pl-5 space-y-1.5">
               {module.objectives.map((obj, i) => (
                 <li key={i} className="text-foreground/90 leading-relaxed">
-                  {obj}
+                  <RichText text={obj} />
                 </li>
               ))}
             </ul>
@@ -88,7 +89,9 @@ export default function ModuleContent({
             <BookOpen className="w-5 h-5 text-primary" /> Conceitos
           </h2>
           {module.content.map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
+            <p key={i}>
+              <RichText text={paragraph} />
+            </p>
           ))}
         </section>
 
@@ -103,7 +106,7 @@ export default function ModuleContent({
                 type={tipTypeMap[tip.type] || "info"}
                 title={tip.title || "Dica"}
               >
-                {tip.content}
+                <RichText text={tip.content} />
               </AlertBox>
             ))}
           </section>
@@ -123,7 +126,7 @@ export default function ModuleContent({
               return (
                 <div key={i} className="mb-8">
                   <p className="text-foreground/90 mb-3 mt-6 leading-relaxed">
-                    {cmd.description}
+                    <RichText text={cmd.description} />
                   </p>
                   <CodeBlock
                     code={session}
@@ -163,7 +166,7 @@ export default function ModuleContent({
                   Lab {i + 1}: {lab.title}
                 </h3>
                 <p className="text-foreground/85 mb-3">
-                  <strong className="text-primary">Objetivo:</strong> {lab.goal}
+                  <strong className="text-primary">Objetivo:</strong> <RichText text={lab.goal} />
                 </p>
                 <ol className="pl-5 space-y-1.5 mb-3">
                   {lab.steps.map((step, j) => (
@@ -222,7 +225,7 @@ export default function ModuleContent({
                   <div className="mt-4 pl-10 space-y-2">
                     {ex.hint && (
                       <p className="text-sm text-muted-foreground italic">
-                        💡 Dica: {ex.hint}
+                        💡 Dica: <RichText text={ex.hint} />
                       </p>
                     )}
                     <div className="rounded-lg bg-muted/40 border border-border p-3">
@@ -230,7 +233,7 @@ export default function ModuleContent({
                         Resposta
                       </p>
                       <p className="text-sm text-foreground/90 m-0 whitespace-pre-wrap">
-                        {ex.answer}
+                        <RichText text={ex.answer} />
                       </p>
                     </div>
                   </div>
@@ -262,7 +265,7 @@ export default function ModuleContent({
                   )}
                   {ref.description && (
                     <p className="text-sm text-muted-foreground m-0 mt-1">
-                      {ref.description}
+                      <RichText text={ref.description} />
                     </p>
                   )}
                 </li>
