@@ -1521,4 +1521,772 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       { title: "Kernel docs — sysfs", url: "https://www.kernel.org/doc/html/latest/filesystems/sysfs.html" },
     ],
   },
+  {
+    id: "boot-grub",
+    title: "Boot: GRUB, initramfs e recovery — do firmware ao login",
+    icon: "🥾",
+    category: "Sistema",
+    description:
+      "Entenda a sequência de boot no Debian: firmware, GRUB, kernel, initramfs e o primeiro processo — e o que fazer quando a máquina para no meio do caminho.",
+    objectives: [
+      "Descrever a ordem firmware → bootloader → kernel → initramfs → systemd",
+      "Localizar config e entradas do GRUB no Debian",
+      "Regenerar GRUB e initramfs com consciência",
+      "Usar um menu de recovery/single-user com critério",
+      "Ler logs de boot recentes com journalctl",
+      "Saber o que NÃO fazer em VPS compartilhada sem console",
+    ],
+    content: [
+      "Ligar o PC não é mágica: é uma corrida de bastão. O **firmware** (UEFI ou BIOS legado) acha um bootloader; no Debian quase sempre o **GRUB**. O GRUB carrega o **kernel** e um disco inicial em RAM chamado **initramfs** (ou initrd). Esse mini-sistema monta o root de verdade e entrega o controle ao **systemd** (PID 1). Se qualquer bastão cai, você vê tela preta, emergency mode ou kernel panic — e precisa saber em qual etapa parou.",
+
+      "No Debian, o GRUB ‘oficial’ da instalação costuma viver em `/boot/grub/` com config gerada em `grub.cfg`. Você **quase nunca** edita `grub.cfg` na mão: edita `/etc/default/grub` e fragmentos em `/etc/grub.d/`, depois `update-grub` (wrapper amigável). O initramfs é regenerado com `update-initramfs` quando kernel, módulos críticos ou hooks mudam.",
+
+      "Jargões. **EFI System Partition (ESP)** é a partição FAT onde a UEFI procura bootloaders. **vmlinuz** é a imagem do kernel. **cmdline** são os parâmetros passados ao kernel (root=, quiet, single…). **emergency/rescue** são alvos systemd mínimos para consertar fstab, senha root, etc. **chroot** de um live USB é o hospital quando o sistema instalado não sobe.",
+
+      "Recovery mental: (1) o GRUB aparece? (2) o kernel começa a imprimir? (3) initramfs acha o root? (4) systemd chega a multi-user/graphical? journalctl -b e a tela do dracut/initramfs contam histórias diferentes. Em VPS, **console web/serial** vale ouro — SSH morto no meio do boot não se debuga com mais uma aba SSH.",
+
+      "Quando NÃO mexer: update-grub/update-initramfs em massa na VPS da equipe sem janela e sem snapshot; editar grub.cfg direto ‘só um teste’; quiet splash escondendo erro que você precisava ler. Quando SIM: após instalar kernel novo, após mudar disco root/LVM/UUID, ao recuperar máquina com live.",
+
+      "Ao terminar você desenha a corrida de bastão de cor, acha /etc/default/grub, sabe para que serve update-grub e update-initramfs, e lista o último boot no journal — sem brincar de brickar host alheio.",
+
+    ],
+    commands: [
+      {
+        command: "ls -la /boot | head",
+        description:
+          "Kernel (vmlinuz), initrd e às vezes grub — o que o bootloader precisa achar.",
+        example: "ls -la /boot",
+      },
+      {
+        command: "cat /etc/default/grub",
+        description:
+          "Política legível do GRUB (timeout, cmdline padrão). É daqui que o update-grub gera a config.",
+        example: "grep -vE '^#|^$' /etc/default/grub",
+      },
+      {
+        command: "sudo update-grub",
+        description:
+          "Regenera grub.cfg a partir de /etc/default/grub e /etc/grub.d. Em UEFI o ecossistema pode usar grub-mkconfig diretamente.",
+        example: "sudo update-grub",
+      },
+      {
+        command: "sudo update-initramfs -u",
+        description:
+          "Atualiza o initramfs do kernel atual (-u). Use -k all com cuidado (tempo/espaço).",
+        example: "sudo update-initramfs -u",
+        flags: [
+          { flag: "-u", description: "atualiza initramfs existente" },
+          { flag: "-k", description: "seleciona versão de kernel" },
+          { flag: "-c", description: "cria novo" },
+        ],
+      },
+      {
+        command: "cat /proc/cmdline",
+        description:
+          "Parâmetros com que ESTE boot foi iniciado (root, ro/rw, quiet…).",
+        example: "cat /proc/cmdline",
+        output: "BOOT_IMAGE=/boot/vmlinuz-6.12.x-amd64 root=UUID=... ro quiet",
+      },
+      {
+        command: "systemctl get-default",
+        description:
+          "Alvo padrão após o boot (graphical.target ou multi-user.target em servidores).",
+        example: "systemctl get-default",
+      },
+      {
+        command: "journalctl -b -p err..alert --no-pager | tail -n 40",
+        description:
+          "Erros do boot atual — primeiro lugar a olhar depois que o sistema já subiu.",
+        example: "journalctl -b -p err..alert --no-pager | tail -n 40",
+      },
+      {
+        command: "journalctl --list-boots | tail -n 5",
+        description:
+          "Índice de boots anteriores para comparar ‘antes/depois’ de uma mudança.",
+        example: "journalctl --list-boots | tail -n 5",
+      },
+      {
+        command: "sudo grub-file --is-x86-multiboot /boot/vmlinuz-$(uname -r) 2>/dev/null; uname -r",
+        description:
+          "Confirma kernel em uso; utilitários grub-* ajudam em diagnósticos avançados.",
+        example: "uname -r",
+      },
+      {
+        command: "man grub-mkconfig",
+        description:
+          "Como a config do GRUB é gerada — leia antes de scripts ‘mágicos’ da internet.",
+        example: "man grub-mkconfig",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Sem console em VPS",
+        content:
+          "Não experimente cmdline/fstab/grub sem acesso serial/web do provedor e snapshot.",
+      },
+      {
+        type: "warning",
+        title: "Não edite grub.cfg na mão",
+        content:
+          "A próxima update-grub sobrescreve. Use /etc/default/grub e /etc/grub.d.",
+      },
+      {
+        type: "info",
+        title: "initramfs desatualizado",
+        content:
+          "Disk/UUID/LVM/crypt mudou e o boot não acha root? update-initramfs e confira cmdline.",
+      },
+      {
+        type: "success",
+        title: "Desenhe a etapa",
+        content:
+          "Firmware / GRUB / kernel / initramfs / systemd — saber onde parou já é meio conserto.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Mapa do boot da sua máquina",
+        goal: "Documento de uma página: kernel em uso, cmdline, default target, erros do boot atual.",
+        steps: [
+          "uname -r e ls /boot",
+          "cat /proc/cmdline",
+          "systemctl get-default",
+          "journalctl -b -p err..alert | tail",
+          "grep não comentado em /etc/default/grub",
+          "Salvar em ~/mapa-boot.txt",
+        ],
+        command: "{ echo '=== kernel ==='; uname -a; echo; echo '=== cmdline ==='; cat /proc/cmdline; echo; echo '=== default ==='; systemctl get-default; echo; echo '=== grub defaults ==='; grep -vE '^#|^$' /etc/default/grub 2>/dev/null; } | tee ~/mapa-boot.txt",
+        verify:
+          "Você explica em voz alta a sequência até o login e aponta um possível ponto de falha se cmdline/root estivesse errado.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Ordem básica de boot no Debian moderno?",
+        answer:
+          "Firmware → GRUB (bootloader) → kernel + initramfs → monta root → systemd como PID 1 → serviços/login.",
+      },
+      {
+        id: 2,
+        question: "Por que não editar grub.cfg direto?",
+        answer:
+          "É arquivo gerado; update-grub/grub-mkconfig reescreve. Ajuste vem de /etc/default/grub e /etc/grub.d.",
+      },
+      {
+        id: 3,
+        question: "Para que serve o initramfs?",
+        answer:
+          "Mini sistema em RAM que carrega módulos e monta o root real (LVM, crypto, UUID…) antes do sistema completo.",
+      },
+      {
+        id: 4,
+        question: "Comando para regenerar a config do GRUB no Debian?",
+        answer:
+          "sudo update-grub (ou grub-mkconfig -o …).",
+      },
+      {
+        id: 5,
+        question: "Como ver parâmetros do boot atual?",
+        answer:
+          "cat /proc/cmdline",
+      },
+      {
+        id: 6,
+        question: "Onde olhar erros do boot que já subiu?",
+        answer:
+          "journalctl -b (com filtros de prioridade se quiser).",
+      },
+      {
+        id: 7,
+        question: "Risco de mudar boot sem console em VPS?",
+        answer:
+          "Perder SSH e não ter como corrigir; precisa de console out-of-band/snapshot.",
+      },
+      {
+        id: 8,
+        question: "O que update-initramfs -u faz?",
+        answer:
+          "Atualiza a imagem initramfs do kernel correspondente para incluir hooks/módulos atuais.",
+      },
+    ],
+    references: [
+      { title: "Debian Wiki — Grub", url: "https://wiki.debian.org/Grub" },
+      { title: "man update-initramfs", url: "https://manpages.debian.org/update-initramfs" },
+      { title: "man grub-mkconfig", url: "https://manpages.debian.org/grub-mkconfig" },
+      { title: "systemd boot targets", url: "https://www.freedesktop.org/software/systemd/man/systemd.special.html" },
+    ],
+  },
+  {
+    id: "kernel-modulos",
+    title: "Kernel, módulos e firmware — o que carrega e o que falta",
+    icon: "🧩",
+    category: "Sistema",
+    description:
+      "Veja o kernel em uso, liste módulos, carregue/descarregue com modprobe e entenda firmware non-free no Debian — sem recompilar o mundo no primeiro dia.",
+    objectives: [
+      "Identificar versão e pacotes de kernel instalados",
+      "Listar módulos carregados e informações de um módulo",
+      "Usar modprobe/rmmod com cuidado",
+      "Achar firmware missing em dmesg/journal",
+      "Instalar firmware-linux / non-free-firmware quando fizer sentido",
+      "Saber que módulo ≠ instalar driver Windows.exe",
+    ],
+    content: [
+      "O **kernel** é o núcleo que fala com CPU, memória e dispositivos. No Debian ele chega como pacote `linux-image-…` e, se precisar compilar módulos externos, headers `linux-headers-…`. Você raramente compila do zero no começo: aprende a **ver o que está carregado**, o que falhou, e qual pacote de **firmware** falta para a placa de rede/Wi-Fi/GPU.",
+
+      "**Módulo** é código do kernel que pode entrar e sair em runtime (`modprobe`). Placa de rede, filesystem extra, virtualização — muita coisa é módulo. `lsmod` lista, `modinfo` descreve, `modprobe nome` carrega resolvendo dependências, `rmmod` tira (se nada estiver usando). Errar rmmod em disco/filesystem montado é pedido de dor.",
+
+      "**Firmware** é blob que o driver manda para o hardware. No Debian moderno o componente **non-free-firmware** existe exatamente porque Wi-Fi e NICs corporativas pedem isso. Mensagens `firmware: failed to load` no dmesg são o farol. Instalar o metapacote adequado e reiniciar (ou replugar) costuma ser o caminho — não baixar .exe do site da OEM.",
+
+      "Jargões. **uname -r** versão rodando. **DKMS** recompila módulos externos a cada kernel novo. **Secure Boot** pode bloquear módulos não assinados. **blacklist** em `/etc/modprobe.d/` impede carga automática de um módulo problemático.",
+
+      "Fluxo de diagnóstico de ‘não tem rede’: ip link → dmesg/journal por firmware → lsmod | grep → pacote firmware → reboot. Fluxo de ‘preciso de módulo’: apt search, headers se for out-of-tree, modprobe, persistência via conf se necessário.",
+
+      "Ao terminar você lê uname -r, explica um modinfo, carrega um módulo inofensivo de lab se quiser, e associa mensagem de firmware ao pacote Debian certo — sem recompilar kernel por esporte.",
+
+    ],
+    commands: [
+      {
+        command: "uname -r",
+        description:
+          "Versão do kernel em execução — base para headers e módulos.",
+        example: "uname -r",
+      },
+      {
+        command: "dpkg -l 'linux-image-*' | grep ^ii",
+        description:
+          "Imagens de kernel instaladas (várias versões podem coexistir no /boot).",
+        example: "dpkg -l 'linux-image-*' | grep ^ii",
+      },
+      {
+        command: "lsmod | head",
+        description:
+          "Módulos atualmente carregados e uso.",
+        example: "lsmod | head -n 20",
+      },
+      {
+        command: "modinfo ext4 | sed -n '1,20p'",
+        description:
+          "Metadados de um módulo (path, descrição, parâmetros).",
+        example: "modinfo ext4 | sed -n '1,25p'",
+      },
+      {
+        command: "sudo modprobe dummy 2>/dev/null; lsmod | grep dummy; sudo modprobe -r dummy 2>/dev/null",
+        description:
+          "Exemplo de carga/descarga de módulo de lab (dummy). Não force rmmod em módulos críticos.",
+        example: "sudo modprobe dummy && sudo modprobe -r dummy",
+      },
+      {
+        command: "journalctl -k -b --no-pager | grep -i firmware | tail -n 20",
+        description:
+          "Mensagens de firmware do boot atual.",
+        example: "journalctl -k -b --no-pager | grep -i firmware | tail -n 20",
+      },
+      {
+        command: "apt-cache search '^firmware-' | head",
+        description:
+          "Pacotes de firmware no APT. No Debian 12+ veja também non-free-firmware nas sources.",
+        example: "apt-cache search firmware | head",
+      },
+      {
+        command: "sudo apt install -y firmware-linux-free",
+        description:
+          "Firmware livre básico. Para hardware que exige blob, pode precisar de firmware-linux-nonfree / metapacotes non-free-firmware conforme sources.",
+        example: "apt-cache policy firmware-linux-nonfree 2>/dev/null | head",
+      },
+      {
+        command: "ls /etc/modprobe.d/",
+        description:
+          "Configs de opções e blacklist de módulos.",
+        example: "ls /etc/modprobe.d/",
+      },
+      {
+        command: "man modprobe",
+        description:
+          "Referência de carga, blacklist e dependências.",
+        example: "man modprobe",
+      },
+    ],
+    tips: [
+      {
+        type: "warning",
+        title: "rmmod em disco montado",
+        content:
+          "Não descarregue módulos de filesystem/storage em uso.",
+      },
+      {
+        type: "info",
+        title: "non-free-firmware",
+        content:
+          "Desde bookworm o Debian trata firmware não-livre com componente próprio — confira sources.",
+      },
+      {
+        type: "success",
+        title: "dmesg/journal primeiro",
+        content:
+          "Antes de ‘reinstalar driver’, leia se é firmware missing ou conflito de módulo.",
+      },
+      {
+        type: "danger",
+        title: "Terceiros obscuros",
+        content:
+          "Instalar .deb de kernel de blog desconhecido é superfície de ataque e brick.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Raio-X de kernel e firmware",
+        goal: "Arquivo com uname, lista de linux-image, amostra lsmod e grep de firmware.",
+        steps: [
+          "uname -a",
+          "dpkg -l linux-image-*",
+          "lsmod | wc -l e head",
+          "journal/dmesg grep firmware",
+          "Salvar em ~/kernel-firmware.txt",
+        ],
+        command: "{ echo '=== uname ==='; uname -a; echo; echo '=== images ==='; dpkg -l 'linux-image-*' | grep ^ii; echo; echo '=== firmware msgs ==='; journalctl -k -b --no-pager 2>/dev/null | grep -i firmware | tail -n 15; } | tee ~/kernel-firmware.txt",
+        verify:
+          "Você sabe qual kernel roda, quantas imagens estão instaladas e se há firmware failed to load no boot.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que uname -r mostra?",
+        answer:
+          "A versão do kernel em execução.",
+      },
+      {
+        id: 2,
+        question: "Diferença entre kernel e módulo?",
+        answer:
+          "Kernel é o núcleo; módulo é código opcional carregável em runtime para hardware/features.",
+      },
+      {
+        id: 3,
+        question: "Para que serve modprobe?",
+        answer:
+          "Carregar módulo resolvendo dependências (e a config em modprobe.d).",
+      },
+      {
+        id: 4,
+        question: "O que costuma significar failed to load firmware?",
+        answer:
+          "Falta blob de firmware no sistema de arquivos; instale o pacote Debian adequado.",
+      },
+      {
+        id: 5,
+        question: "Onde blacklistar módulo?",
+        answer:
+          "Arquivos em /etc/modprobe.d/.",
+      },
+      {
+        id: 6,
+        question: "Por que manter linux-headers?",
+        answer:
+          "Para compilar módulos out-of-tree/DKMS contra o kernel instalado.",
+      },
+      {
+        id: 7,
+        question: "lsmod mostra o quê?",
+        answer:
+          "Módulos carregados e contagem de uso.",
+      },
+      {
+        id: 8,
+        question: "Instalar firmware non-free exige o quê nas sources?",
+        answer:
+          "Componente/repositório que publique esses pacotes (non-free-firmware no Debian moderno).",
+      },
+    ],
+    references: [
+      { title: "man modprobe", url: "https://manpages.debian.org/modprobe" },
+      { title: "Wiki — Firmware", url: "https://wiki.debian.org/Firmware" },
+      { title: "Wiki — Kernel", url: "https://wiki.debian.org/Kernel" },
+      { title: "Debian kernel handbook", url: "https://kernel-team.pages.debian.net/kernel-handbook/" },
+    ],
+  },
+  {
+    id: "udev-regras",
+    title: "udev e nomes de dispositivo — estabilidade além de sdb",
+    icon: "🏷️",
+    category: "Sistema",
+    description:
+      "Entenda como o udev nomeia discos e redes no Debian, use by-uuid/by-id e escreva uma regra simples — para o boot e os scripts não quebrarem quando o kernel renumerar tudo.",
+    objectives: [
+      "Explicar o papel do udev no userspace",
+      "Navegar /dev/disk/by-uuid e by-id",
+      "Inspecionar propriedades com udevadm info",
+      "Entender por que sdb muda e UUID não",
+      "Esboçar uma regra em /etc/udev/rules.d/",
+      "Recarregar regras sem ritual obscuro",
+    ],
+    content: [
+      "O kernel detecta hardware; o **udev** (agora integrado ao systemd) cria os nós em `/dev`, aplica permissões e nomes estáveis. Por isso existem `/dev/disk/by-uuid/`, `by-id/`, `by-path/` e nomes de rede que não são mais sempre eth0. Scripts que assumem `/dev/sdb1` para sempre são bombas-relógio.",
+
+      "Para disco, o fstab com **UUID=** (capítulo fstab-uuid) já usa o mundo udev. Para scripts de backup, prefira `by-id` do hardware. Para USB de lab, uma regra pode criar `/dev/disco-lab` baseado em vendor/serial — útil e didático.",
+
+      "Jargões. **sysfs** (`/sys`) expõe o dispositivo ao userspace. **udevadm info** mostra propriedades (ID_SERIAL, ID_FS_UUID…). **rules.d** processa arquivos `*.rules` por ordem numérica. **ATTRS/ENV/KERNEL** são matches típicos de regra. Errar regra de disco de boot é… emocionante — teste em USB.",
+
+      "Fluxo: plugue o device → `udevadm info -q all -n /dev/sdX` → escolha chave estável → escreva regra → `udevadm control --reload-rules && udevadm trigger` → confira o symlink novo. Em rede, `ip link` e policy de naming (net.ifnames) explicam enpXsY.",
+
+      "Quando NÃO: renomear o disco root da VPS de produção da equipe por esporte; copiar regra aleatória de fórum sem entender match. Quando SIM: gravador USB fixo, leitor de cartão, multi-disk server com udev + fstab/UUID.",
+
+      "Ao terminar você lista by-uuid, lê udevadm info de um disco, e explica por que automação séria não hardoda sdb.",
+
+    ],
+    commands: [
+      {
+        command: "ls -la /dev/disk/by-uuid/ | head",
+        description:
+          "Symlinks estáveis por UUID de filesystem — os mesmos do blkid/fstab.",
+        example: "ls -la /dev/disk/by-uuid/",
+      },
+      {
+        command: "ls -la /dev/disk/by-id/ | head",
+        description:
+          "Nomes por identificador de hardware (serial/modelo). Ótimo para scripts de disco cru.",
+        example: "ls -la /dev/disk/by-id/ | head",
+      },
+      {
+        command: "lsblk -o NAME,SIZE,TYPE,FSTYPE,UUID,MOUNTPOINT",
+        description:
+          "Visão humana cruzando kernel names e UUID.",
+        example: "lsblk -o NAME,SIZE,TYPE,FSTYPE,UUID,MOUNTPOINT",
+      },
+      {
+        command: "udevadm info -q all -n /dev/sda 2>/dev/null | head -n 40",
+        description:
+          "Propriedades udev do device (ajuste sda ao seu lab). Base para escrever regras.",
+        example: "udevadm info -q all -n /dev/sda | egrep 'ID_|DEVNAME|DEVTYPE'",
+      },
+      {
+        command: "ip -br link",
+        description:
+          "Nomes de interfaces atuais (enp*, wlp*, eth*).",
+        example: "ip -br link",
+      },
+      {
+        command: "ls /etc/udev/rules.d/",
+        description:
+          "Regras locais admin; pacotes também instalam em /lib/udev/rules.d/.",
+        example: "ls -la /etc/udev/rules.d/ /lib/udev/rules.d/ | head",
+      },
+      {
+        command: "sudo tee /etc/udev/rules.d/99-lab-usb-example.rules >/dev/null <<'EOF'\n# EXEMPLO — não use serial inventado em produção\n# SUBSYSTEM==\"block\", ENV{ID_SERIAL}==\"TROQUE_PELO_SERIAL\", SYMLINK+=\"disco-lab\"\nEOF",
+        description:
+          "Cria arquivo de exemplo comentado. Descomente e ajuste serial só em lab com USB descartável.",
+        example: "cat /etc/udev/rules.d/99-lab-usb-example.rules",
+      },
+      {
+        command: "sudo udevadm control --reload-rules && sudo udevadm trigger",
+        description:
+          "Recarrega regras e reprocessa eventos. Depois confira symlinks.",
+        example: "sudo udevadm control --reload-rules && sudo udevadm trigger",
+      },
+      {
+        command: "man udev",
+        description:
+          "Sintaxe de regras e matches.",
+        example: "man udev",
+      },
+      {
+        command: "man udevadm",
+        description:
+          "info, trigger, control, monitor — ferramenta de diagnóstico.",
+        example: "man udevadm",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "UUID no fstab, by-id em scripts de raw disk",
+        content:
+          "Cada um no seu caso de uso.",
+      },
+      {
+        type: "warning",
+        title: "Regra ampla demais",
+        content:
+          "Match fraco pode renomear o device errado. Seja específico (serial).",
+      },
+      {
+        type: "info",
+        title: "Nomes de rede previsíveis",
+        content:
+          "enp* vêm da policy moderna; desativar tem trade-offs.",
+      },
+      {
+        type: "danger",
+        title: "VPS compartilhada",
+        content:
+          "Não invente regra udev em disco de sistema alheio sem acordo da equipe.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Inventário estável de discos",
+        goal: "Tabela mental NAME × UUID × by-id de pelo menos um disco.",
+        steps: [
+          "lsblk -f",
+          "ls /dev/disk/by-uuid",
+          "ls /dev/disk/by-id | head",
+          "udevadm info em um device",
+          "Anotar qual identificador usaria no fstab vs script",
+        ],
+        command: "lsblk -f; echo '---'; ls /dev/disk/by-uuid 2>/dev/null | head",
+        verify:
+          "Você aponta o UUID que colocaria no fstab e explica por que não usaria sdb1 puro.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Para que serve o udev?",
+        answer:
+          "Gerenciar nós em /dev, permissões e nomes estáveis a partir de eventos de hardware.",
+      },
+      {
+        id: 2,
+        question: "Por que /dev/sdb pode mudar?",
+        answer:
+          "Ordem de enumeração do kernel muda com hardware/USB/portas; não é identidade permanente.",
+      },
+      {
+        id: 3,
+        question: "Onde achar symlink por UUID?",
+        answer:
+          "/dev/disk/by-uuid/",
+      },
+      {
+        id: 4,
+        question: "Comando para ver propriedades de um device?",
+        answer:
+          "udevadm info -q all -n /dev/…",
+      },
+      {
+        id: 5,
+        question: "Onde colocar regras do administrador?",
+        answer:
+          "/etc/udev/rules.d/*.rules",
+      },
+      {
+        id: 6,
+        question: "Como recarregar regras?",
+        answer:
+          "udevadm control --reload-rules e udevadm trigger.",
+      },
+      {
+        id: 7,
+        question: "fstab deve preferir o quê?",
+        answer:
+          "UUID= (ou LABEL) em vez de /dev/sdX.",
+      },
+      {
+        id: 8,
+        question: "Risco de regra errada?",
+        answer:
+          "Symlink/permissão no device errado, scripts quebrados, pior caso impacto no boot.",
+      },
+    ],
+    references: [
+      { title: "man udev", url: "https://manpages.debian.org/udev" },
+      { title: "man udevadm", url: "https://manpages.debian.org/udevadm" },
+      { title: "Wiki — udev", url: "https://wiki.debian.org/udev" },
+      { title: "PredictableNetworkInterfaceNames", url: "https://wiki.debian.org/NetworkConfiguration" },
+    ],
+  },
+  {
+    id: "tempo-ntp",
+    title: "Relógio e tempo — timedatectl, NTP e fuso",
+    icon: "⏰",
+    category: "Sistema",
+    description:
+      "Ajuste fuso horário e sincronização de relógio no Debian com timedatectl e o stack NTP moderno — logs e certificados dependem disso.",
+    objectives: [
+      "Ver hora, UTC e fuso com timedatectl",
+      "Definir timezone corretamente",
+      "Entender RTC vs relógio do sistema",
+      "Verificar se NTP está ativo",
+      "Relacionar tempo errado com TLS e logs",
+      "Evitar ‘date -s’ crônico em servidor com NTP",
+    ],
+    content: [
+      "Servidor com relógio errado é novela: certificados TLS ‘ainda não válidos’, logs impossíveis de correlacionar, cron no horário torto, Kerberos/auth quebrado. No Debian com systemd, a porta de entrada é **timedatectl**: mostra hora local, UTC, timezone, se o NTP está ativo e se o RTC está em UTC (comum em Linux).",
+
+      "**Timezone** é política (`America/Fortaleza`, `America/Sao_Paulo`…), não só ‘atrasar três horas na mão’. **NTP** (via systemd-timesyncd ou chrony/ntpsec) puxa tempo de fontes confiáveis. **RTC** é o relógio de hardware; em dual-boot com Windows a confusão UTC vs local é clássica.",
+
+      "Jargões. **skew** é o desvio. **stratum** é a distância da fonte de tempo. **timesyncd** é o cliente leve default em muitas instalações. **chrony** é alternativa robusta comum em servidores. `date` ainda existe, mas em host com NTP você não fica setando hora manual todo dia.",
+
+      "Fluxo: timedatectl → set-timezone → timedatectl set-ntp true → status. Se o erro for enorme, às vezes precisa corrigir manual uma vez e deixar o NTP fino. Firewall liberando UDP/123 ou os backends do timesyncd importa em redes travadas.",
+
+      "Quando NÃO: desligar NTP ‘para teste’ em produção e esquecer; forçar RTC local em servidor só Linux sem motivo. Quando SIM: first boot de VPS, VM clonada com relógio velho, indústrias com chrony dedicado.",
+
+      "Ao terminar você lê timedatectl, muda timezone em lab se preciso, confirma NTP yes, e explica por que TLS chora com relógio atrasado um ano.",
+
+    ],
+    commands: [
+      {
+        command: "timedatectl",
+        description:
+          "Painel completo: hora local, UTC, timezone, NTP, RTC.",
+        example: "timedatectl",
+        output: "               Local time: Thu 2026-08-06 12:00:00 -03\n           Universal time: Thu 2026-08-06 15:00:00 UTC\n                 RTC time: Thu 2026-08-06 15:00:00\n                Time zone: America/Fortaleza (-03, -0300)\nSystem clock synchronized: yes\n              NTP service: active",
+      },
+      {
+        command: "timedatectl list-timezones | grep -i america/ | head",
+        description:
+          "Fusos disponíveis (use o da IANA, não invente abreviação).",
+        example: "timedatectl list-timezones | grep -i Fortaleza",
+      },
+      {
+        command: "sudo timedatectl set-timezone America/Fortaleza",
+        description:
+          "Define timezone. Ajuste para o seu local real.",
+        example: "sudo timedatectl set-timezone America/Fortaleza",
+      },
+      {
+        command: "sudo timedatectl set-ntp true",
+        description:
+          "Liga sincronização NTP via o serviço configurado no systemd.",
+        example: "sudo timedatectl set-ntp true",
+      },
+      {
+        command: "systemctl status systemd-timesyncd --no-pager 2>/dev/null | head -n 20",
+        description:
+          "Em muitas imagens Debian/cloud o cliente é timesyncd. Pode ser chrony em outros setups.",
+        example: "systemctl status systemd-timesyncd --no-pager | head -n 15",
+      },
+      {
+        command: "timedatectl timesync-status 2>/dev/null || chronyc tracking 2>/dev/null || echo 'cliente NTP: verifique timesyncd ou chrony'",
+        description:
+          "Detalhe da sincronização quando a ferramenta está disponível.",
+        example: "timedatectl timesync-status 2>/dev/null || true",
+      },
+      {
+        command: "date --iso-8601=seconds; date -u --iso-8601=seconds",
+        description:
+          "Hora local e UTC em formato ordenável.",
+        example: "date --iso-8601=seconds",
+      },
+      {
+        command: "ls -l /etc/localtime /etc/timezone 2>/dev/null",
+        description:
+          "Arquivos clássicos de fuso; timedatectl os mantém coerentes.",
+        example: "ls -l /etc/localtime; cat /etc/timezone 2>/dev/null",
+      },
+      {
+        command: "man timedatectl",
+        description:
+          "Referência de set-time, set-timezone, set-ntp.",
+        example: "man timedatectl",
+      },
+      {
+        command: "man systemd-timesyncd",
+        description:
+          "Cliente NTP leve do systemd (se for o seu caso).",
+        example: "man systemd-timesyncd",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "NTP sempre on em servidor",
+        content:
+          "Logs e TLS agradecem.",
+      },
+      {
+        type: "warning",
+        title: "VM suspensa",
+        content:
+          "Relógio pula; confira sync ao voltar.",
+      },
+      {
+        type: "info",
+        title: "UTC no RTC",
+        content:
+          "Padrão saudável em Linux puro; dual-boot Windows exige cuidado.",
+      },
+      {
+        type: "danger",
+        title: "date -s crônico",
+        content:
+          "Máscara problema e briga com o NTP. Use só para corrigir desvio absurdo uma vez.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Auditoria de tempo",
+        goal: "timedatectl com timezone correto e NTP active/yes.",
+        steps: [
+          "timedatectl",
+          "Ajustar timezone se estiver Etc/UTC indesejado em desktop (servidor UTC pode ser ok)",
+          "set-ntp true",
+          "Rever timesync-status ou status do serviço",
+          "Registrar saída em ~/tempo.txt",
+        ],
+        command: "timedatectl | tee ~/tempo.txt",
+        verify:
+          "Timezone intencional; NTP service active / synchronized yes (ou chrony tracking OK).",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Comando principal systemd para tempo?",
+        answer:
+          "timedatectl.",
+      },
+      {
+        id: 2,
+        question: "Por que timezone IANA?",
+        answer:
+          "Lida com regras locais e histórico; melhor que offset manual fixo.",
+      },
+      {
+        id: 3,
+        question: "Sintoma clássico de relógio atrasado em HTTPS?",
+        answer:
+          "Certificado aparenta ‘not yet valid’ ou falhas TLS confusas.",
+      },
+      {
+        id: 4,
+        question: "Como ligar NTP via timedatectl?",
+        answer:
+          "sudo timedatectl set-ntp true",
+      },
+      {
+        id: 5,
+        question: "Diferença RTC vs system clock?",
+        answer:
+          "RTC é hardware; system clock é o relógio do SO em execução (sincronizado via NTP).",
+      },
+      {
+        id: 6,
+        question: "timesyncd vs chrony?",
+        answer:
+          "timesyncd é cliente simples; chrony é implementação NTP mais completa/comum em servidores exigentes.",
+      },
+      {
+        id: 7,
+        question: "Onde ver fuso configurado em arquivo?",
+        answer:
+          "/etc/timezone e symlink /etc/localtime (geridos pelo timedatectl/tzdata).",
+      },
+      {
+        id: 8,
+        question: "Por que não desligar NTP em produção?",
+        answer:
+          "Desvio acumula e quebra auth, logs, certificados e jobs agendados.",
+      },
+    ],
+    references: [
+      { title: "man timedatectl", url: "https://manpages.debian.org/timedatectl" },
+      { title: "man systemd-timesyncd", url: "https://manpages.debian.org/systemd-timesyncd" },
+      { title: "Wiki — DateTime", url: "https://wiki.debian.org/DateTime" },
+      { title: "tzdata", url: "https://wiki.debian.org/TimeZoneChanges" },
+    ],
+  },
 ];
