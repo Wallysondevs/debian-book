@@ -3050,4 +3050,805 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       { title: "Debian Wiki — systemd", url: "https://wiki.debian.org/systemd" },
     ],
   },
+  {
+    id: "runbook-lento",
+    title: "Runbook: sistema lento — CPU, IO, memória",
+    icon: "🐢",
+    category: "Sistema",
+    description:
+      "Diagnostique lentidão no Debian com ordem barata→cara: load, CPU, memória, IO, top ofensores e o que coletar antes de reiniciar.",
+    objectives: [
+      "Ler load average com contexto de N CPUs",
+      "Separar CPU-bound de IO-bound e memória",
+      "Usar top/htop, vmstat, iostat, free",
+      "Achar processo ofensor e cgroup/unit se houver",
+      "Coletar evidência antes de reboot salvação",
+      "Saber quando o problema é disco cheio ou thrashing",
+    ],
+    content: [
+      "'Está lento' não é diagnóstico. Runbook bom impõe ordem: o host responde a SSH? load alto? CPU em user/sys/iowait? memória em swap? disco em 100% util? Só então mate processo ou reinicie. Reiniciar primeiro apaga a cena do crime.",
+
+      "Jargões. load average: fila de runnable+uninterruptible. iowait: CPU ociosa esperando disco. thrashing: troca excessiva com swap. PSI (se disponível): pressure stall. unit: systemd pode mostrar quem cospe recurso.",
+
+      "Ordem prática: uptime → nproc → top/ps → free -h → vmstat 1 5 → iostat -xz 1 5 (sysstat) → df -h → journalctl -p err → se container, podman stats. Anote PIDs, unit, hora. Só então systemctl restart do ofensor.",
+
+      "Armadilhas. Comparar load 8 em máquina de 16 threads com load 8 em 1 vCPU. Olhar só CPU e ignorar disco 100%. Matar processo de banco no meio de checkpoint. Achar que htop colorido substitui coleta para o ticket.",
+
+      "Quando NÃO: incidente de segurança ativo onde preservar memória manda mais (forense). Quando SIM: degradação de app, VPS pesada, pós-deploy suspeito.",
+
+      "Ao terminar você segue um checklist de 10 minutos e sai com hipótese (CPU/IO/mem/disk) + evidência colada.",
+
+    ],
+    commands: [
+      {
+        command: "uptime; nproc",
+        description:
+          "Load vs quantidade de CPUs.",
+        example: "uptime; nproc",
+      },
+      {
+        command: "free -h",
+        description:
+          "RAM e swap.",
+        example: "free -h",
+      },
+      {
+        command: "ps aux --sort=-%cpu | head -n 15",
+        description:
+          "Top CPU.",
+        example: "ps aux --sort=-%cpu | head -n 15",
+      },
+      {
+        command: "ps aux --sort=-%mem | head -n 15",
+        description:
+          "Top memória.",
+        example: "ps aux --sort=-%mem | head -n 15",
+      },
+      {
+        command: "vmstat 1 5",
+        description:
+          "CPU runqueue, swap, io.",
+        example: "vmstat 1 5",
+      },
+      {
+        command: "sudo apt install -y sysstat && iostat -xz 1 3",
+        description:
+          "Utilização e await de disco.",
+        example: "sudo apt install -y sysstat && iostat -xz 1 3",
+      },
+      {
+        command: "df -h; df -i",
+        description:
+          "Espaço e inodes.",
+        example: "df -h; df -i",
+      },
+      {
+        command: "systemctl --failed --no-pager",
+        description:
+          "Units quebradas somando caos.",
+        example: "systemctl --failed --no-pager",
+      },
+      {
+        command: "pidstat -ur 1 3 2>/dev/null || true",
+        description:
+          "CPU/mem por PID se sysstat completo.",
+        example: "pidstat -ur 1 3 2>/dev/null || true",
+      },
+      {
+        command: "sudo journalctl -p err..alert --since '1 hour ago' --no-pager | tail -n 40",
+        description:
+          "Erros recentes.",
+        example: "sudo journalctl -p err..alert --since '1 hour ago' --no-pager | tail -n 40",
+      },
+      {
+        command: "cat /proc/pressure/cpu 2>/dev/null || true",
+        description:
+          "PSI de CPU se o kernel expõe.",
+        example: "cat /proc/pressure/cpu 2>/dev/null || true",
+      },
+      {
+        command: "sudo systemd-cgtop -n 1 2>/dev/null | head -n 20 || true",
+        description:
+          "Quem no cgroup come recurso.",
+        example: "sudo systemd-cgtop -n 1 2>/dev/null | head -n 20 || true",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Evidência antes de reboot",
+        content:
+          "uptime, free, top, iostat no ticket.",
+      },
+      {
+        type: "warning",
+        title: "iowait alto",
+        content:
+          "Não é falta de CPU — olhe disco/rede storage.",
+      },
+      {
+        type: "info",
+        title: "load e nproc",
+        content:
+          "load 4 em 4 CPUs não é load 4 em 1 CPU.",
+      },
+      {
+        type: "danger",
+        title: "kill -9 no banco",
+        content:
+          "Último recurso; prefira stop graceful.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Snapshot de lentidão (leitura)",
+        goal: "Gerar ~/slow-snap.txt com uptime, free, top cpu, df.",
+        steps: [
+          "uptime; nproc",
+          "free -h",
+          "ps sort cpu",
+          "df -h",
+        ],
+        command: "{ echo '=== uptime ==='; uptime; echo; echo '=== free ==='; free -h; echo; echo '=== top cpu ==='; ps aux --sort=-%cpu | head -n 10; echo; echo '=== df ==='; df -h; } | tee ~/slow-snap.txt",
+        verify:
+          "Arquivo com quatro blocos para anexar em chamado.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "load 1.0 em host de 1 CPU significa o quê em geral?",
+        answer:
+          "Fila próxima da saturação de 1 runnable em média — host ocupado.",
+      },
+      {
+        id: 2,
+        question: "iowait alto aponta para?",
+        answer:
+          "Espera de I/O (disco/storage), não falta crônica de ALU.",
+      },
+      {
+        id: 3,
+        question: "Por que ver swap em free -h?",
+        answer:
+          "Thrashing degrada tudo.",
+      },
+      {
+        id: 4,
+        question: "Comando rápido top CPU?",
+        answer:
+          "ps aux --sort=-%cpu | head",
+      },
+      {
+        id: 5,
+        question: "df -i além de df -h?",
+        answer:
+          "Esgotamento de inodes com disco ainda com espaço.",
+      },
+      {
+        id: 6,
+        question: "Por que não reiniciar primeiro?",
+        answer:
+          "Perde evidência e pode mascarar root cause.",
+      },
+      {
+        id: 7,
+        question: "systemd-cgtop ajuda em quê?",
+        answer:
+          "Ver consumo por cgroup/unit.",
+      },
+      {
+        id: 8,
+        question: "PSI é o quê?",
+        answer:
+          "Pressure stall information — pressão de recurso no kernel moderno.",
+      },
+    ],
+    references: [
+      { title: "man uptime", url: "https://manpages.debian.org/uptime" },
+      { title: "man vmstat", url: "https://manpages.debian.org/vmstat" },
+      { title: "man iostat", url: "https://manpages.debian.org/iostat" },
+      { title: "Linux Performance (Brendan Gregg)", url: "https://www.brendangregg.com/linuxperf.html" },
+    ],
+  },
+  {
+    id: "runbook-boot",
+    title: "Runbook: não sobe / não boota — rescue e single-user",
+    icon: "🧯",
+    category: "Sistema",
+    description:
+      "Recupere Debian que não chega ao login: GRUB, rescue/single, fsck consciente, journal do boot e rollback mental sem formatar às cegas.",
+    objectives: [
+      "Descrever caminhos rescue/single-user/GRUB edit",
+      "Checar fs sujo e fsck com cuidado",
+      "Usar journalctl -b -1 quando o host ainda sobe parcialmente",
+      "Reinstalar GRUB só com hipótese",
+      "Montar root a partir de live se preciso",
+      "Não destruir LUKS/LVM no pânico",
+    ],
+    content: [
+      "Boot morto tem camadas: firmware → GRUB → initramfs → root fs → systemd → login. Seu job é achar em qual degrau parou. Mensagem GRUB? emergency mode? kernel panic? multi-user com serviço em loop?",
+
+      "Jargões. emergency/rescue.target. rd.break / init=/bin/sh (avançado). fsck. journalctl -b. chroot a partir de live USB. update-initramfs / grub-install só com alvo certo.",
+
+      "Se o sistema ainda SSH às vezes: journalctl -b -1 -p err. Se console: GRUB e edita, adicione systemd.unit=rescue.target. Disco: lsblk, mount -o remount,rw / em rescue, leia fstab. LUKS: unlock antes de fsck do logical.",
+
+      "Armadilhas. fsck em FS montado rw. grub-install no disco errado em dual disk. Resetar root password e esquecer de relock. Apagar volume LVM para limpar.",
+
+      "Quando NÃO: primeiro sintoma de lentidão (use runbook-lento). Quando SIM: kernel panic recorrente, drop to busybox, failed to mount root.",
+
+      "Ao terminar você classifica a fase do boot e lista três ações seguras antes de qualquer install destrutivo.",
+
+    ],
+    commands: [
+      {
+        command: "systemctl get-default; systemctl list-jobs 2>/dev/null | head",
+        description:
+          "Alvo padrão e jobs presos (se bootou).",
+        example: "systemctl get-default; systemctl list-jobs 2>/dev/null | head",
+      },
+      {
+        command: "journalctl -b -0 -p err..alert --no-pager | tail -n 50",
+        description:
+          "Erros do boot atual.",
+        example: "journalctl -b -0 -p err..alert --no-pager | tail -n 50",
+      },
+      {
+        command: "journalctl -b -1 -p err..alert --no-pager | tail -n 50",
+        description:
+          "Erros do boot anterior.",
+        example: "journalctl -b -1 -p err..alert --no-pager | tail -n 50",
+      },
+      {
+        command: "lsblk -f",
+        description:
+          "Fs types, UUIDs, LUKS.",
+        example: "lsblk -f",
+      },
+      {
+        command: "findmnt /",
+        description:
+          "O que está montado como root.",
+        example: "findmnt /",
+      },
+      {
+        command: "cat /etc/fstab",
+        description:
+          "Fontes de mount no boot.",
+        example: "cat /etc/fstab",
+      },
+      {
+        command: "systemctl list-units --failed --no-pager",
+        description:
+          "Units que impedem boot limpo.",
+        example: "systemctl list-units --failed --no-pager",
+      },
+      {
+        command: "sudo systemd-analyze blame 2>/dev/null | head -n 20 || true",
+        description:
+          "O que atrasou o último boot bem-sucedido.",
+        example: "sudo systemd-analyze blame 2>/dev/null | head -n 20 || true",
+      },
+      {
+        command: "man systemd-fsck",
+        description:
+          "Como fsck se encaixa no boot.",
+        example: "man systemd-fsck",
+      },
+      {
+        command: "sudo grub-probe -t device / 2>/dev/null || true",
+        description:
+          "Device do root segundo GRUB tools.",
+        example: "sudo grub-probe -t device / 2>/dev/null || true",
+      },
+      {
+        command: "cat /proc/cmdline",
+        description:
+          "Linha de comando do kernel atual.",
+        example: "cat /proc/cmdline",
+      },
+      {
+        command: "dmesg -T 2>/dev/null | tail -n 30 || true",
+        description:
+          "Mensagens recentes do kernel.",
+        example: "dmesg -T 2>/dev/null | tail -n 30 || true",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "fsck montado rw",
+        content:
+          "Desmonte ou use live rescue.",
+      },
+      {
+        type: "warning",
+        title: "Disco certo no grub-install",
+        content:
+          "NVMe vs SATA — confunda e bricke o outro OS.",
+      },
+      {
+        type: "info",
+        title: "journalctl -b -1",
+        content:
+          "Ouro quando o boot atual quase sobe.",
+      },
+      {
+        type: "success",
+        title: "Classifique a camada",
+        content:
+          "GRUB vs initramfs vs systemd mudam a ferramenta.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Pacote de evidência de boot",
+        goal: "Salvar cmdline, lsblk -f, failed units e erros do boot atual.",
+        steps: [
+          "cat /proc/cmdline",
+          "lsblk -f",
+          "systemctl --failed",
+          "journalctl -b -p err | tail",
+        ],
+        command: "{ echo '=== cmdline ==='; cat /proc/cmdline; echo; echo '=== lsblk ==='; lsblk -f; echo; echo '=== failed ==='; systemctl --failed --no-pager; } | tee ~/boot-snap.txt",
+        verify:
+          "~/boot-snap.txt pronto para colar em chamado de recovery.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Três camadas altas do boot?",
+        answer:
+          "Bootloader, initramfs/root fs, systemd/user space.",
+      },
+      {
+        id: 2,
+        question: "journalctl -b -1 mostra?",
+        answer:
+          "Log do boot anterior.",
+      },
+      {
+        id: 3,
+        question: "Risco de fsck com FS montado?",
+        answer:
+          "Corrupção adicional.",
+      },
+      {
+        id: 4,
+        question: "lsblk -f ajuda em quê no rescue?",
+        answer:
+          "UUIDs e tipos para montar certo.",
+      },
+      {
+        id: 5,
+        question: "fstab errada causa o quê?",
+        answer:
+          "emergency mode / failed mount.",
+      },
+      {
+        id: 6,
+        question: "rescue.target é o quê?",
+        answer:
+          "Modo mínimo para manutenção.",
+      },
+      {
+        id: 7,
+        question: "Por que não formatar de primeira?",
+        answer:
+          "Dado pode ser recuperável; causa pode ser config.",
+      },
+      {
+        id: 8,
+        question: "LUKS entra onde na ordem?",
+        answer:
+          "Antes de fsck/mount do filesystem interno.",
+      },
+    ],
+    references: [
+      { title: "Debian Wiki — BootProcess", url: "https://wiki.debian.org/BootProcess" },
+      { title: "man systemd-fsck", url: "https://manpages.debian.org/systemd-fsck" },
+      { title: "man journalctl", url: "https://manpages.debian.org/journalctl" },
+    ],
+  },
+  {
+    id: "runbook-rede",
+    title: "Runbook: rede morta após upgrade — checklist",
+    icon: "🔌",
+    category: "Sistema",
+    description:
+      "Volte conectividade após upgrade/troca de stack: link, IP, rota, DNS, firewall e o clássico ifupdown vs NetworkManager vs networkd.",
+    objectives: [
+      "Verificar link físico/virtual e operstate",
+      "Checar endereços e rotas default",
+      "Testar L3 (ping) separado de DNS",
+      "Inspecionar firewall e políticas",
+      "Identificar qual stack de rede manda",
+      "Recuperar SSH sem se autoexcluir",
+    ],
+    content: [
+      "Depois de full-upgrade a rede some: driver, renome de iface (ens vs eth), DNS, firewall ou stack errada. Checklist impede chutar iptables enquanto o cabo lógico cloud está down.",
+
+      "Jargões. carrier/operstate. default via. resolvectl vs /etc/resolv.conf. nft/ufw. Predictable names. netplan (se existir) vs ifupdown vs NM vs networkd — um deve mandar.",
+
+      "Ordem: ip -br link → ip -br addr → ip route → ping IP numérico → ping nome (DNS) → ss -lnt → ufw status/nft list ruleset head → networkctl/nmcli/ifquery. Cloud: security group além do host.",
+
+      "Armadilhas. Arrumar DNS quando não há rota. flush de regras com SSH na mesma sessão sem console. Assumir eth0 eterno. Dois DHCP clients brigando.",
+
+      "Quando NÃO: app lenta com rede OK (volte ao runbook-lento). Quando SIM: pós-upgrade, clone de VM, troca de netplan.",
+
+      "Ao terminar você separa cabo/IP/rota/DNS/firewall e sabe qual ferramenta da stack usar.",
+
+    ],
+    commands: [
+      {
+        command: "ip -br link; ip -br addr",
+        description:
+          "Links e IPs curtos.",
+        example: "ip -br link; ip -br addr",
+      },
+      {
+        command: "ip route; ip -6 route 2>/dev/null | head",
+        description:
+          "Rotas.",
+        example: "ip route; ip -6 route 2>/dev/null | head",
+      },
+      {
+        command: "ping -c 2 1.1.1.1 || ping -c 2 8.8.8.8",
+        description:
+          "L3 sem DNS.",
+        example: "ping -c 2 1.1.1.1 || ping -c 2 8.8.8.8",
+      },
+      {
+        command: "ping -c 2 deb.debian.org || true",
+        description:
+          "L3+DNS.",
+        example: "ping -c 2 deb.debian.org || true",
+      },
+      {
+        command: "resolvectl status 2>/dev/null | head -n 40 || cat /etc/resolv.conf",
+        description:
+          "Resolvers.",
+        example: "resolvectl status 2>/dev/null | head -n 40 || cat /etc/resolv.conf",
+      },
+      {
+        command: "networkctl status 2>/dev/null | head -n 40 || true",
+        description:
+          "systemd-networkd view.",
+        example: "networkctl status 2>/dev/null | head -n 40 || true",
+      },
+      {
+        command: "nmcli -t dev status 2>/dev/null || true",
+        description:
+          "NetworkManager devices.",
+        example: "nmcli -t dev status 2>/dev/null || true",
+      },
+      {
+        command: "sudo ufw status verbose 2>/dev/null || true",
+        description:
+          "UFW se usado.",
+        example: "sudo ufw status verbose 2>/dev/null || true",
+      },
+      {
+        command: "sudo nft list ruleset 2>/dev/null | head -n 40 || sudo iptables -L -n 2>/dev/null | head",
+        description:
+          "Firewall raw sample.",
+        example: "sudo nft list ruleset 2>/dev/null | head -n 40 || sudo iptables -L -n 2>/dev/null | head",
+      },
+      {
+        command: "ss -lntup | head -n 30",
+        description:
+          "Sockets escutando.",
+        example: "ss -lntup | head -n 30",
+      },
+      {
+        command: "journalctl -u NetworkManager -u systemd-networkd -u networking --since '2 hours ago' --no-pager 2>/dev/null | tail -n 40",
+        description:
+          "Logs de stacks comuns.",
+        example: "journalctl -u NetworkManager -u systemd-networkd -u networking --since '2 hours ago' --no-pager 2>/dev/null | tail -n 40",
+      },
+      {
+        command: "man ip-route",
+        description:
+          "Referência de rotas.",
+        example: "man ip-route",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Ping IP antes de nome",
+        content:
+          "Separa roteamento de DNS.",
+      },
+      {
+        type: "danger",
+        title: "firewall com SSH",
+        content:
+          "Tenha console cloud antes de deny all.",
+      },
+      {
+        type: "warning",
+        title: "Duas stacks",
+        content:
+          "NM + ifupdown no mesmo iface = caos.",
+      },
+      {
+        type: "info",
+        title: "Security group",
+        content:
+          "Fora do SO — checklist incompleto sem ele na cloud.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Mapa de rede em 2 minutos",
+        goal: "Salvar link, addr, route e resolvers em ~/net-snap.txt.",
+        steps: [
+          "ip -br link/addr",
+          "ip route",
+          "resolv.conf/resolvectl",
+          "ping IP",
+        ],
+        command: "{ echo '=== link ==='; ip -br link; echo; echo '=== addr ==='; ip -br addr; echo; echo '=== route ==='; ip route; echo; echo '=== dns ==='; cat /etc/resolv.conf 2>/dev/null; } | tee ~/net-snap.txt",
+        verify:
+          "Snapshot legível da camada de rede do host.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Por que ping em 1.1.1.1 antes de debian.org?",
+        answer:
+          "Isola falha de rota/IP de falha de DNS.",
+      },
+      {
+        id: 2,
+        question: "ip -br addr mostra o quê?",
+        answer:
+          "Endereços por iface em formato curto.",
+      },
+      {
+        id: 3,
+        question: "Sintoma típico de DNS quebrado com IP ok?",
+        answer:
+          "Ping IP funciona, nomes não.",
+      },
+      {
+        id: 4,
+        question: "Onde ver default gateway?",
+        answer:
+          "ip route (default via ...).",
+      },
+      {
+        id: 5,
+        question: "Risco de ufw enable remoto?",
+        answer:
+          "Cortar SSH se regra allow falta.",
+      },
+      {
+        id: 6,
+        question: "Predictable interface names?",
+        answer:
+          "ens/enp em vez de eth0 clássico.",
+      },
+      {
+        id: 7,
+        question: "networkctl vs nmcli?",
+        answer:
+          "networkd vs NetworkManager — stacks diferentes.",
+      },
+      {
+        id: 8,
+        question: "ss -lntup ajuda no runbook como?",
+        answer:
+          "Ver se o serviço escuta e em qual endereço.",
+      },
+    ],
+    references: [
+      { title: "man ip", url: "https://manpages.debian.org/ip" },
+      { title: "Debian Wiki — NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
+      { title: "systemd-networkd", url: "https://wiki.debian.org/SystemdNetworkd" },
+    ],
+  },
+  {
+    id: "obs-leve",
+    title: "Observabilidade leve — journal, logrotate, healthcheck",
+    icon: "📟",
+    category: "Sistema",
+    description:
+      "Monte observabilidade de bolso no Debian: journald com teto, logrotate, timer de healthcheck e alertas sem SIEM.",
+    objectives: [
+      "Limitar disco do journald",
+      "Entender logrotate de apps em /var/log",
+      "Criar oneshot + timer systemd de healthcheck simples",
+      "Monitorar systemctl --failed em timer",
+      "Escolher 3-5 sinais que importam num VPS",
+      "Não confundir coletar com olhar",
+    ],
+    content: [
+      "Observabilidade leve é sinais poucos e rituais. journald + logs de app + um timer que curl no health endpoint já pegam boa parte dos incidentes de VPS solo. SIEM vem depois da disciplina.",
+
+      "Jargões. SystemMaxUse no journald. logrotate. timer vs cron. healthcheck: endpoint ou comando que prova que o serviço presta. cardinality: não logar tudo.",
+
+      "Prática: journalctl --disk-usage → teto em journald.conf.d → restart systemd-journald → script health.sh com curl -f e systemctl is-active → systemd timer a cada 5 min → append em log.",
+
+      "Armadilhas. journal sem teto enchendo root. logrotate copytruncate em app que não lida bem. alert noise que treina ignorar. Healthcheck só no localhost quando o bug é o proxy.",
+
+      "Quando NÃO: compliance que exige pipeline central já no dia 1. Quando SIM: 1–N VPS, side project, baseline antes de Prometheus.",
+
+      "Ao terminar você tem teto de journal, um timer de health e sabe onde ler falha.",
+
+    ],
+    commands: [
+      {
+        command: "journalctl --disk-usage",
+        description:
+          "Quanto o journal ocupa.",
+        example: "journalctl --disk-usage",
+      },
+      {
+        command: "sudo mkdir -p /etc/systemd/journald.conf.d && printf '%s\n' '[Journal]' 'SystemMaxUse=200M' 'MaxRetentionSec=14day' | sudo tee /etc/systemd/journald.conf.d/size.conf",
+        description:
+          "Teto de disco e retenção.",
+        example: "sudo mkdir -p /etc/systemd/journald.conf.d && printf '%s\n' '[Journal]' 'SystemMaxUse=200M' 'MaxRetentionSec=14day' | sudo tee /etc/systemd/journald.conf.d/size.conf",
+      },
+      {
+        command: "sudo systemctl restart systemd-journald",
+        description:
+          "Aplica config do journal.",
+        example: "sudo systemctl restart systemd-journald",
+      },
+      {
+        command: "ls /etc/logrotate.d | head",
+        description:
+          "Regras de rotação empacotadas.",
+        example: "ls /etc/logrotate.d | head",
+      },
+      {
+        command: "sudo logrotate -d /etc/logrotate.conf 2>&1 | head -n 40",
+        description:
+          "Dry-run do logrotate.",
+        example: "sudo logrotate -d /etc/logrotate.conf 2>&1 | head -n 40",
+      },
+      {
+        command: "mkdir -p ~/bin && printf '%s\n' '#!/bin/bash' 'set -euo pipefail' 'systemctl --failed --quiet' 'echo OK $(date -Is)' > ~/bin/health-check.sh && chmod +x ~/bin/health-check.sh",
+        description:
+          "Healthcheck mínimo local.",
+        example: "mkdir -p ~/bin && printf '%s\n' '#!/bin/bash' 'set -euo pipefail' 'systemctl --failed --quiet' 'echo OK $(date -Is)' > ~/bin/health-check.sh && chmod +x ~/bin/health-check.sh",
+      },
+      {
+        command: "~/bin/health-check.sh || echo 'falhou — investigue failed units'",
+        description:
+          "Roda na mão.",
+        example: "~/bin/health-check.sh || echo 'falhou — investigue failed units'",
+      },
+      {
+        command: "mkdir -p ~/.config/systemd/user && printf '%s\n' '[Unit]' 'Description=Health check leve' '' '[Service]' 'Type=oneshot' 'ExecStart=%h/bin/health-check.sh' > ~/.config/systemd/user/health-check.service",
+        description:
+          "Unit oneshot do usuário.",
+        example: "mkdir -p ~/.config/systemd/user && printf '%s\n' '[Unit]' 'Description=Health check leve' '' '[Service]' 'Type=oneshot' 'ExecStart=%h/bin/health-check.sh' > ~/.config/systemd/user/health-check.service",
+      },
+      {
+        command: "printf '%s\n' '[Unit]' 'Description=Timer health check leve' '' '[Timer]' 'OnBootSec=2min' 'OnUnitActiveSec=5min' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > ~/.config/systemd/user/health-check.timer",
+        description:
+          "Timer a cada 5 min.",
+        example: "printf '%s\n' '[Unit]' 'Description=Timer health check leve' '' '[Timer]' 'OnBootSec=2min' 'OnUnitActiveSec=5min' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > ~/.config/systemd/user/health-check.timer",
+      },
+      {
+        command: "systemctl --user daemon-reload && systemctl --user enable --now health-check.timer && systemctl --user list-timers | head",
+        description:
+          "Ativa timer do usuário (se linger/session permitir).",
+        example: "systemctl --user daemon-reload && systemctl --user enable --now health-check.timer && systemctl --user list-timers | head",
+      },
+      {
+        command: "man logrotate",
+        description:
+          "Referência de rotação.",
+        example: "man logrotate",
+      },
+      {
+        command: "man systemd.timer",
+        description:
+          "Timers systemd.",
+        example: "man systemd.timer",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Teto no journal",
+        content:
+          "SystemMaxUse evita root 100%.",
+      },
+      {
+        type: "warning",
+        title: "Timer user vs system",
+        content:
+          "Serviços de produção: prefira unit system.",
+      },
+      {
+        type: "info",
+        title: "logrotate -d",
+        content:
+          "Dry-run antes de forçar rotate.",
+      },
+      {
+        type: "danger",
+        title: "Alert spam",
+        content:
+          "Alerta que sempre dispara treina ignorar.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Journal capped + health script",
+        goal: "Confirmar drop-in de tamanho e script health executável.",
+        steps: [
+          "criar size.conf",
+          "restart journald",
+          "script health",
+          "rodar na mão",
+        ],
+        command: "test -x ~/bin/health-check.sh && journalctl --disk-usage && ~/bin/health-check.sh",
+        verify:
+          "Script OK e disk-usage do journal visível.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "SystemMaxUse controla o quê?",
+        answer:
+          "Teto de disco do journald.",
+      },
+      {
+        id: 2,
+        question: "logrotate serve para quê?",
+        answer:
+          "Rotacionar/comprimir logs em /var/log e afins.",
+      },
+      {
+        id: 3,
+        question: "timer vs cron em uma vantagem?",
+        answer:
+          "Dependências systemd, calendários ricos, journal integração.",
+      },
+      {
+        id: 4,
+        question: "Healthcheck deve provar o quê?",
+        answer:
+          "Que o serviço presta (não só que o processo existe).",
+      },
+      {
+        id: 5,
+        question: "Risco de journal sem teto?",
+        answer:
+          "Encher a partição root.",
+      },
+      {
+        id: 6,
+        question: "systemctl --failed no health?",
+        answer:
+          "Detecta units quebradas cedo.",
+      },
+      {
+        id: 7,
+        question: "Por que poucos sinais?",
+        answer:
+          "Menos ruído, mais chance de alguém ler.",
+      },
+      {
+        id: 8,
+        question: "oneshot no service de health?",
+        answer:
+          "Roda e termina; o timer agenda de novo.",
+      },
+    ],
+    references: [
+      { title: "man journald.conf", url: "https://manpages.debian.org/journald.conf" },
+      { title: "man logrotate", url: "https://manpages.debian.org/logrotate" },
+      { title: "man systemd.timer", url: "https://manpages.debian.org/systemd.timer" },
+    ],
+  },
 ];
