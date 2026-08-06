@@ -2289,4 +2289,765 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       { title: "tzdata", url: "https://wiki.debian.org/TimeZoneChanges" },
     ],
   },
+  {
+    id: "systemd-units",
+    title: "Unit files na mão — service, install e daemon-reload",
+    icon: "⚙️",
+    category: "Sistema",
+    description:
+      "Escreva um .service de verdade no Debian: seções [Unit]/[Service]/[Install], systemctl enable/start e o ritual do daemon-reload — sem copiar unit mágica da internet sem ler.",
+    objectives: [
+      "Ler uma unit .service campo a campo",
+      "Distinguir /etc/systemd/system de /lib/systemd/system",
+      "Criar um serviço simples Type=simple ou oneshot",
+      "Usar systemctl daemon-reload após editar",
+      "enable/disable vs start/stop",
+      "Inspecionar status e journal da unit",
+    ],
+    content: [
+      "O systemd não ‘adivinha’ o que rodar: ele lê **unit files**. Um `.service` descreve um processo de longa duração ou uma tarefa oneshot. Pacotes instalam units em `/lib/systemd/system/` (ou `/usr/lib/...`); o administrador customiza em `/etc/systemd/system/`, que tem precedência. Editar o arquivo do pacote direto é o jeito de perder a mudança no próximo upgrade.",
+
+      "Três seções mínimas. **[Unit]** — Description e dependências leves (After=, Wants=). **[Service]** — como rodar: `ExecStart=`, `User=`, `Restart=`, `WorkingDirectory=`, `Type=`. **[Install]** — `WantedBy=multi-user.target` para o enable criar o symlink no boot. Sem [Install], `enable` reclama ou não faz o que você espera.",
+
+      "Jargões. **Type=simple** (default moderno): o processo principal é o ExecStart. **Type=forking**: daemon clássico que dá fork (precisa PIDFile muitas vezes). **Type=oneshot**: roda e termina (RemainAfterExit=yes comum). **daemon-reload**: relê units do disco — obrigatório depois de criar/editar arquivos. **mask** é disable com cadeado (symlink para /dev/null).",
+
+      "Fluxo saudável: escrever `/etc/systemd/system/meuapp.service` → `daemon-reload` → `start` → `status` → `journalctl -u` → se ok `enable`. Teste falha de propósito (caminho ExecStart errado) para ver o status vermelho. Não rode serviços de lab como root se puder ser User= nobody ou um user dedicado.",
+
+      "Quando NÃO: encapsular curl|bash em ExecStart sem log; Restart=always em processo que crasha em loop comendo CPU; copiar unit de blog sem Type adequado. Quando SIM: app interno, agente de backup, worker Python/Node da empresa.",
+
+      "Ao terminar você cria um service de lab que escreve num arquivo ou serve um sleep, habilita, vê status active, e desfaz sem deixar sujeira — entendendo reload vs restart.",
+
+    ],
+    commands: [
+      {
+        command: "systemctl cat cron.service 2>/dev/null || systemctl cat cron.service",
+        description:
+          "Mostra a unit efetiva (com drop-ins). Ótimo modelo de leitura.",
+        example: "systemctl cat ssh.service | sed -n '1,40p'",
+      },
+      {
+        command: "ls /lib/systemd/system/*.service 2>/dev/null | wc -l; ls /etc/systemd/system/*.service 2>/dev/null | head",
+        description:
+          "Pacotes vs overrides locais.",
+        example: "ls /etc/systemd/system/*.service 2>/dev/null | head",
+      },
+      {
+        command: "man systemd.service",
+        description:
+          "Referência de Type, ExecStart, Restart, etc.",
+        example: "man systemd.service",
+      },
+      {
+        command: "sudo tee /etc/systemd/system/lab-hello.service >/dev/null <<'EOF'\n[Unit]\nDescription=Lab hello oneshot do debian-book\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'echo hello-from-systemd $(date -Is) >> /tmp/lab-hello.log'\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target\nEOF",
+        description:
+          "Cria service oneshot de laboratório que anexa uma linha em /tmp/lab-hello.log.",
+        example: "cat /etc/systemd/system/lab-hello.service",
+      },
+      {
+        command: "sudo systemctl daemon-reload",
+        description:
+          "Relê units do disco. Sem isso o systemd pode não ver o arquivo novo/editado.",
+        example: "sudo systemctl daemon-reload",
+      },
+      {
+        command: "sudo systemctl start lab-hello.service && systemctl status lab-hello.service --no-pager",
+        description:
+          "Sobe a unit e mostra estado.",
+        example: "sudo systemctl start lab-hello.service; systemctl status lab-hello.service --no-pager",
+      },
+      {
+        command: "cat /tmp/lab-hello.log 2>/dev/null; journalctl -u lab-hello.service -n 20 --no-pager",
+        description:
+          "Efeito colateral + logs da unit.",
+        example: "journalctl -u lab-hello.service -n 20 --no-pager",
+      },
+      {
+        command: "sudo systemctl enable lab-hello.service",
+        description:
+          "Cria symlink para começar no boot (WantedBy). enable ≠ start.",
+        example: "systemctl is-enabled lab-hello.service",
+      },
+      {
+        command: "systemctl show lab-hello.service -p Type -p ExecStart -p FragmentPath --no-pager",
+        description:
+          "Propriedades resolvidas da unit.",
+        example: "systemctl show lab-hello.service -p Type -p ExecStart -p FragmentPath",
+      },
+      {
+        command: "sudo systemctl disable --now lab-hello.service; sudo rm -f /etc/systemd/system/lab-hello.service; sudo systemctl daemon-reload",
+        description:
+          "Limpeza do lab: para, desabilita, remove arquivo, reload.",
+        example: "systemctl status lab-hello.service --no-pager || true",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "/etc para admin, /lib para pacote",
+        content:
+          "Override com drop-in .d/ quando só precisa mudar uma linha.",
+      },
+      {
+        type: "warning",
+        title: "Esqueceu daemon-reload",
+        content:
+          "Sintoma clássico: editou e ‘nada mudou’.",
+      },
+      {
+        type: "info",
+        title: "enable vs start",
+        content:
+          "enable = boot; start = agora. enable --now faz os dois.",
+      },
+      {
+        type: "danger",
+        title: "Restart=always em crash loop",
+        content:
+          "Arruma o app ou rate-limit; não mascara bug com restart infinito.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Service oneshot de lab",
+        goal: "Unit active (se RemainAfterExit), linha no log, depois limpeza.",
+        steps: [
+          "Criar lab-hello.service em /etc/systemd/system",
+          "daemon-reload && start && status",
+          "Ver /tmp/lab-hello.log e journalctl -u",
+          "enable e is-enabled",
+          "disable --now e remover arquivo + daemon-reload",
+        ],
+        command: "systemctl cat lab-hello.service 2>/dev/null || echo 'crie a unit do capitulo'; ls -la /tmp/lab-hello.log 2>/dev/null || true",
+        verify:
+          "Após start, o log tem timestamp; após limpeza, systemctl cat não acha a unit.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Onde o admin deve colocar units custom?",
+        answer:
+          "/etc/systemd/system/ (não editar direto as do pacote em /lib).",
+      },
+      {
+        id: 2,
+        question: "Para que serve daemon-reload?",
+        answer:
+          "Fazer o systemd reler unit files do disco após criar/editar/remover.",
+      },
+      {
+        id: 3,
+        question: "Diferença enable e start?",
+        answer:
+          "enable liga no boot (symlinks WantedBy); start executa agora.",
+      },
+      {
+        id: 4,
+        question: "O que vai em [Install]?",
+        answer:
+          "Querias de instalação, tipicamente WantedBy=multi-user.target.",
+      },
+      {
+        id: 5,
+        question: "Type=oneshot serve para quê?",
+        answer:
+          "Tarefas que rodam e terminam, não demônios longos.",
+      },
+      {
+        id: 6,
+        question: "Como ver a unit efetiva?",
+        answer:
+          "systemctl cat nome.service",
+      },
+      {
+        id: 7,
+        question: "Como ver logs só daquele serviço?",
+        answer:
+          "journalctl -u nome.service",
+      },
+      {
+        id: 8,
+        question: "O que é mask?",
+        answer:
+          "Desabilitar de forma forte apontando a unit para /dev/null, impedindo start.",
+      },
+    ],
+    references: [
+      { title: "man systemd.service", url: "https://manpages.debian.org/systemd.service" },
+      { title: "man systemctl", url: "https://manpages.debian.org/systemctl" },
+      { title: "man systemd.unit", url: "https://manpages.debian.org/systemd.unit" },
+      { title: "Debian Wiki — systemd", url: "https://wiki.debian.org/systemd" },
+    ],
+  },
+  {
+    id: "systemd-timers-sockets",
+    title: "Timers e sockets systemd — além do cron introdutório",
+    icon: "⏱️",
+    category: "Sistema",
+    description:
+      "Agende com .timer e ative sob demanda com .socket no Debian: OnCalendar, Persistent=, socket activation e o casamento unit+timer.",
+    objectives: [
+      "Relacionar .timer com a .service que ela dispara",
+      "Ler OnCalendar= e listar timers com systemctl list-timers",
+      "Criar um timer de lab com Persistent=",
+      "Entender socket activation em alto nível",
+      "Comparar timer vs cron sem religião",
+      "Depurar timer que ‘não rodou’",
+    ],
+    content: [
+      "Cron continua válido; **systemd timers** entram quando você quer a mesma linguagem do resto do sistema: dependências, journal unificado, `systemctl status`, calendários legíveis e `Persistent=` (roda no boot se perdeu a janela). Um timer não substitui a service: o **.timer** só dispara a **.service** homônima (ou a que Unit= indicar).",
+
+      "Exemplo mental: `backup.service` faz o trabalho; `backup.timer` diz ‘todo dia 03:15’. Você dá enable/start no **timer**, não só na service. `systemctl list-timers` mostra próxima e última execução — o ‘crontab -l’ do mundo systemd.",
+
+      "**Sockets**: a ideia é não deixar o demônio escutando o tempo todo. O systemd ouve a porta/arquivo socket e só inicia o serviço no primeiro interesse (ativação). SSH e vários serviços podem usar isso; para o admin, o ganho é boot mais enxuto e reinício sob demanda. Arquivos `.socket` + `.service` combinados.",
+
+      "Jargões. **OnCalendar=** sintaxe de calendário (monto-se com `systemd-analyze calendar`). **OnBootSec=** atraso após boot. **Persistent=yes** recupera execuções perdidas. **AccuracySec=** janela de coalescing. **ListenStream=** no socket unit para TCP.",
+
+      "Debug: `systemctl status foo.timer foo.service`, `journalctl -u foo.service`, `systemd-analyze calendar '*-*-* 03:15:00'`. Timer enabled mas service broken = ‘não rodou’ na prática. Em VPS compartilhada, timers de lab em user systemd (`--user`) evitam poluir o system — se disponível.",
+
+      "Ao terminar você lista timers, cria par service+timer de lab que escreve num log, confere list-timers, e remove o par limpo. Socket fica no nível conceitual + leitura de um socket real do sistema.",
+
+    ],
+    commands: [
+      {
+        command: "systemctl list-timers --all --no-pager | head -n 25",
+        description:
+          "Próximas e últimas execuções dos timers do sistema.",
+        example: "systemctl list-timers --all --no-pager | head -n 25",
+      },
+      {
+        command: "systemctl list-sockets --no-pager | head -n 20",
+        description:
+          "Sockets que o systemd está ouvindo e units associadas.",
+        example: "systemctl list-sockets --no-pager | head -n 20",
+      },
+      {
+        command: "systemd-analyze calendar '*-*-* 03:15:00'",
+        description:
+          "Valida e materializa a expressão OnCalendar.",
+        example: "systemd-analyze calendar 'Mon *-*-* 08:00:00'",
+      },
+      {
+        command: "systemctl cat apt-daily.timer 2>/dev/null | sed -n '1,35p' || systemctl cat logrotate.timer 2>/dev/null | sed -n '1,35p'",
+        description:
+          "Timer real do Debian para usar de modelo.",
+        example: "systemctl cat apt-daily.timer | sed -n '1,40p'",
+      },
+      {
+        command: "sudo tee /etc/systemd/system/lab-tick.service >/dev/null <<'EOF'\n[Unit]\nDescription=Lab tick service\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'echo tick $(date -Is) >> /tmp/lab-tick.log'\nEOF",
+        description:
+          "Service oneshot disparada pelo timer (sem [Install] obrigatório se só o timer chama).",
+        example: "cat /etc/systemd/system/lab-tick.service",
+      },
+      {
+        command: "sudo tee /etc/systemd/system/lab-tick.timer >/dev/null <<'EOF'\n[Unit]\nDescription=Lab tick timer a cada 2 minutos\n\n[Timer]\nOnCalendar=*-*-* *:0/2:00\nPersistent=yes\nUnit=lab-tick.service\n\n[Install]\nWantedBy=timers.target\nEOF",
+        description:
+          "Timer de lab a cada 2 min (ajuste se quiser menos barulho).",
+        example: "cat /etc/systemd/system/lab-tick.timer",
+      },
+      {
+        command: "sudo systemctl daemon-reload && sudo systemctl enable --now lab-tick.timer && systemctl list-timers lab-tick.timer --no-pager",
+        description:
+          "Ativa o timer e mostra a próxima corrida.",
+        example: "systemctl list-timers lab-tick.timer --no-pager",
+      },
+      {
+        command: "sudo systemctl start lab-tick.service && cat /tmp/lab-tick.log 2>/dev/null | tail",
+        description:
+          "Disparo manual da service para não esperar o calendário.",
+        example: "sudo systemctl start lab-tick.service; tail /tmp/lab-tick.log",
+      },
+      {
+        command: "journalctl -u lab-tick.service -n 10 --no-pager",
+        description:
+          "Logs das execuções.",
+        example: "journalctl -u lab-tick.service -n 10 --no-pager",
+      },
+      {
+        command: "sudo systemctl disable --now lab-tick.timer; sudo rm -f /etc/systemd/system/lab-tick.{service,timer}; sudo systemctl daemon-reload",
+        description:
+          "Limpeza completa do lab.",
+        example: "systemctl list-timers lab-tick.timer --no-pager || true",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "Timer dispara service",
+        content:
+          "Sempre pense no par; status nos dois nomes.",
+      },
+      {
+        type: "success",
+        title: "Persistent=yes",
+        content:
+          "Útil em notebook/VPS que fica desligada na hora do job.",
+      },
+      {
+        type: "warning",
+        title: "OnCalendar errado",
+        content:
+          "Use systemd-analyze calendar antes de confiar.",
+      },
+      {
+        type: "info",
+        title: "cron vs timer",
+        content:
+          "cron é ubíquo e simples; timer integra journal/deps. Os dois podem coexistir.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Timer lab-tick",
+        goal: "Timer enabled, start manual grava log, list-timers enxerga a unit, limpeza final.",
+        steps: [
+          "Criar lab-tick.service e .timer",
+          "daemon-reload && enable --now timer",
+          "start na service e ler /tmp/lab-tick.log",
+          "list-timers",
+          "disable --now e apagar arquivos",
+        ],
+        command: "systemctl list-timers lab-tick.timer --no-pager 2>/dev/null || echo 'timer lab nao ativo (ok se ja limpou)'",
+        verify:
+          "Log com ticks; apos limpeza o timer some de list-timers.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Quem executa o trabalho: .timer ou .service?",
+        answer:
+          "A .service executa; a .timer só agenda o disparo.",
+      },
+      {
+        id: 2,
+        question: "Comando para listar timers?",
+        answer:
+          "systemctl list-timers",
+      },
+      {
+        id: 3,
+        question: "Para que Persistent= no timer?",
+        answer:
+          "Executar jobs perdidos quando a máquina estava desligada (conforme regras).",
+      },
+      {
+        id: 4,
+        question: "Como validar expressão OnCalendar?",
+        answer:
+          "systemd-analyze calendar 'expressão'",
+      },
+      {
+        id: 5,
+        question: "O que é socket activation?",
+        answer:
+          "systemd escuta o socket e inicia o serviço sob demanda.",
+      },
+      {
+        id: 6,
+        question: "WantedBy típico de timer?",
+        answer:
+          "timers.target",
+      },
+      {
+        id: 7,
+        question: "Como ver logs do job?",
+        answer:
+          "journalctl -u nome.service",
+      },
+      {
+        id: 8,
+        question: "Timer enable sem daemon-reload após criar arquivo?",
+        answer:
+          "Pode falhar ou usar definição velha; sempre daemon-reload.",
+      },
+    ],
+    references: [
+      { title: "man systemd.timer", url: "https://manpages.debian.org/systemd.timer" },
+      { title: "man systemd.socket", url: "https://manpages.debian.org/systemd.socket" },
+      { title: "man systemd.time", url: "https://manpages.debian.org/systemd.time" },
+      { title: "systemd timers (freedesktop)", url: "https://www.freedesktop.org/software/systemd/man/systemd.timer.html" },
+    ],
+  },
+  {
+    id: "systemd-targets",
+    title: "Targets, dependências e order — o mapa do boot no systemd",
+    icon: "🎯",
+    category: "Sistema",
+    description:
+      "Entenda targets como ‘runlevels modernos’: multi-user, graphical, rescue, isolate, After=/Wants=/Requires= — para debugar boot e ordenar serviços sem chute.",
+    objectives: [
+      "Explicar target como grupo de units",
+      "Ver default target e o que está active",
+      "Usar isolate com respeito (rescue/emergency)",
+      "Ler After=, Wants=, Requires= sem confundir",
+      "Inspecionar dependências com systemctl list-dependencies",
+      "Relacionar target com problemas de fstab/getty/rede",
+    ],
+    content: [
+      "No sysv havia runlevels numéricos; no systemd há **targets**: pontos de sincronização com nomes (`multi-user.target`, `graphical.target`, `network-online.target`). O boot ‘chega’ num target padrão (`systemctl get-default`). Serviços se encaixam com WantedBy= nesse alvo. Pensar em targets evita a ideia errada de que tudo começa num grande script serial único.",
+
+      "**multi-user** ≈ servidor em texto com rede e serviços. **graphical** puxa multi-user + pilha gráfica. **rescue** e **emergency** são modos mínimos para consertar (senha root, fstab). `isolate` muda o alvo atual — poderoso e perigoso em produção (pode derrubar sessão gráfica/SSH se mal usado).",
+
+      "Dependências: **After=** só ordena (A depois de B, mas não exige B). **Requires=** se B falha, A pode cair. **Wants=** desejo fraco (mais comum). **BindsTo=** laço mais forte. A maior parte das units de app quer `After=network.target` ou, se realmente precisa de rede configurada, `network-online.target` (com o serviço wait-online habilitado — trade-off de boot mais lento).",
+
+      "Debug de boot lento: `systemd-analyze blame` e `critical-chain`. Debug de ‘não subiu’: list-dependencies do default target, status de units failed (`systemctl --failed`). fstab com disco ausente sem nofail trava o caminho até multi-user — ponte com o capítulo fstab-uuid.",
+
+      "Quando NÃO: isolate graphical em servidor headless por curiosidade via SSH sem console; Requires= em tudo ‘para garantir’ criando fragilidade em cascata. Quando SIM: entender por que seu serviço enable não sobe até X, ou por que o boot espera 90s num mount.",
+
+      "Ao terminar você sabe o default target, lista dependências, lê blame head, e explica After vs Wants em uma frase cada.",
+
+    ],
+    commands: [
+      {
+        command: "systemctl get-default",
+        description:
+          "Target padrão do sistema.",
+        example: "systemctl get-default",
+        output: "multi-user.target",
+      },
+      {
+        command: "systemctl list-units --type=target --no-pager | head -n 30",
+        description:
+          "Targets carregados/ativos no momento.",
+        example: "systemctl list-units --type=target --no-pager | head -n 30",
+      },
+      {
+        command: "systemctl list-dependencies multi-user.target --no-pager | head -n 40",
+        description:
+          "Árvore do que multi-user quer puxar.",
+        example: "systemctl list-dependencies multi-user.target --no-pager | head -n 40",
+      },
+      {
+        command: "systemctl --failed --no-pager",
+        description:
+          "Units que falharam — primeiro painel pós-boot ruim.",
+        example: "systemctl --failed --no-pager",
+      },
+      {
+        command: "systemd-analyze",
+        description:
+          "Tempo total de firmware/loader/kernel/userspace quando disponível.",
+        example: "systemd-analyze",
+      },
+      {
+        command: "systemd-analyze blame | head -n 20",
+        description:
+          "O que mais demorou a ficar ready no boot atual.",
+        example: "systemd-analyze blame | head -n 20",
+      },
+      {
+        command: "systemd-analyze critical-chain --no-pager | head -n 30",
+        description:
+          "Cadeia crítica até o default target.",
+        example: "systemd-analyze critical-chain --no-pager | head -n 30",
+      },
+      {
+        command: "systemctl show ssh.service -p After -p Wants -p Requires --no-pager 2>/dev/null || systemctl show cron.service -p After -p Wants -p Requires --no-pager",
+        description:
+          "Dependências reais de um serviço instalado.",
+        example: "systemctl show cron.service -p After -p Wants -p Requires",
+      },
+      {
+        command: "man systemd.special",
+        description:
+          "Documenta multi-user, graphical, network-online, etc.",
+        example: "man systemd.special",
+      },
+      {
+        command: "man systemd.unit",
+        description:
+          "Semântica de After/Wants/Requires/BindsTo/Conflicts.",
+        example: "man systemd.unit",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "After ≠ Requires",
+        content:
+          "Ordenar não é exigir.",
+      },
+      {
+        type: "warning",
+        title: "isolate em produção",
+        content:
+          "Pode derrubar serviços e sessões; prefira console e janela.",
+      },
+      {
+        type: "success",
+        title: "--failed primeiro",
+        content:
+          "Antes de reinstalar o mundo, veja o que vermelho.",
+      },
+      {
+        type: "warning",
+        title: "network-online em tudo",
+        content:
+          "Boot mais lento; use só quem realmente precisa de rede completa.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Raio-X do target padrão",
+        goal: "Arquivo com default, failed, blame head e trecho de dependencies.",
+        steps: [
+          "get-default",
+          "systemctl --failed",
+          "analyze blame | head",
+          "list-dependencies multi-user | head",
+          "tee ~/targets-lab.txt",
+        ],
+        command: "{ echo '=== default ==='; systemctl get-default; echo; echo '=== failed ==='; systemctl --failed --no-pager; echo; echo '=== blame ==='; systemd-analyze blame 2>/dev/null | head -n 15; } | tee ~/targets-lab.txt",
+        verify:
+          "Você nomeia o default target e aponta o serviço mais lento do blame (se houver).",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é um target?",
+        answer:
+          "Unit de sincronização que agrupa/alcança um estado do sistema (substituto conceitual de runlevels).",
+      },
+      {
+        id: 2,
+        question: "Como ver o target padrão?",
+        answer:
+          "systemctl get-default",
+      },
+      {
+        id: 3,
+        question: "After= faz o quê?",
+        answer:
+          "Define ordem (esta unit depois da outra), sem necessariamente exigir sucesso da outra.",
+      },
+      {
+        id: 4,
+        question: "Wants= vs Requires=?",
+        answer:
+          "Wants é dependência fraca; Requires é forte e propaga falha com mais rigor.",
+      },
+      {
+        id: 5,
+        question: "Para que systemctl --failed?",
+        answer:
+          "Listar units em falha no sistema.",
+      },
+      {
+        id: 6,
+        question: "systemd-analyze blame ajuda em quê?",
+        answer:
+          "Ver o que mais atrasou o boot.",
+      },
+      {
+        id: 7,
+        question: "multi-user vs graphical?",
+        answer:
+          "multi-user é multiutilizador em texto/serviços; graphical adiciona pilha de interface gráfica.",
+      },
+      {
+        id: 8,
+        question: "Risco de isolate rescue via SSH único?",
+        answer:
+          "Pode cortar a sessão e serviços necessários; tenha console alternativo.",
+      },
+    ],
+    references: [
+      { title: "man systemd.special", url: "https://manpages.debian.org/systemd.special" },
+      { title: "man systemd.unit", url: "https://manpages.debian.org/systemd.unit" },
+      { title: "man systemd-analyze", url: "https://manpages.debian.org/systemd-analyze" },
+      { title: "Bootup (freedesktop)", url: "https://www.freedesktop.org/software/systemd/man/bootup.html" },
+    ],
+  },
+  {
+    id: "journald-campo",
+    title: "journald de campo — vacuum, persistência e filtros que importam",
+    icon: "📋",
+    category: "Sistema",
+    description:
+      "Domine o journal no dia a dia: journalctl com filtros, boot atual vs anteriores, persistência em /var/log/journal e vacuum para não encher o disco.",
+    objectives: [
+      "Ler logs do boot atual e de uma unit",
+      "Filtrar por prioridade e tempo",
+      "Alternar entre boots com -b",
+      "Ver se o journal é persistente ou volátil",
+      "Aplicar vacuum por tamanho/tempo",
+      "Relacionar journal com Storage= no journald.conf",
+    ],
+    content: [
+      "O **journald** centraliza logs estruturados. Em vez de caçar em meia dúzia de arquivos primeiro, você começa com `journalctl`. Isso não elimina `/var/log/syslog` em todos os setups, mas no Debian com systemd o journal é a língua franca de serviços (`-u`), boots (`-b`) e prioridades (`-p`).",
+
+      "Persistência: se existir `/var/log/journal/` e Storage= estiver persistent/auto adequado, os logs sobrevivem ao reboot. Se só volátil em `/run/log/journal`, o histórico morre no restart — ótimo para appliances, ruim para forense. `journalctl --disk-usage` conta a conta.",
+
+      "**Vacuum** é a faxina: `--vacuum-size=200M`, `--vacuum-time=14d`. Sem isso, em host verboso o journal compete com o banco de dados por disco. Cron/timer de vacuum ou config SystemMaxUse= em `journald.conf` evitam surpresa.",
+
+      "Filtros que pagam aluguel: `-u nginx.service`, `-b -1` (boot anterior), `--since today`, `-p err..alert`, `-f` follow, `-o verbose` para campos. `_SYSTEMD_UNIT=` e outros matchers avançados existem quando a busca fica séria. `journalctl -xe` ainda é o atalho de ‘acabou de quebrar’.",
+
+      "Quando NÃO: vacuum agressivo em incidente antes de coletar evidência; redirecionar tudo para console e achar que disco infinito resolve. Quando SIM: VPS pequena, serviço ruidoso, pós-mortem de boot que falhou ontem.",
+
+      "Ao terminar você mede disk-usage, lê erros do boot, tira trecho de uma unit, e sabe se o journal é persistente — e como vacuum-size funciona.",
+
+    ],
+    commands: [
+      {
+        command: "journalctl --disk-usage",
+        description:
+          "Quanto espaço o journal ocupa agora.",
+        example: "journalctl --disk-usage",
+      },
+      {
+        command: "ls -la /var/log/journal 2>/dev/null || echo 'sem /var/log/journal (talvez volátil em /run)'",
+        description:
+          "Indício de journal persistente no disco.",
+        example: "ls -la /var/log/journal 2>/dev/null | head",
+      },
+      {
+        command: "journalctl -b -p err..alert --no-pager | tail -n 40",
+        description:
+          "Erros e acima do boot atual.",
+        example: "journalctl -b -p err..alert --no-pager | tail -n 40",
+      },
+      {
+        command: "journalctl --list-boots --no-pager | tail -n 8",
+        description:
+          "Boots indexados; use -b -1 para o anterior.",
+        example: "journalctl --list-boots --no-pager | tail -n 8",
+      },
+      {
+        command: "journalctl -u ssh.service -n 30 --no-pager 2>/dev/null || journalctl -u sshd.service -n 30 --no-pager 2>/dev/null || journalctl -u cron.service -n 20 --no-pager",
+        description:
+          "Últimas linhas de um serviço conhecido.",
+        example: "journalctl -u cron.service -n 20 --no-pager",
+      },
+      {
+        command: "journalctl --since '1 hour ago' --until now -p warning..alert --no-pager | tail -n 30",
+        description:
+          "Janela de tempo + prioridade.",
+        example: "journalctl --since today -p err --no-pager | tail -n 20",
+      },
+      {
+        command: "grep -E '^(Storage|SystemMaxUse|SystemMaxFileSize)' /etc/systemd/journald.conf /etc/systemd/journald.conf.d/* 2>/dev/null | head",
+        description:
+          "Política de armazenamento e teto de disco.",
+        example: "grep -vE '^#|^$' /etc/systemd/journald.conf | head",
+      },
+      {
+        command: "man journald.conf",
+        description:
+          "Storage=, SystemMaxUse=, Compress=, ForwardToSyslog=.",
+        example: "man journald.conf",
+      },
+      {
+        command: "sudo journalctl --vacuum-size=200M",
+        description:
+          "Exemplo de faxina por tamanho (ajuste ao host; em lab ok). Em produção combine com política.",
+        example: "journalctl --disk-usage",
+      },
+      {
+        command: "journalctl -xe --no-pager | tail -n 40",
+        description:
+          "Atalho de incidente recente com contexto.",
+        example: "journalctl -xe --no-pager | tail -n 40",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "-u + -b cobrem 80% dos casos",
+        content:
+          "Unit e boot errado são o erro humano mais comum.",
+      },
+      {
+        type: "warning",
+        title: "Vacuum no meio de incidente",
+        content:
+          "Colete primeiro, limpe depois.",
+      },
+      {
+        type: "info",
+        title: "Storage=persistent",
+        content:
+          "Crie /var/log/journal e reinicie journald ou deixe a config adequada.",
+      },
+      {
+        type: "warning",
+        title: "Disco cheio",
+        content:
+          "Journal pode parar de escrever; SystemMaxUse evita comer o root inteiro.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Auditoria rápida do journal",
+        goal: "Saber uso em disco, se há persistência, 10 erros do boot e um trecho de unit.",
+        steps: [
+          "journalctl --disk-usage",
+          "ls /var/log/journal",
+          "journalctl -b -p err | tail",
+          "journalctl -u cron -n 10",
+          "Registrar em ~/journal-lab.txt",
+        ],
+        command: "{ echo '=== usage ==='; journalctl --disk-usage; echo; echo '=== persist? ==='; ls -ld /var/log/journal 2>&1 | head; echo; echo '=== errs ==='; journalctl -b -p err --no-pager | tail -n 15; } | tee ~/journal-lab.txt",
+        verify:
+          "Você afirma se o journal sobrevive a reboot e cita um erro real (ou a ausência) do boot atual.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Como ver logs só do boot atual?",
+        answer:
+          "journalctl -b",
+      },
+      {
+        id: 2,
+        question: "Como filtrar por serviço?",
+        answer:
+          "journalctl -u nome.service",
+      },
+      {
+        id: 3,
+        question: "O que --disk-usage mostra?",
+        answer:
+          "Espaço ocupado pelo journal no disco.",
+      },
+      {
+        id: 4,
+        question: "Para que --vacuum-size?",
+        answer:
+          "Reduzir logs antigos até caber num teto de tamanho.",
+      },
+      {
+        id: 5,
+        question: "Journal volátil vs persistente?",
+        answer:
+          "Volátil em /run some no reboot; persistente em /var/log/journal guarda histórico.",
+      },
+      {
+        id: 6,
+        question: "-p err..alert faz o quê?",
+        answer:
+          "Filtra por prioridade de erro até alert.",
+      },
+      {
+        id: 7,
+        question: "Como ver o boot anterior?",
+        answer:
+          "journalctl -b -1 (ou id de --list-boots).",
+      },
+      {
+        id: 8,
+        question: "Arquivo principal de config?",
+        answer:
+          "/etc/systemd/journald.conf e drop-ins em journald.conf.d/.",
+      },
+    ],
+    references: [
+      { title: "man journalctl", url: "https://manpages.debian.org/journalctl" },
+      { title: "man journald.conf", url: "https://manpages.debian.org/journald.conf" },
+      { title: "man systemd-journald", url: "https://manpages.debian.org/systemd-journald" },
+      { title: "Debian Wiki — systemd", url: "https://wiki.debian.org/systemd" },
+    ],
+  },
 ];
