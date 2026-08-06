@@ -30,16 +30,10 @@ export const servidores: Module[] = [
       `Onde isso aparece no dia a dia? Em literalmente qualquer lugar onde existe um site. A loja online da padaria do bairro provavelmente está atrás de um Apache em alguma hospedagem compartilhada. Aplicações modernas em Node, Python ou Go costumam rodar atrás de um Nginx que faz HTTPS e proxy reverso. Quando você precisa hospedar uma landing page para um cliente, expor a documentação interna da empresa ou subir uma API, o servidor web é o primeiro tijolo. Saber configurá-lo é diferença entre depender de painel de hospedagem e ter autonomia real sobre uma VPS.`,
 
       `Ao final deste capítulo você vai conseguir levantar um servidor web do zero em um Debian limpo, decidir conscientemente entre Apache e Nginx, criar virtual hosts para múltiplos domínios e habilitar HTTPS com um certificado válido emitido pela Let's Encrypt — sem pagar nada e com renovação automática. Esse é o conjunto mínimo para colocar qualquer site no ar de um jeito profissional.`,
-      "[expansão 06/08] **HTTPS não é opcional em produção.** Depois do site em HTTP local, siga o capítulo tls-certbot (#23) ou, se já usa proxy, proxy-reverso (#24). Neste capítulo: virtual host limpo, nginx -t/apache2ctl configtest, e só então certificado.",
+      "**HTTPS não é opcional em produção.** Depois do site em HTTP local, siga o capítulo tls-certbot (#23) ou, se já usa proxy, proxy-reverso (#24). Neste capítulo: virtual host limpo, nginx -t/apache2ctl configtest, e só então certificado.",
       "Ordem mental: app responde em 127.0.0.1 → proxy/vhost → certbot/TLS → headers mínimos (HSTS só quando estável).",
     ],
     commands: [
-      {
-        command: "# EXPANSAO_0608_CMDS",
-        description:
-          "Marcador interno expansão 06/08.",
-        example: "true",
-      },
       {
         command: "curl -sI http://127.0.0.1/ 2>/dev/null | head || true",
         description:
@@ -176,7 +170,6 @@ export const servidores: Module[] = [
       },
     ],
     tips: [
-      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
       {
         type: "info",
         title: "Ver também",
@@ -622,16 +615,10 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       `Quando uma aplicação tem várias peças (banco + cache + worker + web), gerenciar com 'docker run' vira pesadelo. Aí entra o Docker Compose: um arquivo YAML descreve todos os serviços, redes e volumes; 'docker compose up -d' sobe tudo de uma vez, 'docker compose down' derruba. É a forma natural de hospedar aplicações reais e a porta de entrada para orquestradores maiores como Kubernetes mais para frente.`,
 
       `No dia a dia, Docker aparece em quase tudo: rodar PostgreSQL para testar uma migração sem instalar no host, subir um WordPress de demonstração em 30 segundos, empacotar uma API Python para rodar igualzinho em qualquer servidor, criar um ambiente de testes que sobe e desce em CI/CD. Ao final deste capítulo você vai conseguir instalar o Docker do jeito certo, rodar containers individuais, escrever um docker-compose.yml para uma aplicação multi-serviço e cuidar do disco para o servidor não entupir.`,
-      "[expansão 06/08] **Rootless e Compose:** o motor clássico docker no Debian costuma ser rootful (docker.io ou repo Docker Inc). Para menos privilégio, veja podman-debian (#35). Para stack multi-serviço, compose-pratica (#36).",
+      "**Rootless e Compose:** o motor clássico docker no Debian costuma ser rootful (docker.io ou repo Docker Inc). Para menos privilégio, veja podman-debian (#35). Para stack multi-serviço, compose-pratica (#36).",
       "Se ficar no Docker Engine: isole o que puder, não exponha o socket Docker em containers de app, e lembre: grupo docker ≈ root.",
     ],
     commands: [
-      {
-        command: "# EXPANSAO_0608_CMDS",
-        description:
-          "Marcador interno expansão 06/08.",
-        example: "true",
-      },
       {
         command: "docker info 2>/dev/null | egrep -i \"rootless|server version\" | head || echo docker indisponivel",
         description:
@@ -767,7 +754,6 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       },
     ],
     tips: [
-      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
       {
         type: "warning",
         title: "grupo docker",
@@ -970,7 +956,7 @@ docker compose ps`,
       `No dia a dia, SSH não serve só para abrir shell remoto. SCP copia arquivos ('scp arquivo.txt user@servidor:/destino/'), SFTP é como FTP mas seguro, e os túneis SSH permitem expor um serviço local de forma criptografada — útil para acessar um banco de dados que só escuta em localhost do servidor sem precisar abrir a porta no firewall. ProxyJump (-J) deixa pular por bastion: você acessa servidor interno passando por um servidor de borda em uma única linha de comando.`,
 
       `Ao final deste capítulo você vai conseguir configurar um servidor SSH endurecido em qualquer Debian, gerar par de chaves do jeito moderno, instalar a chave pública sem perder acesso, fazer cópias remotas e abrir túneis. Esse é o conjunto de habilidades que transforma "consigo ligar minha VPS" em "administro VPS com confiança e segurança".`,
-      "[expansão 06/08] **Servidor SSH no Debian:** depois de instalar `openssh-server`, a fonte da verdade é `/etc/ssh/sshd_config` + `sshd_config.d/*.conf`. Desligue senha quando a chave estiver testada (`PasswordAuthentication no`), restrinja usuários, e recarregue com `systemctl reload ssh` (nome da unit pode ser `ssh` ou `sshd`).",
+      "**Servidor SSH no Debian:** depois de instalar `openssh-server`, a fonte da verdade é `/etc/ssh/sshd_config` + `sshd_config.d/*.conf`. Desligue senha quando a chave estiver testada (`PasswordAuthentication no`), restrinja usuários, e recarregue com `systemctl reload ssh` (nome da unit pode ser `ssh` ou `sshd`).",
 
       "Una a história com o cliente: a chave pública que o capítulo `ssh-conexao` gerou entra em `~usuario/.ssh/authorized_keys` com permissões 700/600. Console cloud antes de fechar senha/porta.",
 
@@ -1060,12 +1046,6 @@ docker compose ps`,
         example: "sudo apt install -y fail2ban && sudo systemctl enable --now fail2ban",
       },
       {
-        command: "# EXPANSAO_0608_CMDS",
-        description:
-          "Marcador interno de expansão 06/08 — ignore na prática.",
-        example: "true",
-      },
-      {
         command: "sudo sshd -T 2>/dev/null | egrep 'passwordauthentication|permitrootlogin|pubkeyauthentication|port ' | head",
         description:
           "Config efetiva do daemon (não só o arquivo).",
@@ -1109,7 +1089,6 @@ docker compose ps`,
         content:
           "Um arquivo com 'Host meuservidor\\n  HostName 1.2.3.4\\n  User wallyson\\n  Port 2222\\n  IdentityFile ~/.ssh/id_ed25519' deixa você rodar só 'ssh meuservidor'. Para múltiplos servidores, é divisor de águas.",
       },
-      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador interno", },
       {
         type: "danger",
         title: "Fechar senha sem chave testada",

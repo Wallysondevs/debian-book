@@ -26,15 +26,9 @@ export const fundamentos: Module[] = [
       "Vamos falar do erro mais comum dos iniciantes: achar que Linux é uma marca, como Windows ou macOS. Não é. Linux é um kernel, e existem centenas de distribuições que o usam, cada uma com personalidade diferente. Um arquivo .deb feito para Debian não roda direto no Fedora. Um tutorial para Ubuntu pode mencionar comandos que não existem no Arch. Quando alguém pergunta \"funciona em Linux?\", a pergunta correta seria \"funciona em qual distribuição, em qual versão, com qual kernel?\". Saber isso te coloca anos à frente de quem só sabe que existe \"o tal do Linux\".",
       "No dia a dia prático, isso aparece o tempo todo. Quando você roda \"sudo apt install vim\", uma orquestra invisível entra em cena: o apt (utilitário do Debian) lê seus arquivos de configuração, conecta a um servidor de repositório, baixa o pacote .deb pré-compilado, verifica a assinatura criptográfica para garantir que ninguém adulterou, resolve as dependências (\"o vim precisa do libc, do ncurses, etc.\"), descompacta os arquivos nos lugares certos do disco e atualiza o banco de dados interno de pacotes instalados. Tudo isso só funciona porque kernel, GNU, Debian e milhares de mantenedores trabalham em conjunto. Não é mágica — é engenharia de software livre construída ao longo de décadas.",
       "Ao terminar este capítulo, você vai conseguir abrir um terminal, descobrir qual versão do kernel está rodando, qual distribuição você usa, qual a arquitetura do seu processador e quanta memória disponível. Vai também saber explicar para um amigo curioso a diferença entre Linux e GNU/Linux, e por que essa pequena distinção importa. Esse é o vocabulário de base — sem ele, qualquer tutorial mais avançado vai parecer língua estrangeira.",
-      "[expansão 06/08] **Saídas de exemplo não são as suas.** Trechos de lscpu//proc/cpuinfo neste curso são didáticos — CPU e flags mudam por máquina (VPS EPYC, laptop ARM, etc.). Rode o comando no seu host e compare o conceito, não o texto byte a byte.",
+      "**Saídas de exemplo não são as suas.** Trechos de lscpu//proc/cpuinfo neste curso são didáticos — CPU e flags mudam por máquina (VPS EPYC, laptop ARM, etc.). Rode o comando no seu host e compare o conceito, não o texto byte a byte.",
     ],
     commands: [
-      {
-        command: "# EXPANSAO_0608_CMDS",
-        description:
-          "Marcador interno expansão 06/08.",
-        example: "true",
-      },
       {
         command: "lscpu 2>/dev/null | egrep \"Model name|CPU\\(s\\)|Architecture\" || true",
         description:
@@ -147,7 +141,6 @@ export const fundamentos: Module[] = [
       },
     ],
     tips: [
-      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
       {
         type: "info",
         title: "Exemplos de output",
@@ -585,16 +578,10 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
       "Aqui mora um dos pontos mais perigosos da administração Debian. Quando você adiciona um repositório de terceiro e a chave GPG dele, está autorizando essa entidade a instalar QUALQUER pacote no seu sistema com privilégios de root. Se a Google for comprometida e seu repositório passar a distribuir pacotes maliciosos, seu apt vai aceitar tudo sem questionar — porque você confiou na chave dela. Por isso: adicione o mínimo possível de repositórios externos, prefira pacotes oficiais Debian sempre que houver, e revise periodicamente o que tem em /etc/apt/sources.list.d/. Para softwares que você usa pouco, considere alternativas como Flatpak ou AppImage, que rodam isolados.",
       "A hierarquia de prioridade do apt segue uma lógica que vale entender. Quando o mesmo pacote existe em mais de um repositório, o apt escolhe baseado em 'pin priorities' definidas em /etc/apt/preferences ou /etc/apt/preferences.d/. Para casos avançados — como rodar testing junto com stable, mantendo a maioria dos pacotes em stable — usa-se 'apt pinning': você define que stable tem prioridade 700 (alta) e testing tem prioridade 100 (baixa, só instala se você pedir explicitamente com '-t testing'). Não vamos cobrir pinning em profundidade aqui, mas saiba que existe e por que.",
       "Quando você roda 'sudo apt update', a sequência é a seguinte: para cada repositório configurado, o apt baixa o arquivo 'Release' (com checksum de tudo) e os arquivos 'Packages' (lista detalhada de cada pacote disponível). O 'Release' é assinado com GPG — se a assinatura não bate com as chaves cadastradas em /etc/apt/trusted.gpg.d/ ou referenciadas via signed-by, o apt rejeita e mostra erro. Por isso adicionar repositório sem chave é problema garantido. Os arquivos 'Packages' formam o catálogo que o apt usa para responder perguntas tipo 'qual versão do nginx está disponível?' e 'do que o nginx depende?'. Ao terminar este capítulo, você vai conseguir listar seus repositórios, identificar de qual deles veio cada pacote, habilitar backports com segurança e adicionar um repositório de terceiro do jeito certo.",
-      "[expansão 06/08] **non-free-firmware moderno:** desde Bookworm o firmware comum (Wi-Fi/NIC) vive no componente non-free-firmware, separado de non-free. Em DEB822: Components: main contrib non-free-firmware. Sem ele, muita máquina sobe sem rede wireless/firmware.",
+      "**non-free-firmware moderno:** desde Bookworm o firmware comum (Wi-Fi/NIC) vive no componente non-free-firmware, separado de non-free. Em DEB822: Components: main contrib non-free-firmware. Sem ele, muita máquina sobe sem rede wireless/firmware.",
       "Confira sources.list* após install minimal. Não é “ligar non-free inteiro” — é o componente certo para blobs de firmware.",
     ],
     commands: [
-      {
-        command: "# EXPANSAO_0608_CMDS",
-        description:
-          "Marcador interno expansão 06/08.",
-        example: "true",
-      },
       {
         command: "grep -R non-free-firmware /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head || echo nao listado",
         description:
@@ -681,7 +668,6 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
       },
     ],
     tips: [
-      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
       {
         type: "info",
         title: "Bookworm+",

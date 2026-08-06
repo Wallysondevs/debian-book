@@ -409,16 +409,10 @@ echo "Sem erros = seguro para reiniciar"`,
       `Off-site significa "outro lugar físico". Não adianta o backup estar no HD ao lado do PC se um curto-circuito torrar os dois. As opções modernas: rclone funciona como um rsync para nuvens (Google Drive, OneDrive, Dropbox, S3, Backblaze B2, MEGA — suporta dezenas), restic é como borg mas pensado direto para nuvem, borgbase é Borg gerenciado por terceiros. Para usuário doméstico, Backblaze B2 (~5 dólares por TB por mês) ou Storj/Wasabi são os mais econômicos. Para algo verdadeiramente "free", o Google Drive de 15 GB pode hospedar a sua pasta crítica criptografada. O importante é: nunca guarde a senha de backup só no computador que está sendo backupado.`,
       `Automatizar é o ponto onde backup deixa de ser projeto e vira hábito. O caminho moderno no Debian é o systemd timer (visto no capítulo de sistema): você cria um arquivo .service que descreve o comando e um .timer que descreve quando rodar (diariamente, semanalmente, no boot). O systemd cuida de não rodar duas vezes em paralelo, registra logs no journalctl e tem a flag "Persistent=true" que recupera execuções perdidas (se a máquina estava desligada na hora marcada, roda assim que ligar). Cron continua funcionando, mas o timer integra melhor com o resto do sistema. Para backups críticos, configure também notificação por e-mail ou Telegram em caso de falha — backup que falha em silêncio é como sentinela dormindo.`,
       `O capítulo mais importante é o último, e quase ninguém faz: testar a restauração. Backup que nunca foi restaurado é o que um pesquisador chamou de "Schroedinger's backup": ao mesmo tempo bom e ruim, você só descobre quando abre. Crie o hábito mensal de pegar o backup mais recente, restaurar em uma pasta temporária, abrir três ou quatro arquivos importantes (seu currículo, suas fotos, um arquivo de código), conferir se estão íntegros, e depois apagar a restauração. Cinco minutos por mês evitam o pior dia da sua vida digital. Ao terminar este capítulo você vai ter um sistema de backup pessoal funcional, automático e — mais importante — testado.`,
-      "[expansão 06/08] **3-2-1 de verdade:** 3 cópias, 2 mídias, 1 offsite. Snapshot no mesmo disco não é offsite. Ritual obrigatório: **restore testado** em /tmp/restore-lab — abrir arquivos, conferir hash, apagar. Backup sem restore é fé.",
+      "**3-2-1 de verdade:** 3 cópias, 2 mídias, 1 offsite. Snapshot no mesmo disco não é offsite. Ritual obrigatório: **restore testado** em /tmp/restore-lab — abrir arquivos, conferir hash, apagar. Backup sem restore é fé.",
       "Automatize com timer/cron só depois do restore manual funcionar uma vez. Anote RPO/RTO em uma linha no runbook.",
     ],
     commands: [
-      {
-        command: "# EXPANSAO_0608_CMDS",
-        description:
-          "Marcador interno expansão 06/08.",
-        example: "true",
-      },
       {
         command: "mkdir -p /tmp/backup-lab /tmp/restore-lab && echo ok > /tmp/backup-lab/prova.txt && tar -czf /tmp/prova.tgz -C /tmp/backup-lab . && tar -xzf /tmp/prova.tgz -C /tmp/restore-lab && cat /tmp/restore-lab/prova.txt",
         description:
@@ -559,7 +553,6 @@ snap-20240503-0300  Fri, 2024-05-03 03:00:01  [ghi...]`,
       },
     ],
     tips: [
-      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
       {
         type: "success",
         title: "Restore mensal",
