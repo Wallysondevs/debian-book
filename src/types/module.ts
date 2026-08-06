@@ -34,12 +34,18 @@ export interface Reference {
   description?: string;
 }
 
+export type ModuleLevel = "iniciante" | "intermediario" | "avancado";
+
 export interface Module {
   id: string;
   title: string;
   icon: string;
   description: string;
   category: string;
+  /** Nível pedagógico — usado no filtro I/M/A e no badge. */
+  level?: ModuleLevel;
+  /** Tempo estimado de leitura em minutos. */
+  readMinutes?: number;
   objectives?: string[];
   content: string[];
   commands: Command[];

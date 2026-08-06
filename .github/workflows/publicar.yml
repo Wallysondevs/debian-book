@@ -1,0 +1,84 @@
+# Publica o site na branch gh-pages a cada push no main.
+# Pages: Deploy from a branch gh-pages / (root).
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - ".gitignore"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    name: build e publicar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar o codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar o pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Instalar o Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Instalar as dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Checar os tipos
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Conferir o build
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          grep -q '/debian-book/assets/' dist/index.html
+          echo "arquivos em dist/assets: $(ls dist/assets | wc -l)"
+
+      - name: Ajustes do GitHub Pages
+        run: |
+          set -euo pipefail
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html
+
+      - name: Publicar na branch gh-pages
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin gh-pages > /dev/null 2>&1; then
+            git fetch --depth=1 origin gh-pages
+            git worktree add -B gh-pages ghp origin/gh-pages
+          else
+            git worktree add -B gh-pages ghp
+            find ghp -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          fi
+
+          rsync -a --delete --exclude .git dist/ ghp/
+          cd ghp
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nada mudou no site; sem commit."
+            exit 0
+          fi
+          git commit -m "gh-pages: build de ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages

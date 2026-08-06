@@ -1,5 +1,6 @@
 import { Module } from "@/types/module";
 import { PageContainer } from "./layout/PageContainer";
+import { resolveLevel, resolveReadMinutes } from "@/lib/levels";
 import { AlertBox } from "./ui/AlertBox";
 import { CodeBlock } from "./ui/CodeBlock";
 import { ParamsTable } from "./ui/ParamsTable";
@@ -51,6 +52,8 @@ export default function ModuleContent({
         category={module.category}
         index={moduleIndex}
         total={totalModules}
+        difficulty={module.level ?? resolveLevel(module)}
+        timeToRead={`${resolveReadMinutes(module)} min`}
       >
         {/* Objectives */}
         {module.objectives && module.objectives.length > 0 && (

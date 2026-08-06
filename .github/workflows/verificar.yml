@@ -1,0 +1,56 @@
+# Roda typecheck e build em PR e branches que nao sejam main.
+name: Verificar
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches-ignore: [main, gh-pages]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar o codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar o pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Instalar o Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Instalar as dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Checar os tipos
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Conferir capitulos e base
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          grep -q '/debian-book/assets/' dist/index.html
+          CAPS=$(grep -Rhc '^\s*id: "' src/data/modules --include='*.ts' | awk '{s+=$1} END {print s}')
+          echo "capitulos_id=$CAPS"
+          echo "| item | quantidade |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ids de capitulo | $CAPS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| tamanho do dist | $(du -sh dist | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
