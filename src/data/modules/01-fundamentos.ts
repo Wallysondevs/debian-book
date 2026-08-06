@@ -804,4 +804,264 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
       { title: "Debian Security Tracker", url: "https://security-tracker.debian.org/tracker/" },
     ],
   },
+  {
+    id: "ciclo-release",
+    title: "Ciclo de release do Debian — stable, testing, sid e LTS",
+    icon: "📅",
+    category: "Fundamentos Teóricos",
+    description:
+      "Entenda como o Debian lança versões, o que significa cada ramo (stable, testing, unstable/sid, oldstable e LTS) e quando faz sentido atualizar — antes de mexer em sources ou fazer upgrade.",
+    objectives: [
+      "Nomear os ramos principais do Debian e o papel de cada um",
+      "Relacionar número de versão, codinome e status (stable/oldstable/LTS)",
+      "Descobrir no próprio sistema qual release e qual suporte você tem",
+      "Explicar freeze, soft freeze e full freeze em linguagem simples",
+      "Decidir com critério se um servidor deve ficar em stable ou migrar",
+      "Saber onde consultar o calendário oficial e o fim de suporte",
+    ],
+    content: [
+      "Imagine que o Debian é uma cidade com vários bairros. Em um bairro as ruas estão pavimentadas, as placas certas e a polícia já conhece cada esquina: esse é o **stable**. Em outro bairro as obras nunca param, chegam lojas novas toda semana e de vez em quando uma rua fecha sem aviso: esse é o **unstable** (sid). Entre os dois existe um bairro-teste onde as novidades passam um tempo antes de ganhar asfalto definitivo: o **testing**. Se você não sabe em qual bairro está morando, qualquer conselho de ‘atualize tudo’ vira roleta russa.",
+
+      "O Debian não lança versão ‘quando o marketing manda’. Ele lança quando o **freeze** termina e a qualidade do stable atinge o nível que o projeto aceita. O ciclo típico gira em torno de **dois anos** entre stables. Cada stable ganha um **codinome** de personagem do Toy Story: bullseye (11), bookworm (12), trixie (13), forky (14, futuro), e por aí vai. O número (11, 12, 13) é o que scripts e documentação séria usam; o codinome é o que aparece em `/etc/os-release` e nas URLs dos mirrors.",
+
+      "**Stable** é o ramo para produção: pacotes mudam pouco, correções de segurança entram rápido via o repositório *security*, e a prioridade é não quebrar o que já funciona. Servidor de empresa, VPS de cliente, notebook de trabalho ‘não posso perder o dia’: stable. **Oldstable** é a stable anterior — ainda recebe suporte por um tempo depois que a nova stable sai. **LTS** (Long Term Support) é uma extensão comunitária de segurança para oldstable além do suporte oficial ‘regular’: útil quando você não pode migrar ainda, mas não é desculpa eterna para viver no passado.",
+
+      "**Testing** é o futuro stable em formação. Pacotes migram de unstable para testing quando passam critérios automáticos (sem bugs críticos abertos o bastante, tempo mínimo, etc.). No dia a dia testing é mais novo que stable e mais calmo que sid, mas **não** é o lugar padrão de um servidor que paga boleto. **Unstable/sid** nunca ‘congela’: é o caldeirão dos mantenedores. Ótimo para contribuir e testar; péssimo como base de produção se você não sabe recuperar o sistema de madrugada.",
+
+      "Três jargões que travam conversa se você não fixar: **freeze** é o período em que testing para de receber mudanças grandes e o projeto caça bugs para virar a próxima stable. **Soft freeze** ainda permite algumas entradas com critério; **full freeze** é quase só correção. **point release** (12.1, 12.2…) é a stable ganhando lote de atualizações já testadas — não é uma distro nova, é a mesma stable mais polida. Quando alguém diz ‘subi pro bookworm 12.5’, ainda é bookworm; só o ponto mudou.",
+
+      "Na prática você descobre o seu lugar com poucos arquivos e comandos. `/etc/os-release` e `VERSION_CODENAME` dizem o codinome. `VERSION_ID` diz o número. O arquivo de fontes (`sources.list` ou os novos `.sources` em DEB822) mostra se você aponta para `trixie`, `bookworm`, `stable` (apelido que **muda de alvo** quando sai release nova — armadilha clássica) ou para `testing`/`sid`. Preferir o **codinome fixo** nas fontes de servidores evita a surpresa de um `apt full-upgrade` querer virar o mundo no dia do lançamento.",
+
+      "Quando atualizar de uma stable para a próxima? Quando você leu as release notes, testou num clone/VM, tem backup restaurável, janela de manutenção e um motivo real (pacote crítico só na nova, hardware novo, fim de suporte). Não atualize porque um vídeo disse ‘Debian 13 chegou’. Stable antiga com security/LTS em dia muitas vezes é a escolha adulta. Migrar sem ler o `Release Notes` oficiais é o atalho mais curto para passar a madrugada no `grub` e no `dpkg --configure -a`.",
+
+      "Debian **não** é rolling release como Arch. A estabilidade vem exatamente de **não** empurrar novidade contínua no stable. Se você precisa de um pacote mais novo pontual, o caminho idiomatico costuma ser **backports** (quando existe), container, ou compilar em home — não transformar o servidor inteiro em sid. Misturar stable com testing/sid no mesmo `sources` é o jeito clássico de criar um Frankenstein que o apt resolve com conflitos belíssimos.",
+
+      "Ao terminar este capítulo você deve conseguir abrir o terminal, dizer em uma frase ‘estou no Debian N (codinome), ramo X, com suporte até…’, ler o que suas fontes APT pedem, e explicar para outra pessoa por que servidor sério mora no stable e por que sid existe mesmo assim. O próximo passo natural na trilha é o upgrade controlado entre stables (bookworm → trixie) e o formato moderno das fontes (DEB822) — mas a bússola do ciclo vem antes do mapa da viagem.",
+    ],
+    commands: [
+      {
+        command: "cat /etc/os-release",
+        description:
+          "Mostra nome, número e codinome da release instalada. É a fonte mais portátil para scripts e para copiar/colar em pedido de ajuda.",
+        example: "cat /etc/os-release",
+        output:
+          'PRETTY_NAME="Debian GNU/Linux 13 (trixie)"\nNAME="Debian GNU/Linux"\nVERSION_ID="13"\nVERSION="13 (trixie)"\nVERSION_CODENAME=trixie\nID=debian',
+      },
+      {
+        command: "lsb_release -a",
+        description:
+          "Resumo LSB da distribuição (pode exigir o pacote lsb-release). Útil quando você quer só codinome/release sem abrir arquivo.",
+        example: "lsb_release -a",
+        flags: [
+          { flag: "-a", description: "Todas as linhas (distributor, description, release, codename)" },
+          { flag: "-c", description: "Só o codinome (trixie, bookworm…)" },
+          { flag: "-r", description: "Só o número da release" },
+        ],
+        output:
+          "Distributor ID:\tDebian\nDescription:\tDebian GNU/Linux 13 (trixie)\nRelease:\t13\nCodename:\ttrixie",
+      },
+      {
+        command: "cat /etc/debian_version",
+        description:
+          "Arquivo clássico com a versão Debian (número ou codinome/sid). Em stable costuma ser só o número; em testing/sid aparece o codinome ou ‘trixie/sid’.",
+        example: "cat /etc/debian_version",
+        output: "13.0",
+      },
+      {
+        command: "hostnamectl",
+        description:
+          "Resumo systemd: SO, kernel e arquitetura juntos — bom para confirmar que o ‘sistema que você acha que é’ é o que realmente bootou.",
+        example: "hostnamectl | sed -n '1,12p'",
+        output:
+          " Operating System: Debian GNU/Linux 13 (trixie)\n          Kernel: Linux 6.12.x-amd64\n    Architecture: x86-64",
+      },
+      {
+        command: "grep -RInE '^(deb|URIs:)' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
+        description:
+          "Amostra as linhas ativas de repositório (formato clássico deb= ou DEB822 URIs:). Serve para ver se você pinou codinome (trixie) ou o apelido móvel (stable).",
+        example:
+          "grep -RInE '^(deb |URIs:)' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
+        output:
+          "/etc/apt/sources.list:1:deb http://deb.debian.org/debian trixie main contrib non-free-firmware\n/etc/apt/sources.list:2:deb http://security.debian.org/debian-security trixie-security main",
+      },
+      {
+        command: "apt-cache policy",
+        description:
+          "Sem argumentos lista os repositórios conhecidos e prioridades. Com nome de pacote mostra de qual release cada versão viria — ótimo para caçar mistureba stable/testing.",
+        example: "apt-cache policy | head -n 40",
+        output:
+          "Package files:\n 100 /var/lib/dpkg/status\n     release a=now\n 500 http://deb.debian.org/debian trixie/main amd64 Packages\n     release v=13.0,o=Debian,a=stable,n=trixie,l=Debian,c=main,b=amd64",
+      },
+      {
+        command: "apt-cache policy bash",
+        description:
+          "Exemplo prático: de onde o bash instalado e o candidato a instalar estão vindo. Se aparecer testing/sid sem você querer, suas fontes estão perigosas.",
+        example: "apt-cache policy bash",
+        output:
+          "bash:\n  Installed: 5.2.37-2\n  Candidate: 5.2.37-2\n  Version table:\n *** 5.2.37-2 500\n        500 http://deb.debian.org/debian trixie/main amd64 Packages\n        100 /var/lib/dpkg/status",
+      },
+      {
+        command: "distro-info --stable",
+        description:
+          "Se o pacote distro-info estiver instalado, imprime o codinome da stable atual do ponto de vista dos dados Debian — útil em scripts de automação.",
+        example: "distro-info --stable; distro-info --supported 2>/dev/null | head",
+        flags: [
+          { flag: "--stable", description: "Codinome da stable atual" },
+          { flag: "--oldstable", description: "Codinome da oldstable" },
+          { flag: "--supported", description: "Lista releases ainda suportadas (quando disponível)" },
+          { flag: "--all", description: "Todas as entradas conhecidas pelo distro-info" },
+        ],
+        output: "trixie",
+      },
+      {
+        command: "apt list --upgradable 2>/dev/null | head",
+        description:
+          "Mostra o que o apt já considera atualizável na release atual. Não é upgrade de release (bookworm→trixie); é manutenção dentro do ciclo.",
+        example: "apt list --upgradable 2>/dev/null | head",
+        output: "Listing...\nlinux-image-amd64/stable 6.12.x-y amd64 [upgradable from: 6.12.x-x]",
+      },
+      {
+        command: "man -P cat apt-secure | head -n 5",
+        description:
+          "Lembrete de que confiança no Debian passa por assinaturas e políticas do apt — o ciclo de release não adianta se você desliga a verificação ‘para parar o erro’.",
+        example: "man apt-secure",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "stable é um apelido móvel",
+        content:
+          "Nas fontes APT, a palavra ‘stable’ aponta sempre para a stable **da vez**. No dia em que o Debian lança a próxima, ‘stable’ muda de alvo. Em servidor, prefira o codinome (bookworm, trixie): você decide a hora de migrar, não o calendário sozinho.",
+      },
+      {
+        type: "warning",
+        title: "testing ≠ beta fofo de celular",
+        content:
+          "Testing quebra menos que sid, mas ainda pode deixar o sistema inconsistente por dias. Se a máquina precisa acordar amanhã igualzinha, fique em stable e use backports com parcimônia.",
+      },
+      {
+        type: "danger",
+        title: "Nunca misture sid no servidor ‘só um pacote’",
+        content:
+          "Uma linha deb sid main no meio do stable puxa dependências em cascata. O conserto depois custa mais que instalar o software em container ou esperar backport.",
+      },
+      {
+        type: "success",
+        title: "Roteiro mental antes de qualquer upgrade de release",
+        content:
+          "1) Backup restaurável. 2) Ler Release Notes. 3) Fontes no codinome. 4) apt update && upgrade na release atual até zerar. 5) Só então mudar codinome e full-upgrade em janela com plano B.",
+      },
+      {
+        type: "info",
+        title: "Onde olhar o fim do suporte",
+        content:
+          "O wiki Debian (DebianReleases, LTS) e debian.org/releases trazem tabelas de suporte. Não confie em print de rede social com data inventada — o calendário oficial muda e o LTS é projeto separado.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Retrato da sua release em 2 minutos",
+        goal: "Sair com um parágrafo factual: número, codinome, o que as fontes pedem e se há cheiro de testing/sid.",
+        steps: [
+          "Rode o bloco de comandos abaixo e salve a saída em ~/meu-debian-release.txt",
+          "Circule (ou anote) VERSION_CODENAME e VERSION_ID",
+          "Nas linhas de sources, marque se aparece codinome fixo ou a palavra stable/testing/sid",
+          "Rode apt-cache policy bash e confira se o Candidate vem do mesmo codinome",
+          "Escreva em uma frase: ‘Este host é Debian … (…); fontes apontam para …’",
+        ],
+        command: `{
+  echo "=== os-release ==="
+  cat /etc/os-release
+  echo
+  echo "=== debian_version ==="
+  cat /etc/debian_version 2>/dev/null || true
+  echo
+  echo "=== fontes (amostra) ==="
+  grep -RInE '^(deb |URIs:)' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 30
+  echo
+  echo "=== policy bash ==="
+  apt-cache policy bash 2>/dev/null | head -n 20
+} | tee ~/meu-debian-release.txt`,
+        expected: "Arquivo ~/meu-debian-release.txt com os-release + fontes + policy",
+        verify:
+          "Se VERSION_CODENAME e as linhas deb/URIs contam a mesma história (ex.: tudo trixie), você está coerente. Se os-release diz bookworm e aparece uma linha sid, pare e limpe fontes antes de qualquer upgrade.",
+      },
+      {
+        title: "Simule a decisão: atualizar ou não",
+        goal: "Treinar o critério de ficar ou migrar sem executar full-upgrade de verdade.",
+        steps: [
+          "Anote o codinome atual",
+          "Abra no navegador https://www.debian.org/releases/ e localize sua release",
+          "Escreva três motivos para FICAR e três para MIGRAR (mesmo que hipotéticos)",
+          "Só marque ‘migrar’ se backup + janela + release notes estiverem no plano",
+          "Não altere sources neste lab — é decisão no papel",
+        ],
+        command: `echo "Codinome atual: $(. /etc/os-release; echo $VERSION_CODENAME)"
+echo "Leia: https://www.debian.org/releases/"
+echo "Leia também: https://wiki.debian.org/DebianReleases"`,
+        verify:
+          "Você tem uma lista escrita de prós/contras. Se a única justificativa for ‘porque saiu vídeo’, a decisão correta costuma ser ficar no stable atual e aplicar só security.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Qual a diferença prática entre stable, testing e sid para quem administra um VPS de cliente?",
+        hint: "Pense em previsibilidade versus novidade.",
+        answer:
+          "Stable prioriza não quebrar e receber segurança de forma controlada — padrão para VPS de cliente. Testing é a próxima stable em construção: mais nova, menos garantia. Sid/unstable é o caldeirão de desenvolvimento, inadequado como base de produção séria.",
+      },
+      {
+        id: 2,
+        question: "Por que em servidor é mais seguro usar o codinome (trixie) do que a palavra ‘stable’ nas fontes APT?",
+        answer:
+          "Porque ‘stable’ é um apelido que muda de alvo no dia do lançamento da próxima stable. Com o codinome fixo, o host só migra quando você alterar as fontes de propósito.",
+      },
+      {
+        id: 3,
+        question: "O que é um point release (ex.: 12.5)?",
+        answer:
+          "É a mesma stable recebendo um lote acumulado de atualizações já aceitas (segurança e correções), não uma distribuição nova. O codinome continua o mesmo; só o ponto da versão muda.",
+      },
+      {
+        id: 4,
+        question: "O que significa freeze no ciclo Debian?",
+        answer:
+          "É a fase em que testing reduz drasticamente a entrada de mudanças novas para estabilizar e virar a próxima stable. Soft freeze ainda permite alguma entrada criteriosa; full freeze foca em correção de bugs.",
+      },
+      {
+        id: 5,
+        question: "Como você descobre codinome e número da release no sistema instalado?",
+        hint: "Um arquivo em /etc é suficiente.",
+        answer:
+          "cat /etc/os-release (VERSION_CODENAME e VERSION_ID). Complementos: cat /etc/debian_version, lsb_release -a, hostnamectl.",
+      },
+      {
+        id: 6,
+        question: "Qual o risco de adicionar uma linha deb sid main num host stable ‘só para um pacote’?",
+        answer:
+          "O apt pode puxar dezenas de dependências do sid, misturando ramos e deixando o sistema difícil de manter ou de reverter. O caminho seguro é backport, container, ou esperar o pacote no stable.",
+      },
+      {
+        id: 7,
+        question: "Oldstable e LTS são a mesma coisa?",
+        answer:
+          "Não. Oldstable é a stable anterior no fluxo normal de suporte. LTS é extensão comunitária de segurança depois do suporte regular — projeto relacionado, mas separado, com escopo e prazos próprios.",
+      },
+      {
+        id: 8,
+        question: "Cite a ordem sensata antes de um upgrade de uma stable para a seguinte.",
+        answer:
+          "Backup restaurável → ler Release Notes → garantir fontes coerentes e sistema atualizado na release atual → alterar codinome nas fontes → apt update → full-upgrade em janela com plano de rollback → verificar serviços.",
+      },
+    ],
+    references: [
+      { title: "Debian Releases (oficial)", url: "https://www.debian.org/releases/" },
+      { title: "Wiki — DebianReleases", url: "https://wiki.debian.org/DebianReleases" },
+      { title: "Wiki — DebianLTS", url: "https://wiki.debian.org/LTS" },
+      { title: "Release Notes (escolha a versão)", url: "https://www.debian.org/releases/stable/releasenotes" },
+      { title: "Debian Free Software Guidelines (DFSG)", url: "https://www.debian.org/social_contract#guidelines" },
+    ],
+  },
 ];
