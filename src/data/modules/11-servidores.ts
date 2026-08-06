@@ -1356,4 +1356,2010 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       { title: "CIS Debian Linux Benchmark", url: "https://www.cisecurity.org/benchmark/debian_linux" },
     ],
   },
+  {
+    id: "podman-debian",
+    title: "Podman rootless no Debian — alternativa ao Docker",
+    icon: "🦭",
+    category: "Servidores",
+    description:
+      "Suba contêineres com Podman no Debian em modo rootless: diferenças para Docker, imagens, volumes e o que não copiar cego de tutoriais moby.",
+    objectives: [
+      "Instalar Podman no Debian e checar rootless",
+      "Rodar container efêmero e um com nome",
+      "Mapear porta e volume com a sintaxe podman",
+      "Explicar diferença daemonless vs dockerd",
+      "Usar podman ps/images/logs no dia a dia",
+      "Saber limites de rootless (portas baixas, cgroup)",
+    ],
+    content: [
+      "**Podman** fala a língua de contêineres OCI sem exigir um daemon root eternamente ligado. No Debian você instala o pacote `podman` e, em muitos hosts, já roda **rootless** — contêiner no seu UID, menos superfície se a carga não precisa de privilegiado. Não é anti-Docker por religião: é outra ferramenta com trade-offs claros.",
+
+      "Jargões. **Rootless**: engine e containers sem root. **Daemonless**: cada comando podman é o processo (há socket opcional). **Image** / **container** iguais em ideia ao Docker. **quadlet**/systemd gera units a partir de arquivos — avançado, mas o destino natural em servidor Debian.",
+
+      "Fluxo: `sudo apt install podman` → `podman info` (confira rootless) → `podman run --rm -it debian:bookworm bash` → `podman run -d --name web -p 8080:80` imagem leve → `podman logs` / `podman stop`. Volumes: `-v $PWD/data:/data:Z` (note **:Z** em SELinux; em AppArmor Debian costuma ser mais simples, mas não invente :Z sem entender).",
+
+      "Armadilhas. Assumir que todo `docker-compose.yml` cola sem `podman compose`/podman-docker. Porta 80 rootless pode falhar (use 8080+ ou cap). Misturar sudo podman e podman usuário criando dois mundos de imagens. Puxar imagem latest sem tag em produção.",
+
+      "Quando NÃO: cluster k8s de verdade (use ferramenta de cluster); workload que exige kernel modules esquisitos só testados com Docker Engine vendor. Quando SIM: lab, CI local, serviços single-host, migrar hábito Docker com menos root.",
+
+      "Ao terminar você instala Podman, roda rootless, publica porta alta e não trata 'docker' e 'podman' como binários idênticos em todo detalhe.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y podman",
+        description:
+          "Engine Podman no Debian.",
+        example: "sudo apt install -y podman",
+      },
+      {
+        command: "podman version",
+        description:
+          "Cliente/API e versão.",
+        example: "podman version",
+      },
+      {
+        command: "podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null || podman info | head -n 40",
+        description:
+          "Confere modo rootless / resumo.",
+        example: "podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null || podman info | head -n 40",
+      },
+      {
+        command: "podman run --rm debian:bookworm-slim cat /etc/os-release | head",
+        description:
+          "Container efêmero com imagem Debian.",
+        example: "podman run --rm debian:bookworm-slim cat /etc/os-release | head",
+      },
+      {
+        command: "podman images",
+        description:
+          "Imagens locais.",
+        example: "podman images",
+      },
+      {
+        command: "podman ps -a",
+        description:
+          "Containers incluindo parados.",
+        example: "podman ps -a",
+      },
+      {
+        command: "podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine",
+        description:
+          "Nginx de lab em porta alta.",
+        example: "podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine",
+      },
+      {
+        command: "podman logs --tail 20 hello-pod",
+        description:
+          "Logs do container.",
+        example: "podman logs --tail 20 hello-pod",
+      },
+      {
+        command: "podman stop hello-pod && podman rm hello-pod",
+        description:
+          "Para e remove o lab.",
+        example: "podman stop hello-pod && podman rm hello-pod",
+      },
+      {
+        command: "man podman",
+        description:
+          "Manual principal.",
+        example: "man podman",
+      },
+      {
+        command: "podman volume ls; mkdir -p $HOME/podman-lab",
+        description:
+          "Prepara dir de volume bind de lab.",
+        example: "podman volume ls; mkdir -p $HOME/podman-lab",
+      },
+      {
+        command: "podman run --rm -v $HOME/podman-lab:/data:rw debian:bookworm-slim touch /data/ping.txt",
+        description:
+          "Volume bind simples (crie o dir antes).",
+        example: "podman run --rm -v $HOME/podman-lab:/data:rw debian:bookworm-slim touch /data/ping.txt",
+      },
+      {
+        command: "id; grep $USER /etc/subuid /etc/subgid 2>/dev/null | head",
+        description:
+          "Mapeamento subuid/subgid para rootless.",
+        example: "id; grep $USER /etc/subuid /etc/subgid 2>/dev/null | head",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Porta alta no rootless",
+        content:
+          "8080/8443 evitam CAP_NET_BIND_SERVICE.",
+      },
+      {
+        type: "warning",
+        title: "sudo podman vs podman",
+        content:
+          "Imagens e containers não são o mesmo armazenamento.",
+      },
+      {
+        type: "info",
+        title: "Compatibilidade",
+        content:
+          "Muitos flags batem com Docker; leia o man no divergente.",
+      },
+      {
+        type: "danger",
+        title: "--privileged",
+        content:
+          "Anula boa parte do ganho de isolamento — só com motivo.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Nginx rootless em 8080",
+        goal: "Subir nginx, curl localhost:8080, logs, remover tudo.",
+        steps: [
+          "podman run -d --name hello-pod -p 8080:80 nginx:alpine",
+          "curl -sI http://127.0.0.1:8080 | head",
+          "podman logs hello-pod | tail",
+          "podman rm -f hello-pod",
+        ],
+        command: "podman rm -f hello-pod 2>/dev/null; podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine >/dev/null && curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080 && podman rm -f hello-pod >/dev/null",
+        verify:
+          "HTTP 200 (ou 301) na resposta e container removido ao final.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Podman precisa de dockerd?",
+        answer:
+          "Não — modelo daemonless (com opcionais).",
+      },
+      {
+        id: 2,
+        question: "O que é rootless?",
+        answer:
+          "Rodar engine/containers sem ser root.",
+      },
+      {
+        id: 3,
+        question: "Por que porta 80 falha às vezes no rootless?",
+        answer:
+          "Bind em porta privilegiada (<1024) exige capabilities.",
+      },
+      {
+        id: 4,
+        question: "Comando para listar containers?",
+        answer:
+          "podman ps -a",
+      },
+      {
+        id: 5,
+        question: "Risco de misturar sudo podman e podman user?",
+        answer:
+          "Dois stores separados — confusão de imagens/containers.",
+      },
+      {
+        id: 6,
+        question: "Onde ver logs?",
+        answer:
+          "podman logs NOME",
+      },
+      {
+        id: 7,
+        question: "subuid/subgid servem para quê?",
+        answer:
+          "Mapear UIDs do user namespace no rootless.",
+      },
+      {
+        id: 8,
+        question: "Podman substitui Kubernetes?",
+        answer:
+          "Não — é runtime/local; orquestração é outra camada.",
+      },
+    ],
+    references: [
+      { title: "Podman docs", url: "https://docs.podman.io/" },
+      { title: "Debian package podman", url: "https://packages.debian.org/podman" },
+      { title: "man podman", url: "https://manpages.debian.org/podman" },
+    ],
+  },
+  {
+    id: "compose-pratica",
+    title: "Compose na prática — stack web+db",
+    icon: "🧩",
+    category: "Servidores",
+    description:
+      "Monte um compose mínimo (web + banco) no Debian com Podman ou Docker Compose: serviços, rede interna, volumes e variáveis sem teatro.",
+    objectives: [
+      "Descrever um arquivo compose de dois serviços",
+      "Subir e derrubar stack com um comando",
+      "Persistir dados de DB em volume nomeado",
+      "Passar env sem commitar senha",
+      "Inspecionar rede interna entre serviços",
+      "Saber quando compose basta vs orquestrador",
+    ],
+    content: [
+      "Um container sozinho ensina. **Dois** (app + Postgres/MySQL) ensinam rede, ordem de boot e volume. **Compose** (Docker Compose v2 ou `podman compose`) descreve a stack em YAML: serviços, portas publicadas, env e volumes. No Debian o caminho prático é pacote `docker-compose` / plugin ou podman-compose conforme o que já existe no host — o conceito é o mesmo.",
+
+      "Jargões. **service**: unidade no YAML. **network**: bridge do compose (DNS interno pelo nome do service). **volume**: disco persistente. **depends_on**: ordem de start (não é healthcheck completo). **.env**: arquivo local de variáveis — fora do git.",
+
+      "Esqueleto mental: serviço `db` com imagem oficial + volume + MYSQL_*/POSTGRES_*; serviço `web` com build ou imagem + `ports` + env `DATABASE_URL` apontando ao hostname `db`. `compose up -d` sobe; `ps` lista; `logs -f web`; `down` derruba (cuidado com `-v` que apaga volumes).",
+
+      "Armadilhas. Senha no YAML commitado. Achar que depends_on espera DB ready (use healthcheck/retry). Publicar 5432 na internet sem firewall. Misturar projetos com mesmo project name e volume colidindo.",
+
+      "Quando NÃO: multi-host, secrets enterprise, rolling update — aí é swarm/k8s/nomad. Quando SIM: lab, staging single-node, app interna.",
+
+      "Ao terminar você lê um compose de 2 serviços, sobe/desce a stack e separa secret de repositório.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y docker.io docker-compose 2>/dev/null || sudo apt install -y podman-compose",
+        description:
+          "Tenta toolchain compose (Docker ou Podman) conforme disponível.",
+        example: "sudo apt install -y docker.io docker-compose 2>/dev/null || sudo apt install -y podman-compose",
+      },
+      {
+        command: "mkdir -p ~/lab-compose && printf '%s\n' 'services:' '  web:' '    image: docker.io/library/nginx:alpine' '    ports:' '      - 8088:80' '  db:' '    image: docker.io/library/postgres:16-alpine' '    environment:' '      POSTGRES_PASSWORD: labonly' '    volumes:' '      - pgdata:/var/lib/postgresql/data' 'volumes:' '  pgdata:' > ~/lab-compose/compose.yaml",
+        description:
+          "YAML minimo web+db de lab (senha fraca de proposito local).",
+        example: "mkdir -p ~/lab-compose && printf '%s\n' 'services:' '  web:' '    image: docker.io/library/nginx:alpine' '    ports:' '      - 8088:80' '  db:' '    image: docker.io/library/postgres:16-alpine' '    environment:' '      POSTGRES_PASSWORD: labonly' '    volumes:' '      - pgdata:/var/lib/postgresql/data' 'volumes:' '  pgdata:' > ~/lab-compose/compose.yaml",
+      },
+      {
+        command: "cd ~/lab-compose && (docker compose version || docker-compose version || podman compose version) 2>/dev/null | head",
+        description:
+          "Qual binário compose existe.",
+        example: "cd ~/lab-compose && (docker compose version || docker-compose version || podman compose version) 2>/dev/null | head",
+      },
+      {
+        command: "cd ~/lab-compose && (docker compose up -d || docker-compose up -d || podman-compose up -d)",
+        description:
+          "Sobe a stack em background.",
+        example: "cd ~/lab-compose && (docker compose up -d || docker-compose up -d || podman-compose up -d)",
+      },
+      {
+        command: "cd ~/lab-compose && (docker compose ps || docker-compose ps || podman-compose ps)",
+        description:
+          "Status dos serviços.",
+        example: "cd ~/lab-compose && (docker compose ps || docker-compose ps || podman-compose ps)",
+      },
+      {
+        command: "curl -sI http://127.0.0.1:8088 | head -n 5",
+        description:
+          "HTTP no nginx publicado.",
+        example: "curl -sI http://127.0.0.1:8088 | head -n 5",
+      },
+      {
+        command: "cd ~/lab-compose && (docker compose logs --tail 10 db || docker-compose logs --tail=10 db || podman-compose logs db) 2>/dev/null | tail",
+        description:
+          "Logs do banco.",
+        example: "cd ~/lab-compose && (docker compose logs --tail 10 db || docker-compose logs --tail=10 db || podman-compose logs db) 2>/dev/null | tail",
+      },
+      {
+        command: "cd ~/lab-compose && (docker compose down || docker-compose down || podman-compose down)",
+        description:
+          "Derruba containers (mantém volume por padrão).",
+        example: "cd ~/lab-compose && (docker compose down || docker-compose down || podman-compose down)",
+      },
+      {
+        command: "man docker-compose 2>/dev/null || man podman-compose 2>/dev/null || true",
+        description:
+          "Manual se empacotado.",
+        example: "man docker-compose 2>/dev/null || man podman-compose 2>/dev/null || true",
+      },
+      {
+        command: "printf '%s\n' 'POSTGRES_PASSWORD=labonly' > ~/lab-compose/.env && printf '%s\n' '.env' >> ~/lab-compose/.gitignore",
+        description:
+          "Hábitos: env fora do YAML commitável.",
+        example: "printf '%s\n' 'POSTGRES_PASSWORD=labonly' > ~/lab-compose/.env && printf '%s\n' '.env' >> ~/lab-compose/.gitignore",
+      },
+      {
+        command: "cd ~/lab-compose && (docker compose config || docker-compose config || true) 2>/dev/null | head -n 40",
+        description:
+          "Renderiza config efetiva.",
+        example: "cd ~/lab-compose && (docker compose config || docker-compose config || true) 2>/dev/null | head -n 40",
+      },
+      {
+        command: "ss -lnt | grep 8088 || true",
+        description:
+          "Confirma porta publicada no host.",
+        example: "ss -lnt | grep 8088 || true",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Senha no git",
+        content:
+          "Use .env no .gitignore; rotacione se vazou.",
+      },
+      {
+        type: "warning",
+        title: "down -v",
+        content:
+          "Apaga volumes nomeados — perda de dados de lab/prod.",
+      },
+      {
+        type: "info",
+        title: "DNS interno",
+        content:
+          "O serviço web alcança db pelo hostname do service.",
+      },
+      {
+        type: "success",
+        title: "Healthcheck",
+        content:
+          "depends_on + retry no app > achar que ordem = ready.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Sobe, curl, down",
+        goal: "Stack nginx+postgres de lab responde em 8088 e depois desce.",
+        steps: [
+          "Criar compose.yaml em ~/lab-compose",
+          "up -d",
+          "curl na 8088",
+          "down",
+        ],
+        command: "test -f ~/lab-compose/compose.yaml && curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8088 || echo 'suba a stack antes'",
+        verify:
+          "Arquivo compose existe; com stack up, HTTP do nginx responde.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Para que serve um volume nomeado no DB?",
+        answer:
+          "Persistir dados além do ciclo de vida do container.",
+      },
+      {
+        id: 2,
+        question: "Como o web acha o postgres no compose?",
+        answer:
+          "DNS interno pelo nome do service (ex.: db).",
+      },
+      {
+        id: 3,
+        question: "depends_on garante DB pronto?",
+        answer:
+          "Não necessariamente — só ordem de start.",
+      },
+      {
+        id: 4,
+        question: "Onde guardar senha?",
+        answer:
+          ".env local ignorado pelo git (ou secret manager).",
+      },
+      {
+        id: 5,
+        question: "Comando típico para subir detached?",
+        answer:
+          "docker compose up -d (ou equivalente).",
+      },
+      {
+        id: 6,
+        question: "Risco de publicar 5432 em 0.0.0.0?",
+        answer:
+          "Banco exposto na rede — brute force e vazamento.",
+      },
+      {
+        id: 7,
+        question: "compose down -v faz o quê de perigoso?",
+        answer:
+          "Remove volumes e apaga dados.",
+      },
+      {
+        id: 8,
+        question: "Quando compose não basta?",
+        answer:
+          "Multi-host, rolling, políticas ricas — orquestrador.",
+      },
+    ],
+    references: [
+      { title: "Compose specification", url: "https://docs.docker.com/compose/compose-file/" },
+      { title: "Podman and compose", url: "https://docs.podman.io/en/latest/markdown/podman-compose.1.html" },
+      { title: "PostgreSQL Docker hub", url: "https://hub.docker.com/_/postgres" },
+    ],
+  },
+  {
+    id: "ansible-minimo",
+    title: "Ansible mínimo no Debian — inventário + playbook apt/serviço",
+    icon: "📜",
+    category: "Servidores",
+    description:
+      "Automatize o básico com Ansible: inventário INI, playbook que instala pacote e garante serviço, check mode e idempotência sem torre enterprise.",
+    objectives: [
+      "Instalar Ansible no control node Debian",
+      "Escrever inventário com um host (localhost ou lab)",
+      "Playbook com apt e service modules",
+      "Rodar com --check e depois apply",
+      "Entender idempotência na prática",
+      "Não transformar YAML em spagueti no primeiro dia",
+    ],
+    content: [
+      "SSH manual em 15 servidores é hobby caro. **Ansible** descreve o estado desejado em YAML e empurra via SSH (agentless). Neste capítulo o mínimo útil: **inventário** + **playbook** que instala um pacote e habilita um serviço. Sem AWX, sem 40 roles no primeiro commit.",
+
+      "Jargões. **Control node**: de onde você roda ansible. **Inventory**: lista de hosts/grupos. **Module**: apt, copy, service… **Idempotente**: rodar de novo não deveria quebrar nem reinstalar à toa. **check mode** (`--check`): dry-run parcial.",
+
+      "Estrutura: `inventory.ini` com `[labs]` e `host ansible_host=...`; `site.yml` com hosts: labs, become: true, tasks apt + service. Teste em localhost com `ansible_connection=local` antes de apontar pra frota. `ansible-playbook -i inventory.ini site.yml`.",
+
+      "Armadilhas. become sem sudo configurado. Python ausente no target antigo. Misturar config manual e playbook até ninguém saber a fonte da verdade. Guardar senha vault no git em texto. Rodar playbook errado no inventário de produção (separar inventories).",
+
+      "Quando NÃO: one-off único em uma máquina (shell basta); substituição de imagem imutável já perfeita. Quando SIM: baseline de pacotes, usuários, sshd snippets, jobs repetíveis.",
+
+      "Ao terminar você tem inventário + playbook apt/service e sabe o que é idempotência sem slide corporativo.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y ansible",
+        description:
+          "Control node com Ansible.",
+        example: "sudo apt install -y ansible",
+      },
+      {
+        command: "ansible --version | head -n 5",
+        description:
+          "Versão e config path.",
+        example: "ansible --version | head -n 5",
+      },
+      {
+        command: "mkdir -p ~/lab-ansible && printf '%s\n' '[local]' 'localhost ansible_connection=local' > ~/lab-ansible/inventory.ini",
+        description:
+          "Inventário local para lab seguro.",
+        example: "mkdir -p ~/lab-ansible && printf '%s\n' '[local]' 'localhost ansible_connection=local' > ~/lab-ansible/inventory.ini",
+      },
+      {
+        command: "printf '%s\n' '---' '- name: baseline lab' '  hosts: local' '  become: true' '  tasks:' '    - name: garantir curl' '      ansible.builtin.apt:' '        name: curl' '        state: present' '        update_cache: true' '    - name: garantir ssh enabled se existir' '      ansible.builtin.service:' '        name: ssh' '        state: started' '        enabled: true' '      failed_when: false' > ~/lab-ansible/site.yml",
+        description:
+          "Playbook mínimo apt+service.",
+        example: "printf '%s\n' '---' '- name: baseline lab' '  hosts: local' '  become: true' '  tasks:' '    - name: garantir curl' '      ansible.builtin.apt:' '        name: curl' '        state: present' '        update_cache: true' '    - name: garantir ssh enabled se existir' '      ansible.builtin.service:' '        name: ssh' '        state: started' '        enabled: true' '      failed_when: false' > ~/lab-ansible/site.yml",
+      },
+      {
+        command: "cd ~/lab-ansible && ansible-inventory -i inventory.ini --list | head",
+        description:
+          "Valida inventário.",
+        example: "cd ~/lab-ansible && ansible-inventory -i inventory.ini --list | head",
+      },
+      {
+        command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml --check",
+        description:
+          "Dry-run / check mode.",
+        example: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml --check",
+      },
+      {
+        command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml",
+        description:
+          "Aplica de verdade no lab local.",
+        example: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml",
+      },
+      {
+        command: "cd ~/lab-ansible && ansible local -i inventory.ini -m ping",
+        description:
+          "Ping module no grupo local.",
+        example: "cd ~/lab-ansible && ansible local -i inventory.ini -m ping",
+      },
+      {
+        command: "ansible-doc apt | head -n 40",
+        description:
+          "Documentação do module apt.",
+        example: "ansible-doc apt | head -n 40",
+      },
+      {
+        command: "man ansible-playbook",
+        description:
+          "Manual do runner.",
+        example: "man ansible-playbook",
+      },
+      {
+        command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml | tail -n 20",
+        description:
+          "Segunda corrida — deve mostrar ok/changed baixo (idempotência).",
+        example: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml | tail -n 20",
+      },
+      {
+        command: "printf '%s\n' '*.retry' > ~/lab-ansible/.gitignore",
+        description:
+          "Ignora artefatos ansible-playbook.",
+        example: "printf '%s\n' '*.retry' > ~/lab-ansible/.gitignore",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "localhost primeiro",
+        content:
+          "Valida YAML antes de tocar frota.",
+      },
+      {
+        type: "warning",
+        title: "Inventários separados",
+        content:
+          "lab.ini vs prod.ini evitam tragédia.",
+      },
+      {
+        type: "info",
+        title: "changed=0 na 2ª run",
+        content:
+          "Cheirinho de idempotência.",
+      },
+      {
+        type: "danger",
+        title: "Senha no playbook",
+        content:
+          "Use vault ou vars fora do git.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Playbook local duas vezes",
+        goal: "Rodar site.yml duas vezes e observar segunda execução com poucos changed.",
+        steps: [
+          "Criar inventory + site.yml",
+          "ansible-playbook --check",
+          "apply",
+          "apply de novo e ler o recap",
+        ],
+        command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml 2>&1 | tail -n 15",
+        verify:
+          "Play recap aparece; segunda execução não deveria sair reinstalando tudo como changed eterno.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Ansible usa agente no target?",
+        answer:
+          "Não — SSH (ou local) agentless.",
+      },
+      {
+        id: 2,
+        question: "O que é inventário?",
+        answer:
+          "Lista de hosts/grupos e variáveis de conexão.",
+      },
+      {
+        id: 3,
+        question: "Module apt state=present faz o quê?",
+        answer:
+          "Garante pacote instalado sem reinstalar se já está.",
+      },
+      {
+        id: 4,
+        question: "--check serve para quê?",
+        answer:
+          "Simular mudanças (com limites).",
+      },
+      {
+        id: 5,
+        question: "Idempotência em uma frase?",
+        answer:
+          "Repetir a automação converge ao mesmo estado sem estragar.",
+      },
+      {
+        id: 6,
+        question: "become: true pede o quê no target?",
+        answer:
+          "Privilégio (sudo/root) configurado.",
+      },
+      {
+        id: 7,
+        question: "Por que separar inventory de prod?",
+        answer:
+          "Evitar playbook de lab em host crítico.",
+      },
+      {
+        id: 8,
+        question: "ansible-doc para quê?",
+        answer:
+          "Ler parâmetros dos modules offline.",
+      },
+    ],
+    references: [
+      { title: "Ansible documentation", url: "https://docs.ansible.com/" },
+      { title: "Debian package ansible", url: "https://packages.debian.org/ansible" },
+      { title: "Module apt", url: "https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html" },
+    ],
+  },
+  {
+    id: "cloud-init-vps",
+    title: "cloud-init e Debian em VPS — first boot, users, ssh keys",
+    icon: "☁️",
+    category: "Servidores",
+    description:
+      "Entenda cloud-init no Debian de VPS: user-data, chaves SSH, hostname, growpart e como depurar first boot sem mistério.",
+    objectives: [
+      "Explicar o papel do cloud-init no first boot",
+      "Localizar configs e logs de cloud-init",
+      "Injetar usuário e ssh authorized_keys via user-data",
+      "Checar status e fases (init/config/final)",
+      "Evitar reexecuções destrutivas sem querer",
+      "Combinar cloud-init com hardening posterior",
+    ],
+    content: [
+      "Na VPS o disco chega genérico. **cloud-init** roda no primeiro boot (e sob regras depois) para hostname, rede, usuário, chaves SSH, resize de partição e pacotes iniciais. É a cola entre a imagem Debian da nuvem e a máquina que você SSH. Sem entender cloud-init, você luta com vendor data às cegas.",
+
+      "Jargões. **user-data**: YAML/#cloud-config que você passa no painel. **meta-data**: instance id, hostname. **datasource**: EC2, ConfigDrive, NoCloud… **cloud-init status**: se já terminou. **clean**: reset controlado (perigoso em prod).",
+
+      "Leitura: `/var/log/cloud-init.log` e `cloud-init-output.log`; `cloud-init status --long`. user-data típico: `users` com `ssh_authorized_keys`, `package_update`, `runcmd`. Chave no painel do provider muitas vezes já vira key em debian/ubuntu user — confira `~/.ssh/authorized_keys`.",
+
+      "Armadilhas. Editar arquivo pela metade e rodar clean sem snapshot. Assumir que toda imagem Debian tem o mesmo datasource. Colocar senha em user-data logado em texto eterno. Esperar que cloud-init substitua Ansible para o resto da vida do host.",
+
+      "Quando NÃO: host bare metal clássico sem datasource (use preseeding/instalador); reconfig diária (use config management). Quando SIM: first boot VPS, golden images, lab NoCloud com seed ISO.",
+
+      "Ao terminar você lê status/logs, descreve user-data de usuário+chave e sabe que first boot ≠ configuração eterna.",
+
+    ],
+    commands: [
+      {
+        command: "cloud-init --version 2>/dev/null || dpkg -l cloud-init | tail -n 1",
+        description:
+          "Se cloud-init está instalado (imagens cloud quase sempre).",
+        example: "cloud-init --version 2>/dev/null || dpkg -l cloud-init | tail -n 1",
+      },
+      {
+        command: "cloud-init status --long 2>/dev/null || echo 'cloud-init indisponivel neste host'",
+        description:
+          "Fases e resultado do last run.",
+        example: "cloud-init status --long 2>/dev/null || echo 'cloud-init indisponivel neste host'",
+      },
+      {
+        command: "sudo tail -n 40 /var/log/cloud-init.log 2>/dev/null || true",
+        description:
+          "Log principal.",
+        example: "sudo tail -n 40 /var/log/cloud-init.log 2>/dev/null || true",
+      },
+      {
+        command: "sudo tail -n 40 /var/log/cloud-init-output.log 2>/dev/null || true",
+        description:
+          "Stdout dos módulos (pacotes, runcmd).",
+        example: "sudo tail -n 40 /var/log/cloud-init-output.log 2>/dev/null || true",
+      },
+      {
+        command: "ls /etc/cloud/cloud.cfg /etc/cloud/cloud.cfg.d 2>/dev/null | head",
+        description:
+          "Config empacotada e drop-ins.",
+        example: "ls /etc/cloud/cloud.cfg /etc/cloud/cloud.cfg.d 2>/dev/null | head",
+      },
+      {
+        command: "ls /var/lib/cloud 2>/dev/null | head",
+        description:
+          "Estado/instance data.",
+        example: "ls /var/lib/cloud 2>/dev/null | head",
+      },
+      {
+        command: "cat /etc/hostname; hostnamectl 2>/dev/null | head",
+        description:
+          "Hostname atual (muitas vezes setado no boot).",
+        example: "cat /etc/hostname; hostnamectl 2>/dev/null | head",
+      },
+      {
+        command: "sudo cloud-id 2>/dev/null || true",
+        description:
+          "Datasource detectado.",
+        example: "sudo cloud-id 2>/dev/null || true",
+      },
+      {
+        command: "printf '%s\n' '#cloud-config' 'users:' '  - name: devops' '    groups: [sudo]' '    shell: /bin/bash' '    sudo: ALL=(ALL) NOPASSWD:ALL' '    ssh_authorized_keys:' '      - ssh-ed25519 AAAA...comente_sua_chave' 'package_update: true' 'packages:' '  - qemu-guest-agent' > ~/user-data-exemplo.yaml",
+        description:
+          "Modelo de user-data (NÃO use NOPASSWD em prod sem critério).",
+        example: "printf '%s\n' '#cloud-config' 'users:' '  - name: devops' '    groups: [sudo]' '    shell: /bin/bash' '    sudo: ALL=(ALL) NOPASSWD:ALL' '    ssh_authorized_keys:' '      - ssh-ed25519 AAAA...comente_sua_chave' 'package_update: true' 'packages:' '  - qemu-guest-agent' > ~/user-data-exemplo.yaml",
+      },
+      {
+        command: "man cloud-init 2>/dev/null || true",
+        description:
+          "Manual se disponível.",
+        example: "man cloud-init 2>/dev/null || true",
+      },
+      {
+        command: "grep -R 'ssh_authorized_keys\\|disable_root' /etc/cloud 2>/dev/null | head",
+        description:
+          "Pistas de política SSH na config cloud.",
+        example: "grep -R 'ssh_authorized_keys\\|disable_root' /etc/cloud 2>/dev/null | head",
+      },
+      {
+        command: "systemctl status cloud-init cloud-final --no-pager 2>/dev/null | head -n 30 || true",
+        description:
+          "Units relacionadas.",
+        example: "systemctl status cloud-init cloud-final --no-pager 2>/dev/null | head -n 30 || true",
+      },
+    ],
+    tips: [
+      {
+        type: "warning",
+        title: "cloud-init clean",
+        content:
+          "Só com snapshot — reaplicação pode recriar usuários/ssh.",
+      },
+      {
+        type: "info",
+        title: "First boot",
+        content:
+          "Muita magia acontece uma vez; depois é config management.",
+      },
+      {
+        type: "danger",
+        title: "Segredo em user-data",
+        content:
+          "Fica em disco/log do provider — prefira chave SSH.",
+      },
+      {
+        type: "success",
+        title: "Leia cloud-init-output.log",
+        content:
+          "Erro de apt no first boot aparece ali.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Forense de cloud-init (somente leitura)",
+        goal: "Coletar version, status, datasource e trecho de log sem clean.",
+        steps: [
+          "cloud-init status --long",
+          "cloud-id",
+          "tail nos logs",
+          "Salvar resumo em ~/cloud-init-report.txt",
+        ],
+        command: "{ echo '=== status ==='; cloud-init status --long 2>/dev/null; echo; echo '=== id ==='; cloud-id 2>/dev/null; } | tee ~/cloud-init-report.txt",
+        verify:
+          "Relatório criado; se o host não tiver cloud-init, o arquivo registra a ausência — ainda assim válido como diagnóstico.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "cloud-init resolve principalmente qual momento?",
+        answer:
+          "First boot / bootstrap da imagem cloud.",
+      },
+      {
+        id: 2,
+        question: "O que é user-data?",
+        answer:
+          "Config fornecida à instância (frequente cloud-config YAML).",
+      },
+      {
+        id: 3,
+        question: "Onde olhar falha de pacote no boot?",
+        answer:
+          "/var/log/cloud-init-output.log e cloud-init.log.",
+      },
+      {
+        id: 4,
+        question: "Por que preferir SSH key a senha no user-data?",
+        answer:
+          "Menos segredo persistente e melhor higiene.",
+      },
+      {
+        id: 5,
+        question: "cloud-init substitui Ansible no long run?",
+        answer:
+          "Não — bootstrap ≠ drift contínuo.",
+      },
+      {
+        id: 6,
+        question: "Comando de status?",
+        answer:
+          "cloud-init status --long",
+      },
+      {
+        id: 7,
+        question: "Risco de clean em produção?",
+        answer:
+          "Reexecução de módulos pode alterar users/rede/ssh.",
+      },
+      {
+        id: 8,
+        question: "datasource é o quê?",
+        answer:
+          "De onde a instância lê meta/user-data (EC2, NoCloud, etc.).",
+      },
+    ],
+    references: [
+      { title: "cloud-init docs", url: "https://cloudinit.readthedocs.io/" },
+      { title: "Debian cloud images", url: "https://cloud.debian.org/" },
+      { title: "man cloud-init", url: "https://manpages.debian.org/cloud-init" },
+    ],
+  },
+  {
+    id: "dns-server",
+    title: "DNS server local — Unbound/BIND intro",
+    icon: "🧭",
+    category: "Servidores",
+    description:
+      "Suba um resolvedor DNS local no Debian com Unbound (e noções de BIND): cache, recursão, testes com dig e o que não expor na internet.",
+    objectives: [
+      "Diferenciar resolvedor recursivo de autoritativo",
+      "Instalar e habilitar Unbound no Debian",
+      "Testar resolução com dig/resolvectl",
+      "Entender listening em localhost vs rede",
+      "Relacionar com DNS do cliente (resolv.conf)",
+      "Conhecer BIND como alternativa autoritativa",
+    ],
+    content: [
+      "DNS ruim parece 'internet quebrada'. Um **resolvedor local** (Unbound) na LAN ou no próprio VPS reduz latência, dá cache e um ponto único de política. **BIND** brilha mais como **autoritativo** (você publica zonas); Unbound brilha como **recursivo/validador**. Não misture os papéis sem desenho.",
+
+      "Jargões. **Recursivo**: busca na internet em nome do cliente. **Autoritativo**: responde o que você configura na zona. **stub**: só encaminha. **DNSSEC**: validação criptográfica (Unbound costuma validar). **dig**: ferramenta de diagnóstico.",
+
+      "Fluxo Unbound: `apt install unbound` → conf em `/etc/unbound/unbound.conf.d/` → `systemctl enable --now unbound` → `dig @127.0.0.1 debian.org` → aponte clientes ou `nameserver 127.0.0.1` com cuidado para não se auto-excluir da resolução se o serviço cair.",
+
+      "Armadilhas. Abrir recursão aberta na 0.0.0.0/0 (vira arma de amplificação). Esquecer firewall. Trocar resolv.conf e perder apt update quando unbound falha. Copiar tutorial BIND 9 antigo com options perigosas.",
+
+      "Quando NÃO: host único que já usa o DNS estável do provedor e você não vai operar cache. Quando SIM: lab, controle parental/LAN, validação DNSSEC, split-horizon consciente.",
+
+      "Ao terminar você sobe Unbound em loopback, testa com dig e sabe por que recursão aberta é incidente esperando IP público.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y unbound dnsutils",
+        description:
+          "Unbound + dig/nslookup.",
+        example: "sudo apt install -y unbound dnsutils",
+      },
+      {
+        command: "systemctl status unbound --no-pager | head -n 15",
+        description:
+          "Serviço ativo?",
+        example: "systemctl status unbound --no-pager | head -n 15",
+      },
+      {
+        command: "sudo systemctl enable --now unbound",
+        description:
+          "Sobe e habilita.",
+        example: "sudo systemctl enable --now unbound",
+      },
+      {
+        command: "dig @127.0.0.1 debian.org +short",
+        description:
+          "Query via Unbound local.",
+        example: "dig @127.0.0.1 debian.org +short",
+      },
+      {
+        command: "dig @127.0.0.1 debian.org DNSKEY +dnssec | head -n 20",
+        description:
+          "Pista de DNSSEC/resposta validada.",
+        example: "dig @127.0.0.1 debian.org DNSKEY +dnssec | head -n 20",
+      },
+      {
+        command: "sudo unbound-checkconf",
+        description:
+          "Valida config antes de reload.",
+        example: "sudo unbound-checkconf",
+      },
+      {
+        command: "ls /etc/unbound/unbound.conf.d 2>/dev/null | head",
+        description:
+          "Drop-ins de configuração.",
+        example: "ls /etc/unbound/unbound.conf.d 2>/dev/null | head",
+      },
+      {
+        command: "ss -lntup | grep -E ':53\\b' || true",
+        description:
+          "Quem escuta na porta 53.",
+        example: "ss -lntup | grep -E ':53\\b' || true",
+      },
+      {
+        command: "man unbound.conf",
+        description:
+          "Referência de opções.",
+        example: "man unbound.conf",
+      },
+      {
+        command: "apt-cache show bind9 | sed -n '1,12p'",
+        description:
+          "BIND existe no Debian se precisar autoritativo.",
+        example: "apt-cache show bind9 | sed -n '1,12p'",
+      },
+      {
+        command: "resolvectl status 2>/dev/null | head -n 30 || cat /etc/resolv.conf",
+        description:
+          "DNS do host cliente agora.",
+        example: "resolvectl status 2>/dev/null | head -n 30 || cat /etc/resolv.conf",
+      },
+      {
+        command: "sudo journalctl -u unbound -n 30 --no-pager",
+        description:
+          "Logs recentes.",
+        example: "sudo journalctl -u unbound -n 30 --no-pager",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Recursão aberta",
+        content:
+          "Nunca exponha resolver aberto à internet sem ACL.",
+      },
+      {
+        type: "warning",
+        title: "Ponto único de falha",
+        content:
+          "Se só 127.0.0.1 e unbound cai, o host fica cego.",
+      },
+      {
+        type: "info",
+        title: "Unbound vs BIND",
+        content:
+          "Cache/recursão vs zonas autoritativas — papéis diferentes.",
+      },
+      {
+        type: "success",
+        title: "unbound-checkconf",
+        content:
+          "Sempre antes de reload em produção.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "dig no loopback",
+        goal: "Unbound respondendo em 127.0.0.1 para uma query conhecida.",
+        steps: [
+          "install unbound dnsutils",
+          "enable --now",
+          "dig @127.0.0.1 debian.org",
+          "ss na 53",
+        ],
+        command: "dig @127.0.0.1 debian.org +time=2 +tries=1 +short | head",
+        verify:
+          "Retorna IPs ou você diagnostica pelo status/journal se falhar.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Diferença recursivo vs autoritativo?",
+        answer:
+          "Recursivo busca por você; autoritativo responde zonas que ele serve.",
+      },
+      {
+        id: 2,
+        question: "Por que recursão aberta é perigosa?",
+        answer:
+          "Abuso em ataques de amplificação e uso por terceiros.",
+      },
+      {
+        id: 3,
+        question: "Pacote do dig no Debian?",
+        answer:
+          "dnsutils.",
+      },
+      {
+        id: 4,
+        question: "Comando para validar config Unbound?",
+        answer:
+          "unbound-checkconf.",
+      },
+      {
+        id: 5,
+        question: "Onde drop-ins do Unbound?",
+        answer:
+          "/etc/unbound/unbound.conf.d/",
+      },
+      {
+        id: 6,
+        question: "BIND é obrigatório para cache local?",
+        answer:
+          "Não — Unbound costuma ser suficiente.",
+      },
+      {
+        id: 7,
+        question: "Como testar resolver específico?",
+        answer:
+          "dig @IP nome.",
+      },
+      {
+        id: 8,
+        question: "Risco de nameserver só 127.0.0.1?",
+        answer:
+          "Se o serviço local cair, resolução some.",
+      },
+    ],
+    references: [
+      { title: "Unbound documentation", url: "https://nlnetlabs.nl/documentation/unbound/" },
+      { title: "Debian Wiki — Unbound", url: "https://wiki.debian.org/Unbound" },
+      { title: "man dig", url: "https://manpages.debian.org/dig" },
+    ],
+  },
+  {
+    id: "email-relay",
+    title: "E-mail no Debian (realista) — MTA relay",
+    icon: "📧",
+    category: "Servidores",
+    description:
+      "Configure expectativa correta de e-mail em VPS: MTA como relay (nullclient/smarthost), SPF/DKIM na teoria e por que 'montar Gmail' não é o lab.",
+    objectives: [
+      "Separar MTA full de smarthost/nullclient",
+      "Instalar um MTA mínimo (ex.: postfix) em modo satélite/relay",
+      "Enviar mensagem de teste com sendmail/mail",
+      "Ler logs de fila (mail.log / journal)",
+      "Listar SPF/DKIM/DMARC como requisitos de entrega",
+      "Evitar open relay",
+    ],
+    content: [
+      "Servidor Debian que 'manda e-mail' na prática quase sempre é **relay**: a app fala com Postfix/Exim local, que entrega via **smarthost** (provedor, SES, Mailgun) com auth. Montar stack completa tipo Gmail (IMAP+antispam+webmail+reputação de IP) é outro produto. Este capítulo é o caminho realista de VPS.",
+
+      "Jargões. **MTA**: Mail Transfer Agent. **smarthost**: servidor a montante. **nullclient**: só encaminha, não recebe. **open relay**: aceita de qualquer um — incidente. **SPF/DKIM/DMARC**: políticas DNS de autenticidade.",
+
+      "Fluxo mental Postfix: instale, escolha 'Satellite system' ou edite `relayhost`, credenciais em `sasl_passwd`, `postfix check`, envie teste, olhe `mailq` e journal. Firewall: não publique 25 aberto para o mundo se só precisa sair.",
+
+      "Armadilhas. IP de VPS em blacklist. Achar que porta 25 outbound sempre funciona (muitos clouds bloqueiam). Guardar senha SMTP em world-readable. Testar em produção com lista de clientes no primeiro try.",
+
+      "Quando NÃO: precisa de caixa de entrada corporativa completa — use provedor. Quando SIM: alertas de cron, recuperação de senha de app, notificações de monitoramento.",
+
+      "Ao terminar você descreve relay vs full mail, manda um teste controlado e sabe onde olhar fila/log sem prometer deliverability mágica.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y postfix mailutils",
+        description:
+          "MTA + utilitários mail (interativo na 1ª config — use debconf-set-selections em automação).",
+        example: "sudo apt install -y postfix mailutils",
+      },
+      {
+        command: "dpkg-reconfigure -plow postfix 2>/dev/null | head || true",
+        description:
+          "Reconfiguração guiada se precisar.",
+        example: "dpkg-reconfigure -plow postfix 2>/dev/null | head || true",
+      },
+      {
+        command: "postconf -n | head -n 40",
+        description:
+          "Config efetiva principal.",
+        example: "postconf -n | head -n 40",
+      },
+      {
+        command: "postconf relayhost",
+        description:
+          "Se há smarthost definido.",
+        example: "postconf relayhost",
+      },
+      {
+        command: "mailq",
+        description:
+          "Fila de mensagens pendentes.",
+        example: "mailq",
+      },
+      {
+        command: "printf '%s\n' 'Teste debian-book' | mail -s 'lab relay' root",
+        description:
+          "Envia mail local de teste para root.",
+        example: "printf '%s\n' 'Teste debian-book' | mail -s 'lab relay' root",
+      },
+      {
+        command: "sudo tail -n 30 /var/log/mail.log 2>/dev/null || sudo journalctl -u postfix -n 30 --no-pager",
+        description:
+          "Logs de entrega.",
+        example: "sudo tail -n 30 /var/log/mail.log 2>/dev/null || sudo journalctl -u postfix -n 30 --no-pager",
+      },
+      {
+        command: "sudo postfix check && echo OK",
+        description:
+          "Sanidade da config.",
+        example: "sudo postfix check && echo OK",
+      },
+      {
+        command: "man postfix",
+        description:
+          "Visão geral.",
+        example: "man postfix",
+      },
+      {
+        command: "ss -lnt | grep -E ':25|:587' || true",
+        description:
+          "Listeners SMTP locais.",
+        example: "ss -lnt | grep -E ':25|:587' || true",
+      },
+      {
+        command: "host -t TXT debian.org | head",
+        description:
+          "Exemplo de registros TXT (SPF etc. em domínios reais).",
+        example: "host -t TXT debian.org | head",
+      },
+      {
+        command: "sudo postqueue -p",
+        description:
+          "Outra visão da fila.",
+        example: "sudo postqueue -p",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Open relay",
+        content:
+          "mynetworks/restricoes mal feitas = abusam do seu IP.",
+      },
+      {
+        type: "warning",
+        title: "Porta 25 bloqueada",
+        content:
+          "Cloud providers cortam outbound — use 587 submission do smarthost.",
+      },
+      {
+        type: "info",
+        title: "SPF/DKIM",
+        content:
+          "Sem DNS alinhado, cai em spam mesmo com MTA perfeito.",
+      },
+      {
+        type: "success",
+        title: "Comece com mail para root",
+        content:
+          "Valida path local antes de domínio público.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Fila e log",
+        goal: "Gerar mail local, inspecionar mailq e últimas linhas de log.",
+        steps: [
+          "mail para root",
+          "mailq",
+          "tail mail.log/journal",
+          "anotar status deferred/sent",
+        ],
+        command: "mailq; ls /var/log/mail.log 2>/dev/null || journalctl -u postfix -n 5 --no-pager",
+        verify:
+          "Você sabe se a mensagem saiu, ficou em fila ou falhou e onde ler o motivo.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é smarthost?",
+        answer:
+          "Servidor SMTP a montante que de fato entrega para o destino.",
+      },
+      {
+        id: 2,
+        question: "Open relay significa?",
+        answer:
+          "Aceitar relay de clientes não autorizados.",
+      },
+      {
+        id: 3,
+        question: "Por que VPS 'não manda e-mail'?",
+        answer:
+          "IP frio, 25 bloqueada, falta SPF/DKIM, PTR ausente.",
+      },
+      {
+        id: 4,
+        question: "Comando da fila Postfix?",
+        answer:
+          "mailq ou postqueue -p.",
+      },
+      {
+        id: 5,
+        question: "SPF vive onde?",
+        answer:
+          "Registro TXT no DNS do domínio.",
+      },
+      {
+        id: 6,
+        question: "nullclient faz o quê?",
+        answer:
+          "Só encaminha; não hospeda caixas completas.",
+      },
+      {
+        id: 7,
+        question: "Onde logs típicos?",
+        answer:
+          "/var/log/mail.log ou journal da unit postfix.",
+      },
+      {
+        id: 8,
+        question: "mailutils serve para quê neste lab?",
+        answer:
+          "Comando mail para gerar mensagem de teste.",
+      },
+    ],
+    references: [
+      { title: "Postfix documentation", url: "https://www.postfix.org/documentation.html" },
+      { title: "Debian Wiki — Postfix", url: "https://wiki.debian.org/Postfix" },
+      { title: "RFC 7208 SPF", url: "https://datatracker.ietf.org/doc/html/rfc7208" },
+    ],
+  },
+  {
+    id: "nfs-samba",
+    title: "NFS e Samba intro — compartilhar pasta na LAN",
+    icon: "📁",
+    category: "Servidores",
+    description:
+      "Compartilhe diretórios no Debian com NFS (Unix) e Samba (Windows/mac): export, mount, smb.conf mínimo e riscos de expor demais.",
+    objectives: [
+      "Explicar quando NFS vs Samba",
+      "Exportar um dir NFS e montar em cliente",
+      "Criar share Samba mínimo",
+      "Checar exports e smbstatus",
+      "Travar acesso por rede/firewall",
+      "Não expor share anônimo na WAN",
+    ],
+    content: [
+      "Precisa de pasta comum na **LAN**: backups, mídia, home de lab. **NFS** é o caminho natural Linux↔Linux (UID/GID). **Samba** fala **SMB/CIFS** com Windows e muitos NAS. Os dois são poderosos e ambos viram vazamento se escutam na internet sem VPN/ACL.",
+
+      "Jargões. **/etc/exports**: quem pode montar o quê no NFS. **showmount**. **smb.conf**: shares Samba. **guest ok**: anônimo — perigoso. **CIFS**: família do protocolo Windows.",
+
+      "NFS: instale `nfs-kernel-server`, exporte `/srv/share`, `exportfs -ra`, no cliente `mount server:/srv/share /mnt`. Samba: `apt install samba`, share em smb.conf, `systemctl reload smbd`, teste com `smbclient`. Firewall só rede de confiança.",
+
+      "Armadilhas. root_squash mal entendido. exports com `*` e `no_root_squash`. Samba com senha fraca ou guest na WAN. Esquecer que UID 1000 num host ≠ usuário humano no outro.",
+
+      "Quando NÃO: compartilhar pela internet aberta — use VPN (WireGuard) ou object storage. Quando SIM: lab, escritório, backup pull na LAN.",
+
+      "Ao terminar você descreve um export NFS e um share SMB mínimos e lista três controles (rede, auth, permissão de FS).",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y nfs-kernel-server",
+        description:
+          "Servidor NFS.",
+        example: "sudo apt install -y nfs-kernel-server",
+      },
+      {
+        command: "sudo mkdir -p /srv/nfs-lab && sudo chown nobody:nogroup /srv/nfs-lab && echo lab > /srv/nfs-lab/README.txt",
+        description:
+          "Dir de lab.",
+        example: "sudo mkdir -p /srv/nfs-lab && sudo chown nobody:nogroup /srv/nfs-lab && echo lab > /srv/nfs-lab/README.txt",
+      },
+      {
+        command: "echo '/srv/nfs-lab 127.0.0.1(rw,sync,no_subtree_check)' | sudo tee /etc/exports",
+        description:
+          "Export só para localhost (lab seguro).",
+        example: "echo '/srv/nfs-lab 127.0.0.1(rw,sync,no_subtree_check)' | sudo tee /etc/exports",
+      },
+      {
+        command: "sudo exportfs -ra && sudo exportfs -v",
+        description:
+          "Reexporta e lista.",
+        example: "sudo exportfs -ra && sudo exportfs -v",
+      },
+      {
+        command: "sudo apt install -y nfs-common && sudo mkdir -p /mnt/nfs-lab && sudo mount -t nfs 127.0.0.1:/srv/nfs-lab /mnt/nfs-lab && ls /mnt/nfs-lab && sudo umount /mnt/nfs-lab",
+        description:
+          "Monta e desmonta localmente.",
+        example: "sudo apt install -y nfs-common && sudo mkdir -p /mnt/nfs-lab && sudo mount -t nfs 127.0.0.1:/srv/nfs-lab /mnt/nfs-lab && ls /mnt/nfs-lab && sudo umount /mnt/nfs-lab",
+      },
+      {
+        command: "sudo apt install -y samba smbclient",
+        description:
+          "Samba + cliente de teste.",
+        example: "sudo apt install -y samba smbclient",
+      },
+      {
+        command: "testparm -s 2>/dev/null | head -n 40 || true",
+        description:
+          "Valida smb.conf.",
+        example: "testparm -s 2>/dev/null | head -n 40 || true",
+      },
+      {
+        command: "sudo systemctl enable --now smbd nmbd 2>/dev/null || sudo systemctl enable --now smbd",
+        description:
+          "Serviços SMB.",
+        example: "sudo systemctl enable --now smbd nmbd 2>/dev/null || sudo systemctl enable --now smbd",
+      },
+      {
+        command: "smbclient -L localhost -N 2>/dev/null | head || true",
+        description:
+          "Lista shares (pode falhar sem share).",
+        example: "smbclient -L localhost -N 2>/dev/null | head || true",
+      },
+      {
+        command: "man exports",
+        description:
+          "Sintaxe NFS exports.",
+        example: "man exports",
+      },
+      {
+        command: "man smb.conf",
+        description:
+          "Referência Samba.",
+        example: "man smb.conf",
+      },
+      {
+        command: "ss -lnt | grep -E ':2049|:445|:139' || true",
+        description:
+          "Portas NFS/SMB escutando.",
+        example: "ss -lnt | grep -E ':2049|:445|:139' || true",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Share na WAN",
+        content:
+          "SMB/NFS na internet aberta é convite. Use VPN.",
+      },
+      {
+        type: "warning",
+        title: "UIDs NFS",
+        content:
+          "Mesmo número de UID em hosts diferentes = dono 'errado'.",
+      },
+      {
+        type: "info",
+        title: "Lab em 127.0.0.1",
+        content:
+          "Valida mecânica sem expor a LAN inteira.",
+      },
+      {
+        type: "success",
+        title: "testparm e exportfs -v",
+        content:
+          "Sempre após editar.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "NFS loopback",
+        goal: "Export /srv/nfs-lab só para 127.0.0.1, mount, ls, umount.",
+        steps: [
+          "criar dir e exports",
+          "exportfs -ra",
+          "mount local",
+          "umount",
+        ],
+        command: "sudo exportfs -v | grep nfs-lab || true; ls /srv/nfs-lab",
+        verify:
+          "Export listado e arquivo README visível no servidor.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "NFS vs Samba em uma frase?",
+        answer:
+          "NFS para Unix nativo; Samba para SMB/Windows.",
+      },
+      {
+        id: 2,
+        question: "Arquivo de exports NFS?",
+        answer:
+          "/etc/exports",
+      },
+      {
+        id: 3,
+        question: "Por que guest ok é sensível?",
+        answer:
+          "Acesso anônimo ao share.",
+      },
+      {
+        id: 4,
+        question: "Porta típica SMB?",
+        answer:
+          "445 (e legado 139).",
+      },
+      {
+        id: 5,
+        question: "exportfs -ra faz o quê?",
+        answer:
+          "Reaplica exports ao kernel/nfsd.",
+      },
+      {
+        id: 6,
+        question: "Melhor expor na internet?",
+        answer:
+          "Não — use VPN ou outro modelo.",
+      },
+      {
+        id: 7,
+        question: "testparm valida o quê?",
+        answer:
+          "smb.conf do Samba.",
+      },
+      {
+        id: 8,
+        question: "no_root_squash risco?",
+        answer:
+          "Root do cliente pode ser root nos arquivos do servidor.",
+      },
+    ],
+    references: [
+      { title: "Debian Wiki — NFSServerSetup", url: "https://wiki.debian.org/NFSServerSetup" },
+      { title: "Debian Wiki — Samba", url: "https://wiki.debian.org/Samba" },
+      { title: "man exports", url: "https://manpages.debian.org/exports" },
+    ],
+  },
+  {
+    id: "wireguard",
+    title: "WireGuard VPN — túnel ponto a ponto",
+    icon: "🛡️",
+    category: "Servidores",
+    description:
+      "Monte VPN WireGuard no Debian: chaves, interface wg0, Peer, IP forwarding consciente e teste de handshake sem teatro enterprise.",
+    objectives: [
+      "Gerar par de chaves WireGuard",
+      "Escrever config wg0 com Address e Peer",
+      "Subir interface com wg-quick",
+      "Ler wg show (handshake/transfer)",
+      "Abrir UDP no firewall só o necessário",
+      "Saber quando NÃO redirecionar todo tráfego",
+    ],
+    content: [
+      "**WireGuard** é VPN moderna no kernel: config curta, crypto opinativa, performance boa. No Debian: pacote `wireguard` / `wireguard-tools`. Cenário clássico: notebook ↔ VPS para acessar serviços da LAN ou administrar com IP estável interno.",
+
+      "Jargões. **PrivateKey/PublicKey**. **AllowedIPs**: o que rotear via túnel (não é só firewall). **Endpoint**: IP:porta UDP do peer. **Handshake**: prova de vida criptográfica. **wg-quick**: sobe a iface a partir do arquivo.",
+
+      "Fluxo: `wg genkey | tee priv | wg pubkey > pub` → `/etc/wireguard/wg0.conf` com Interface e Peer → `wg-quick up wg0` → `wg show` → ping no IP do túnel. Firewall: UDP 51820 (ou o que escolher) só de quem deve.",
+
+      "Armadilhas. AllowedIPs 0.0.0.0/0 sem querer (vira full tunnel e quebra rota). Chave privada no git. NAT/IP forwarding esquecido quando precisa lan-access. MTU esquisito em redes móveis.",
+
+      "Quando NÃO: zero-trust enterprise completo com SSO (há produtos em cima); substituir auth de app. Quando SIM: admin remoto, lab multi-máquina, costurar NFS/SSH só na overlay.",
+
+      "Ao terminar você gera chaves, sobe wg0 de lab e interpreta `wg show` sem achar que VPN resolve patch desatualizado.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y wireguard wireguard-tools",
+        description:
+          "Ferramentas WireGuard.",
+        example: "sudo apt install -y wireguard wireguard-tools",
+      },
+      {
+        command: "wg --version || true",
+        description:
+          "Versão userspace tools.",
+        example: "wg --version || true",
+      },
+      {
+        command: "umask 077; wg genkey | tee /tmp/wg-lab-priv | wg pubkey | tee /tmp/wg-lab-pub; echo 'chaves lab em /tmp (não use em prod)'",
+        description:
+          "Gera par de chaves de lab.",
+        example: "umask 077; wg genkey | tee /tmp/wg-lab-priv | wg pubkey | tee /tmp/wg-lab-pub; echo 'chaves lab em /tmp (não use em prod)'",
+      },
+      {
+        command: "sudo sh -c 'install -m 700 -d /etc/wireguard'",
+        description:
+          "Dir de configs.",
+        example: "sudo sh -c 'install -m 700 -d /etc/wireguard'",
+      },
+      {
+        command: "man wg",
+        description:
+          "Comando de status/config live.",
+        example: "man wg",
+      },
+      {
+        command: "man wg-quick",
+        description:
+          "Sobe/desce a partir de arquivo.",
+        example: "man wg-quick",
+      },
+      {
+        command: "printf '%s\n' '[Interface]' 'Address = 10.66.66.1/24' 'ListenPort = 51820' 'PrivateKey = COLE_PRIV' '# [Peer]' '# PublicKey = ...' '# AllowedIPs = 10.66.66.2/32' '# Endpoint = vps.example:51820' | sudo tee /etc/wireguard/wg0.conf.example",
+        description:
+          "Modelo de config (exemplo).",
+        example: "printf '%s\n' '[Interface]' 'Address = 10.66.66.1/24' 'ListenPort = 51820' 'PrivateKey = COLE_PRIV' '# [Peer]' '# PublicKey = ...' '# AllowedIPs = 10.66.66.2/32' '# Endpoint = vps.example:51820' | sudo tee /etc/wireguard/wg0.conf.example",
+      },
+      {
+        command: "sudo wg show",
+        description:
+          "Interfaces e handshakes.",
+        example: "sudo wg show",
+      },
+      {
+        command: "ip link show type wireguard 2>/dev/null || true",
+        description:
+          "Ifaces WG no kernel.",
+        example: "ip link show type wireguard 2>/dev/null || true",
+      },
+      {
+        command: "sudo sysctl net.ipv4.ip_forward",
+        description:
+          "Forwarding (só se for rotear redes).",
+        example: "sudo sysctl net.ipv4.ip_forward",
+      },
+      {
+        command: "sudo ss -lunp | grep 51820 || true",
+        description:
+          "UDP listen do WG.",
+        example: "sudo ss -lunp | grep 51820 || true",
+      },
+      {
+        command: "sudo wg-quick strip wg0 2>/dev/null | head || true",
+        description:
+          "Mostra config efetiva se wg0 existir.",
+        example: "sudo wg-quick strip wg0 2>/dev/null | head || true",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "PrivateKey",
+        content:
+          "Permissão 600; nunca commit.",
+      },
+      {
+        type: "warning",
+        title: "AllowedIPs",
+        content:
+          "Define rotas — leia com calma.",
+      },
+      {
+        type: "info",
+        title: "UDP",
+        content:
+          "WireGuard não é TCP 443 por padrão.",
+      },
+      {
+        type: "success",
+        title: "wg show",
+        content:
+          "latest handshake diz se o peer falou recentemente.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Chaves e modelo de conf",
+        goal: "Gerar chaves lab e gravar wg0.conf.example com Address de overlay.",
+        steps: [
+          "apt install wireguard-tools",
+          "wg genkey/pubkey",
+          "escrever example conf",
+          "wg show (pode estar vazio)",
+        ],
+        command: "test -f /tmp/wg-lab-priv && test -f /tmp/wg-lab-pub && wc -c /tmp/wg-lab-priv",
+        verify:
+          "Par de chaves criado com permissões restritas pelo umask.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "WireGuard usa TCP ou UDP por padrão?",
+        answer:
+          "UDP.",
+      },
+      {
+        id: 2,
+        question: "AllowedIPs controla o quê?",
+        answer:
+          "Quais destinos são roteados via peer (e filtro).",
+      },
+      {
+        id: 3,
+        question: "wg-quick up wg0 faz o quê?",
+        answer:
+          "Cria iface e aplica /etc/wireguard/wg0.conf.",
+      },
+      {
+        id: 4,
+        question: "Onde ver handshake?",
+        answer:
+          "wg show.",
+      },
+      {
+        id: 5,
+        question: "Risco de 0.0.0.0/0 em AllowedIPs no client?",
+        answer:
+          "Todo tráfego pode ir à VPN (full tunnel).",
+      },
+      {
+        id: 6,
+        question: "Por que umask 077 ao gerar chave?",
+        answer:
+          "Evitar private key legível por outros.",
+      },
+      {
+        id: 7,
+        question: "IP forwarding quando?",
+        answer:
+          "Quando o node roteia para outras redes além do ponto-a-ponto.",
+      },
+      {
+        id: 8,
+        question: "VPN elimina necessidade de updates?",
+        answer:
+          "Não — só reduz superfície de exposição.",
+      },
+    ],
+    references: [
+      { title: "WireGuard official", url: "https://www.wireguard.com/" },
+      { title: "man wg", url: "https://manpages.debian.org/wg" },
+      { title: "Debian Wiki — WireGuard", url: "https://wiki.debian.org/WireGuard" },
+    ],
+  },
+  {
+    id: "postgres-operacao",
+    title: "PostgreSQL operação — backup/restore e auth",
+    icon: "🐘",
+    category: "Servidores",
+    description:
+      "Vá além do apt install postgresql: roles, pg_hba, dump/restore e higiene mínima de operação no Debian.",
+    objectives: [
+      "Instalar PostgreSQL e conectar via peer/local",
+      "Criar role e database de app",
+      "Ler pg_hba.conf com respeito",
+      "Fazer pg_dump e restaurar em lab",
+      "Ver atividade com psql básica",
+      "Não expor 5432 na internet sem necessidade",
+    ],
+    content: [
+      "Instalar Postgres é o capítulo curto. **Operar** é auth (`pg_hba.conf`), backups que **restauram**, vacuum consciente e não publicar a porta na WAN. No Debian o cluster padrão sob `postgresql` systemd e dados em `/var/lib/postgresql`.",
+
+      "Jargões. **role**: usuário do banco. **peer** vs **md5/scram**: métodos de auth local/remoto. **pg_dump**: backup lógico. **WAL/base backup**: físico (avançado). **psql**: cliente oficial.",
+
+      "Fluxo: `apt install postgresql postgresql-contrib` → `sudo -u postgres psql` → `CREATE USER ...` / `CREATE DATABASE ...` → ajuste hba se app remota → `pg_dump db > backup.sql` → restore em lab com `psql db < backup.sql`. Teste o restore ou o backup é ficção.",
+
+      "Armadilhas. trust em 0.0.0.0. Senha fraca + porta aberta. Só snapshot de disco com DB ligado sem flush. Guardar dump com PII no home world-readable.",
+
+      "Quando NÃO: achar que dump SQL resolve PITR de fintech — estude base backup/WAL. Quando SIM: app small/medium, lab, staging.",
+
+      "Ao terminar você cria role/db, gera dump e restaura em lab, e sabe onde o hba decide quem entra.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y postgresql postgresql-contrib",
+        description:
+          "Servidor e contrib.",
+        example: "sudo apt install -y postgresql postgresql-contrib",
+      },
+      {
+        command: "sudo systemctl enable --now postgresql",
+        description:
+          "Sobe o cluster.",
+        example: "sudo systemctl enable --now postgresql",
+      },
+      {
+        command: "sudo -u postgres psql -c 'SELECT version();'",
+        description:
+          "Conecta via peer como postgres.",
+        example: "sudo -u postgres psql -c 'SELECT version();'",
+      },
+      {
+        command: "sudo -u postgres psql -c \"CREATE USER app WITH PASSWORD 'labonly';\" 2>/dev/null || true",
+        description:
+          "Role de lab (troque a senha).",
+        example: "sudo -u postgres psql -c \"CREATE USER app WITH PASSWORD 'labonly';\" 2>/dev/null || true",
+      },
+      {
+        command: "sudo -u postgres psql -c 'CREATE DATABASE app OWNER app;' 2>/dev/null || true",
+        description:
+          "Database de lab.",
+        example: "sudo -u postgres psql -c 'CREATE DATABASE app OWNER app;' 2>/dev/null || true",
+      },
+      {
+        command: "sudo -u postgres pg_dump app > /tmp/app-lab.sql && wc -l /tmp/app-lab.sql",
+        description:
+          "Dump lógico.",
+        example: "sudo -u postgres pg_dump app > /tmp/app-lab.sql && wc -l /tmp/app-lab.sql",
+      },
+      {
+        command: "sudo -u postgres psql -c 'CREATE DATABASE app_restore;' 2>/dev/null || true; sudo -u postgres psql app_restore < /tmp/app-lab.sql",
+        description:
+          "Restore em outra base.",
+        example: "sudo -u postgres psql -c 'CREATE DATABASE app_restore;' 2>/dev/null || true; sudo -u postgres psql app_restore < /tmp/app-lab.sql",
+      },
+      {
+        command: "sudo sed -n '1,80p' /etc/postgresql/*/main/pg_hba.conf 2>/dev/null | head -n 40",
+        description:
+          "Trecho de hba (paths variam com versão).",
+        example: "sudo sed -n '1,80p' /etc/postgresql/*/main/pg_hba.conf 2>/dev/null | head -n 40",
+      },
+      {
+        command: "sudo ss -lntp | grep 5432 || true",
+        description:
+          "Onde escuta.",
+        example: "sudo ss -lntp | grep 5432 || true",
+      },
+      {
+        command: "man pg_dump",
+        description:
+          "Opções de dump.",
+        example: "man pg_dump",
+      },
+      {
+        command: "sudo -u postgres psql -c 'SELECT datname FROM pg_database;'",
+        description:
+          "Lista databases.",
+        example: "sudo -u postgres psql -c 'SELECT datname FROM pg_database;'",
+      },
+      {
+        command: "sudo journalctl -u postgresql -n 20 --no-pager",
+        description:
+          "Logs do serviço.",
+        example: "sudo journalctl -u postgresql -n 20 --no-pager",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "5432 público",
+        content:
+          "Brute force e data leak — firewall/VPN.",
+      },
+      {
+        type: "warning",
+        title: "Backup não testado",
+        content:
+          "Só conta depois do restore.",
+      },
+      {
+        type: "info",
+        title: "peer auth local",
+        content:
+          "socket Unix como OS user postgres.",
+      },
+      {
+        type: "success",
+        title: "SCRAM",
+        content:
+          "Prefira scram-sha-256 a md5 legado.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Dump e restore lab",
+        goal: "Criar db app, dump, restore em app_restore.",
+        steps: [
+          "CREATE USER/DB",
+          "pg_dump",
+          "CREATE app_restore",
+          "psql < dump",
+        ],
+        command: "test -f /tmp/app-lab.sql && sudo -u postgres psql -tAc \"SELECT 1 FROM pg_database WHERE datname='app_restore'\"",
+        verify:
+          "Dump existe e database app_restore está presente (1).",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "pg_dump é backup lógico ou físico?",
+        answer:
+          "Lógico (SQL/custom), não substitui tudo de PITR.",
+      },
+      {
+        id: 2,
+        question: "Arquivo central de auth de clientes?",
+        answer:
+          "pg_hba.conf",
+      },
+      {
+        id: 3,
+        question: "Como entrar como superuser padrão no Debian?",
+        answer:
+          "sudo -u postgres psql",
+      },
+      {
+        id: 4,
+        question: "Por que testar restore?",
+        answer:
+          "Backup corrompido/incompleto só aparece na hora H.",
+      },
+      {
+        id: 5,
+        question: "Porta padrão?",
+        answer:
+          "5432",
+      },
+      {
+        id: 6,
+        question: "role vs database?",
+        answer:
+          "Role autentica/autoriza; database é o catálogo de objetos.",
+      },
+      {
+        id: 7,
+        question: "Risco de trust em hba?",
+        answer:
+          "Conexões sem senha conforme o match — perigoso se amplo.",
+      },
+      {
+        id: 8,
+        question: "Onde dados do cluster costumam viver?",
+        answer:
+          "/var/lib/postgresql/...",
+      },
+    ],
+    references: [
+      { title: "PostgreSQL docs", url: "https://www.postgresql.org/docs/" },
+      { title: "Debian Wiki — PostgreSQL", url: "https://wiki.debian.org/PostgreSQL" },
+      { title: "man pg_dump", url: "https://manpages.debian.org/pg_dump" },
+    ],
+  },
+  {
+    id: "capstone-vps",
+    title: "Capstone: servidor Debian mínimo na VPS",
+    icon: "🏁",
+    category: "Servidores",
+    description:
+      "Feche o curso com um checklist de VPS mínima: SSH endurecido, firewall, unattended-upgrades, web atrás de proxy, backup testado e evidência de pronto.",
+    objectives: [
+      "Montar checklist de baseline Debian em VPS",
+      "Garantir SSH por chave e firewall mínimo",
+      "Ligar unattended-upgrades com log legível",
+      "Publicar um serviço web simples atrás de proxy/TLS se couber",
+      "Provar backup com restore de lab",
+      "Documentar o que ficou de fora e por quê",
+    ],
+    content: [
+      "Capstone não é feature nova: é juntar o que já viu em um host que você entregaria. Ordem: atualizar → usuário sudo → SSH chave → firewall → updates automáticos → tempo/NTP → serviço útil → proxy/TLS → backup → observação leve. Cada item deixa evidência (comando + saída anotada).",
+
+      "Jargões de entrega. baseline: estado mínimo aceitável. blast radius: o que quebra se o host cair. runbook de acesso: como entrar se a rede falhar (console cloud). definition of done: lista checada, não feeling.",
+
+      "Evidências mínimas: apt list --upgradable vazio ou justificado; sshd PasswordAuthentication no; ufw/nft com allow SSH; unattended-upgrades active; timedatectl ok; curl no health; dump/restore ou tarball testado; journal disk-usage sob controle.",
+
+      "Armadilhas. Checklist copiado de CIS inteiro sem entender. Expor DB. Achar que TLS no Cloudflare dispensa cuidado no origin. Backup só no mesmo disco. Documentação só na cabeça.",
+
+      "Quando NÃO: produção regulada sem time — capstone é treino. Quando SIM: lab final, side project, template da equipe.",
+
+      "Ao terminar você tem uma VPS contável: acesso, patch, borda, app, backup e notas — e sabe pedir review ao Jack antes de push/prod se a regra do projeto exigir.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt update && apt list --upgradable 2>/dev/null | head",
+        description:
+          "Superfície de patch.",
+        example: "sudo apt update && apt list --upgradable 2>/dev/null | head",
+      },
+      {
+        command: "sudo systemctl is-active ssh sshd 2>/dev/null; sudo sshd -T 2>/dev/null | grep -Ei 'passwordauthentication|permitrootlogin' | head",
+        description:
+          "SSH ativo e hardening básico.",
+        example: "sudo systemctl is-active ssh sshd 2>/dev/null; sudo sshd -T 2>/dev/null | grep -Ei 'passwordauthentication|permitrootlogin' | head",
+      },
+      {
+        command: "sudo ufw status verbose 2>/dev/null || sudo nft list ruleset 2>/dev/null | head -n 20",
+        description:
+          "Firewall.",
+        example: "sudo ufw status verbose 2>/dev/null || sudo nft list ruleset 2>/dev/null | head -n 20",
+      },
+      {
+        command: "systemctl is-active unattended-upgrades 2>/dev/null; ls /var/log/unattended-upgrades 2>/dev/null | head",
+        description:
+          "Updates automáticos.",
+        example: "systemctl is-active unattended-upgrades 2>/dev/null; ls /var/log/unattended-upgrades 2>/dev/null | head",
+      },
+      {
+        command: "timedatectl",
+        description:
+          "Tempo e NTP.",
+        example: "timedatectl",
+      },
+      {
+        command: "systemctl --failed --no-pager",
+        description:
+          "Sem failed units surpresa.",
+        example: "systemctl --failed --no-pager",
+      },
+      {
+        command: "curl -sI http://127.0.0.1/ 2>/dev/null | head || curl -sI http://127.0.0.1:8080 2>/dev/null | head || echo 'defina seu health local'",
+        description:
+          "Health HTTP local.",
+        example: "curl -sI http://127.0.0.1/ 2>/dev/null | head || curl -sI http://127.0.0.1:8080 2>/dev/null | head || echo 'defina seu health local'",
+      },
+      {
+        command: "journalctl --disk-usage",
+        description:
+          "Journal sob controle.",
+        example: "journalctl --disk-usage",
+      },
+      {
+        command: "df -h /; free -h",
+        description:
+          "Recursos básicos.",
+        example: "df -h /; free -h",
+      },
+      {
+        command: "sudo last -n 5 2>/dev/null || journalctl -u ssh --since today --no-pager | tail",
+        description:
+          "Acessos recentes.",
+        example: "sudo last -n 5 2>/dev/null || journalctl -u ssh --since today --no-pager | tail",
+      },
+      {
+        command: "sudo tar -czf /tmp/etc-lab-backup.tgz /etc/hostname /etc/hosts 2>/dev/null; ls -l /tmp/etc-lab-backup.tgz",
+        description:
+          "Amostra de backup de config (lab).",
+        example: "sudo tar -czf /tmp/etc-lab-backup.tgz /etc/hostname /etc/hosts 2>/dev/null; ls -l /tmp/etc-lab-backup.tgz",
+      },
+      {
+        command: "printf '%s\n' '## Capstone DoD' '- [ ] ssh chave' '- [ ] firewall' '- [ ] unattended' '- [ ] ntp' '- [ ] app health' '- [ ] backup testado' '- [ ] notas' > ~/capstone-dod.md && cat ~/capstone-dod.md",
+        description:
+          "Definition of done em markdown.",
+        example: "printf '%s\n' '## Capstone DoD' '- [ ] ssh chave' '- [ ] firewall' '- [ ] unattended' '- [ ] ntp' '- [ ] app health' '- [ ] backup testado' '- [ ] notas' > ~/capstone-dod.md && cat ~/capstone-dod.md",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Evidência por item",
+        content:
+          "Comando + data no DoD.",
+      },
+      {
+        type: "warning",
+        title: "Mesmo disco ≠ backup offsite",
+        content:
+          "3-2-1 ainda vale.",
+      },
+      {
+        type: "info",
+        title: "Console cloud",
+        content:
+          "Antes de fechar firewall apertado.",
+      },
+      {
+        type: "danger",
+        title: "Push/prod sem ok",
+        content:
+          "Neste projeto: só com aprovação do Jack.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "DoD preenchido",
+        goal: "Gerar ~/capstone-dod.md e preencher com resultados reais dos checks.",
+        steps: [
+          "rodar checks SSH/firewall/unattended/ntp/failed",
+          "anotar no markdown",
+          "criar tarball lab de /etc trecho",
+          "releitura do DoD",
+        ],
+        command: "test -f ~/capstone-dod.md && systemctl --failed --no-pager && timedatectl | head -n 5",
+        verify:
+          "DoD existe e você tem saída fresca de failed units + tempo.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Ordem mental da baseline VPS?",
+        answer:
+          "Patch e acesso → borda → updates → tempo → app → backup → obs.",
+      },
+      {
+        id: 2,
+        question: "Por que PasswordAuthentication no?",
+        answer:
+          "Reduz brute force; chave é o caminho.",
+      },
+      {
+        id: 3,
+        question: "unattended-upgrades cobre o quê?",
+        answer:
+          "Atualizações de segurança automáticas (conforme origins).",
+      },
+      {
+        id: 4,
+        question: "Backup no mesmo disco falha qual regra?",
+        answer:
+          "Separação de mídia / 3-2-1.",
+      },
+      {
+        id: 5,
+        question: "definition of done é o quê?",
+        answer:
+          "Critérios objetivos de pronto.",
+      },
+      {
+        id: 6,
+        question: "Por que console cloud importa?",
+        answer:
+          "Recuperar se o firewall/SSH fechar mal.",
+      },
+      {
+        id: 7,
+        question: "systemctl --failed no capstone?",
+        answer:
+          "Não entregar host com units quebradas silenciosas.",
+      },
+      {
+        id: 8,
+        question: "Capstone substitui hardening completo CIS?",
+        answer:
+          "Não — é mínimo honesto e documentado.",
+      },
+    ],
+    references: [
+      { title: "Debian securing manual", url: "https://www.debian.org/doc/manuals/securing-debian-manual/" },
+      { title: "Debian Wiki — Hardening", url: "https://wiki.debian.org/Hardening" },
+      { title: "UnattendedUpgrades", url: "https://wiki.debian.org/UnattendedUpgrades" },
+    ],
+  },
 ];
