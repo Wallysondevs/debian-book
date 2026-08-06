@@ -449,12 +449,12 @@ sudo apt --simulate install docker.io | head -30`,
       },
       {
         command: "sudo dpkg --remove",
-        description: "Remove pacote mantendo configs.",
+        description: "Remove os arquivos do pacote, mas mantém os de configuração em `/etc`. É o que você quer quando pretende reinstalar depois sem perder ajuste; o pacote passa ao estado `rc` na listagem do `dpkg -l`.",
         example: "sudo dpkg --remove firefox-esr",
       },
       {
         command: "sudo dpkg --purge",
-        description: "Remove pacote E apaga configs.",
+        description: "Remove o pacote e também os arquivos de configuração. Use para voltar ao padrão de fábrica; é também o único caminho para limpar os pacotes em estado `rc` deixados por remoções anteriores.",
         example: "sudo dpkg --purge firefox-esr",
       },
       {
@@ -730,7 +730,7 @@ deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-f
       {
         command: "ls /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
         description:
-          "Mapa clássico + drop-ins.",
+          "Mostra os dois lugares onde o APT procura fontes: o arquivo único clássico e o diretório de drop-ins. Repositório de terceiro deve morar sempre em arquivo próprio no diretório, para não ser atropelado na próxima atualização do sistema.",
       },
       {
         command: "grep -R \"Types:\\|Signed-By:\\|^deb \" /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 40",
@@ -1006,7 +1006,7 @@ Flatseal              com.github.tchx84.Flatseal    2.2.0    stable`,
       },
       {
         command: "flatpak uninstall",
-        description: "Remove um Flatpak instalado.",
+        description: "Remove um aplicativo Flatpak. Depois rode `flatpak uninstall --unused`: os runtimes compartilhados ficam para trás e são eles que ocupam os gigabytes, não o aplicativo em si.",
         example: "flatpak uninstall com.spotify.Client",
         flags: [
           { flag: "--unused", description: "Remove runtimes que nenhum app instalado usa" },

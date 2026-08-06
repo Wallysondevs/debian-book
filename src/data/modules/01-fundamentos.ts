@@ -32,12 +32,12 @@ export const fundamentos: Module[] = [
       {
         command: "lscpu 2>/dev/null | egrep \"Model name|CPU\\(s\\)|Architecture\" || true",
         description:
-          "Amostra real da sua máquina.",
+          "Recorta do `lscpu` as três linhas que interessam agora: modelo do processador, quantidade de CPUs visíveis e arquitetura. É a sua máquina respondendo o que o capítulo acabou de explicar em teoria.",
       },
       {
         command: "uname -m; dpkg --print-architecture",
         description:
-          "Arquitetura kernel vs pacotes Debian.",
+          "Compara duas coisas que se confundem o tempo todo: a arquitetura que o kernel roda (`x86_64`) e o nome que o Debian usa para escolher pacote (`amd64`). Divergência aqui explica erro de dependência ao instalar `.deb` baixado à mão.",
       },
 
       {
@@ -567,17 +567,17 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
       {
         command: "grep -R non-free-firmware /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head || echo nao listado",
         description:
-          "Componente firmware no APT.",
+          "Procura o componente `non-free-firmware` nas suas fontes. Desde o bookworm ele é separado do `non-free`, e sem ele placa de rede ou vídeo que depende de blob simplesmente não recebe firmware.",
       },
       {
         command: "dpkg -l \"firmware-*\" 2>/dev/null | head -n 15 || true",
         description:
-          "Pacotes firmware instalados.",
+          "Lista os pacotes de firmware já presentes. Cruze com o que o `dmesg` reclamar de firmware faltando: o nome do arquivo que aparece no erro indica qual pacote instalar.",
       },
 
       {
         command: "cat /etc/apt/sources.list",
-        description: "Mostra os repositórios principais configurados.",
+        description: "Mostra as fontes principais do APT. Leia cada linha como quatro respostas: tipo (`deb` ou `deb-src`), endereço do espelho, suíte (`bookworm`, `bookworm-security`) e componentes (`main`, `contrib`, `non-free-firmware`).",
         output: "deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\ndeb-src http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\n\ndeb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware\n\ndeb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware",
       },
       {

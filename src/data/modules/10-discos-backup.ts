@@ -415,12 +415,12 @@ echo "Sem erros = seguro para reiniciar"`,
       {
         command: "mkdir -p /tmp/backup-lab /tmp/restore-lab && echo ok > /tmp/backup-lab/prova.txt && tar -czf /tmp/prova.tgz -C /tmp/backup-lab . && tar -xzf /tmp/prova.tgz -C /tmp/restore-lab && cat /tmp/restore-lab/prova.txt",
         description:
-          "Mini lab backup+restore.",
+          "Faz o ciclo inteiro em diretório temporário: cria o arquivo, empacota, restaura em outro lugar e mostra o conteúdo. Backup que nunca foi restaurado não é backup, é esperança — este comando é o ensaio disso.",
       },
       {
         command: "sha256sum /tmp/backup-lab/prova.txt /tmp/restore-lab/prova.txt 2>/dev/null; rm -rf /tmp/backup-lab /tmp/restore-lab /tmp/prova.tgz",
         description:
-          "Hash e limpeza do lab.",
+          "Compara o hash do original com o do restaurado e depois limpa o laboratório. Hashes iguais são a prova objetiva de que a restauração devolveu o mesmo conteúdo, byte a byte.",
       },
 
       {
@@ -1045,7 +1045,7 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
       {
         command: "sudo apt install -y btrfs-progs",
         description:
-          "Userland Btrfs no Debian.",
+          "Instala as ferramentas de espaço de usuário do Btrfs. O suporte ao sistema de arquivos vem no kernel; sem este pacote você até monta o volume, mas não cria subvolume nem snapshot.",
       },
       {
         command: "sudo mkfs.btrfs -L dados /dev/sdX1",
@@ -1056,7 +1056,7 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
       {
         command: "sudo mount /dev/sdX1 /mnt/btrfs && findmnt /mnt/btrfs",
         description:
-          "Monta e confirma o filesystem.",
+          "Monta e confirma na sequência. Troque `sdX1` pelo dispositivo real que aparece no `lsblk`; o `findmnt` mostra as opções efetivas de montagem, inclusive qual subvolume ficou como raiz.",
         example: "sudo mount /dev/sdb1 /mnt/btrfs && findmnt /mnt/btrfs",
       },
       {
@@ -1067,7 +1067,7 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
       {
         command: "sudo btrfs subvolume list /mnt/btrfs",
         description:
-          "Lista subvolumes e IDs.",
+          "Lista os subvolumes com seus IDs. Em instalação padrão aparecem `@` e `@home`; é esse identificador que você usa em `subvol=` no fstab e nas operações de snapshot.",
       },
       {
         command: "sudo btrfs subvolume snapshot -r /mnt/btrfs/@www /mnt/btrfs/@www-snap-$(date +%F)",
@@ -1445,7 +1445,7 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
       {
         command: "sudo cp -a /etc/fstab /etc/fstab.bak-$(date +%F)",
         description:
-          "Backup datado — não negociável.",
+          "Copia o fstab com data antes de qualquer edição. Linha errada aqui derruba o boot num shell de emergência, e nessa hora ter o arquivo bom ao lado é a diferença entre um minuto e uma noite de trabalho.",
       },
       {
         command: "echo 'UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /mnt/dados ext4 defaults,nofail 0 2'",
@@ -1604,7 +1604,7 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
       {
         command: "sudo apt install -y cryptsetup",
         description:
-          "Ferramenta userspace para LUKS/dm-crypt.",
+          "Instala a ferramenta que cria e abre volumes cifrados. Antes de usar em disco real, entenda a regra: perdeu a senha de todos os slots de chave, perdeu os dados — não existe recuperação.",
       },
       {
         command: "truncate -s 512M /tmp/luks-lab.img",

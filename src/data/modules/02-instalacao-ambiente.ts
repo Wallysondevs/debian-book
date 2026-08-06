@@ -672,17 +672,17 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
       {
         command: "tasksel --list-tasks 2>/dev/null | head -n 20 || echo tasksel ausente",
         description:
-          "Tasks de desktop.",
+          "Lista as tasks disponíveis: conjuntos prontos de pacotes que o instalador oferece, como `desktop`, `gnome-desktop` e `ssh-server`. É o caminho suportado para instalar um ambiente inteiro sem caçar metapacote a metapacote.",
       },
       {
         command: "systemctl status display-manager --no-pager 2>/dev/null | head -n 12 || true",
         description:
-          "DM ativo se houver GUI.",
+          "Diz se existe gerenciador de login gráfico ativo e qual é (`gdm3`, `lightdm`, `sddm`). Em servidor este comando não deveria devolver nada: display manager ligado é RAM e superfície de ataque sem propósito.",
       },
       {
         command: "dpkg -l \"task-*-desktop\" 2>/dev/null | grep ^ii || echo nenhuma task desktop",
         description:
-          "Metapacotes instalados.",
+          "Mostra quais metapacotes de desktop estão instalados. Serve para entender por que a máquina tem três ambientes gráficos: cada task arrasta uma pilha inteira e nenhuma remove a anterior.",
       },
 
       {
@@ -750,7 +750,7 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
       },
       {
         command: "xfce4-settings-manager",
-        description: "Painel de configurações do XFCE.",
+        description: "Abre o painel central do XFCE, que reúne aparência, energia, teclado e sessão. Tudo o que ele altera vira arquivo em `~/.config/xfce4`, então dá para versionar ou copiar sua configuração para outra máquina.",
       },
       {
         command: "free -h",

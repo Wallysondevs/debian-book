@@ -634,7 +634,7 @@ sudo iptables -L INPUT -n -v --line-numbers`,
     commands: [
       {
         command: "ssh",
-        description: "Conecta em servidor remoto.",
+        description: "Abre sessão remota. Antes de decorar opções, entenda a ordem de leitura: o cliente lê `~/.ssh/config`, então um bloco `Host` com usuário, porta e chave transforma um comando longo em apenas `ssh vps`.",
         example: "ssh fulano@192.168.1.50",
         flags: [
           { flag: "-p PORTA", description: "Porta SSH não-padrão (default 22)" },
@@ -650,7 +650,7 @@ sudo iptables -L INPUT -n -v --line-numbers`,
       },
       {
         command: "ssh-keygen",
-        description: "Gera par de chaves SSH.",
+        description: "Gera o par de chaves. O padrão recomendado hoje é `-t ed25519`: chave curta, rápida e forte. A privada nunca sai da sua máquina; só o arquivo `.pub` viaja para o servidor.",
         example: "ssh-keygen -t ed25519 -C 'meu-email@exemplo.com'",
         flags: [
           { flag: "-t ed25519", description: "Algoritmo moderno (recomendado)" },
@@ -963,7 +963,7 @@ psql -h localhost -U postgres
     commands: [
       {
         command: "sudo dpkg-reconfigure -plow unattended-upgrades",
-        description: "Configura/ativa atualizações automáticas de segurança.",
+        description: "Reabre o assistente do pacote para ligar as atualizações automáticas de segurança. Depois confirme em `/etc/apt/apt.conf.d/20auto-upgrades`: sem essas duas linhas o pacote está instalado, mas não faz nada.",
       },
       {
         command: "sudo unattended-upgrades --dry-run",
@@ -972,7 +972,7 @@ psql -h localhost -U postgres
       },
       {
         command: "sudo apt list --upgradable",
-        description: "Lista pacotes com atualização pendente.",
+        description: "Lista o que tem versão nova esperando, mostrando a instalada e a candidata. As linhas vindas de `bookworm-security` são as que não podem aguardar a próxima janela de manutenção.",
         example: "sudo apt list --upgradable 2>/dev/null",
       },
       {
@@ -1025,17 +1025,17 @@ psql -h localhost -U postgres
       },
       {
         command: "gpg --encrypt -r",
-        description: "Cifra arquivo para um destinatário.",
+        description: "Cifra um arquivo para um destinatário específico usando a chave pública dele — só quem tem a privada correspondente abre. Sem `-r` o GPG não sabe para quem cifrar e recusa a operação.",
         example: "gpg --encrypt -r destinatario@email.com arquivo.txt",
       },
       {
         command: "gpg --sign",
-        description: "Assina arquivo (prova autoria).",
+        description: "Assina o arquivo, provando autoria e integridade. Assinar não é cifrar: o conteúdo continua legível por qualquer um, apenas passa a ser verificável. Para texto costuma-se usar `--clearsign`.",
         example: "gpg --detach-sign arquivo.tar.gz",
       },
       {
         command: "gpg --verify",
-        description: "Verifica assinatura.",
+        description: "Confere uma assinatura. Cuidado ao ler o resultado: 'Good signature' diz que aquela chave assinou o arquivo, não que a chave seja confiável — isso depende de você ter conferido a impressão digital antes.",
         example: "gpg --verify arquivo.tar.gz.sig arquivo.tar.gz",
       },
       {
@@ -1352,7 +1352,7 @@ active`,
       },
       {
         command: "man nmcli",
-        description: "Referência do cliente NetworkManager.",
+        description: "Referência do cliente de linha de comando do NetworkManager. Comece por `nmcli device status` e `nmcli connection show`: quase toda operação de rede em desktop Debian sai desses dois.",
       },
       {
         command: "man systemd.network",
@@ -1515,7 +1515,7 @@ active`,
       {
         command: "resolvectl query debian.org 2>/dev/null | head || true",
         description:
-          "Query via resolved com metadados.",
+          "Consulta passando pelo systemd-resolved e mostra de onde veio a resposta: por qual link, se saiu do cache e se foi validada por DNSSEC. É diferente do `dig`, que fala direto com um servidor e ignora o caminho do sistema.",
         example: "resolvectl query debian.org 2>/dev/null | head",
       },
       {
@@ -1527,12 +1527,12 @@ active`,
       {
         command: "man resolvectl",
         description:
-          "Comandos do cliente resolved.",
+          "Comandos do cliente: `status` para ver o servidor de cada interface, `flush-caches` quando o registro mudou e a resposta velha insiste, e `query` para consultar do mesmo jeito que o sistema consulta.",
       },
       {
         command: "man resolv.conf",
         description:
-          "Formato clássico nameserver/search/options.",
+          "Formato do arquivo clássico: `nameserver`, `search` para completar nome curto e `options`. Vale ler porque em muitas máquinas ele é apenas um link para o stub do resolved — e editar o link não muda nada.",
       },
     ],
     tips: [
@@ -1672,7 +1672,7 @@ active`,
       {
         command: "ip -br addr",
         description:
-          "Endereços por interface.",
+          "Uma linha por interface, com estado e endereço — a leitura de rede mais rápida que existe. Interface em `DOWN` ou sem IPv4 encerra metade das investigações antes de você abrir qualquer log.",
       },
       {
         command: "ip route",
@@ -1699,7 +1699,7 @@ active`,
       {
         command: "ss -tnp | head -n 20",
         description:
-          "Conexões TCP estabelecidas (amostra).",
+          "Amostra das conexões TCP com o processo dono de cada uma; o `-p` só mostra processo de outro usuário com sudo. Responde quem esta máquina está procurando e quem está falando com ela agora.",
       },
       {
         command: "ping -c 2 -W 2 1.1.1.1 2>&1 | tail -n 5",
@@ -1716,12 +1716,12 @@ active`,
       {
         command: "man ip-route",
         description:
-          "Referência de rotas iproute2.",
+          "Referência das rotas: como ler a tabela, o que significa a rota `default` e a diferença entre listar tudo e `ip route get 1.1.1.1`, que mostra a decisão real do kernel para um destino específico.",
       },
       {
         command: "man ss",
         description:
-          "Substituto moderno do netstat.",
+          "Substituto moderno do `netstat`. A combinação que resolve o dia a dia é `-lntp`: apenas quem escuta, sem resolver nome, TCP e com o processo dono de cada porta.",
       },
     ],
     tips: [
@@ -1861,12 +1861,12 @@ active`,
       {
         command: "apt-cache search certbot | head",
         description:
-          "Ver plugins disponíveis (python3-certbot-nginx, etc.).",
+          "Procura os plugins do Certbot. Escolher o certo (`nginx`, `apache` ou um `dns-*`) decide se o certificado será emitido e renovado sozinho ou se você vai editar configuração à mão a cada 90 dias.",
       },
       {
         command: "sudo certbot certificates 2>/dev/null || echo 'ainda sem certificados ou certbot nao configurado'",
         description:
-          "Lista certificados gerenciados localmente.",
+          "Lista os certificados que o Certbot administra, com domínios cobertos e data de expiração. É a leitura que antecipa incidente: renovação quebrada em silêncio aparece aqui semanas antes de o site cair.",
         example: "sudo certbot certificates",
       },
       {
@@ -1900,7 +1900,7 @@ active`,
       {
         command: "man certbot",
         description:
-          "Subcomandos certonly, renew, plugins.",
+          "Manual dos subcomandos: `certonly` para só emitir sem tocar na configuração do servidor, `renew` para renovar o que está próximo do vencimento e `--dry-run`, que testa a renovação sem gastar a cota da Let's Encrypt.",
       },
       {
         command: "openssl req -x509 -newkey rsa:2048 -keyout /tmp/lab-self.key -out /tmp/lab-self.crt -days 1 -nodes -subj '/CN=lab.local' 2>/dev/null && openssl x509 -in /tmp/lab-self.crt -noout -subject -dates && rm -f /tmp/lab-self.key /tmp/lab-self.crt",
@@ -2086,7 +2086,7 @@ active`,
       {
         command: "man nginx",
         description:
-          "Entrada da documentação local.",
+          "Entrada da documentação local, com as opções de linha de comando. Vale sobretudo por duas: `nginx -t`, que valida a configuração antes de aplicar, e `-s reload`, que aplica sem derrubar conexão em andamento.",
       },
       {
         command: "apt-cache search '^caddy' | head",
@@ -2242,23 +2242,23 @@ active`,
       {
         command: "dpkg -l 'apparmor*' | grep ^ii",
         description:
-          "Pacotes AppArmor instalados.",
+          "Mostra o que de AppArmor está instalado. O pacote `apparmor-utils` é quem traz `aa-status`, `aa-complain` e `aa-enforce`; sem ele você tem o mecanismo, mas não as ferramentas para operá-lo.",
       },
       {
         command: "journalctl -b -g apparmor --no-pager 2>/dev/null | tail -n 20 || sudo dmesg | grep -i apparmor | tail -n 15",
         description:
-          "Negações/eventos recentes ligados ao AppArmor.",
+          "Filtra as negações registradas neste boot. Quando um serviço não consegue ler um arquivo que existe e cuja permissão está correta, a resposta está aqui, numa linha `DENIED` com o caminho exato.",
         example: "journalctl -b -g apparmor --no-pager | tail -n 20",
       },
       {
         command: "man aa-status",
         description:
-          "Manual do status.",
+          "Manual do comando de status, que responde quantos perfis estão em `enforce`, quantos em `complain` e quais processos estão confinados neste momento.",
       },
       {
         command: "man apparmor",
         description:
-          "Visão geral do framework.",
+          "Visão geral do framework: controle de acesso obrigatório por caminho de arquivo, aplicado perfil a perfil. É a alternativa adotada pelo Debian no lugar do SELinux, e a diferença de abordagem começa exatamente aí.",
       },
       {
         command: "apt-cache search apparmor | head",
@@ -2399,7 +2399,7 @@ active`,
     commands: [
       {
         command: "sudo apt install -y fail2ban",
-        description: "Instala o serviço.",
+        description: "Instala o serviço que lê log de autenticação e bane IP que erra demais. No Debian ele já vem com a jail do SSH, que é a que importa na esmagadora maioria dos casos.",
       },
       {
         command: "printf \"%s\n\" \"[sshd]\" \"enabled = true\" | sudo tee /etc/fail2ban/jail.d/sshd.local",
@@ -2407,11 +2407,11 @@ active`,
       },
       {
         command: "sudo systemctl enable --now fail2ban",
-        description: "Sobe e habilita no boot.",
+        description: "Sobe agora e garante no boot. Falha aqui quase sempre é caminho de log inexistente na configuração: em sistema só com journal, a jail precisa usar o backend `systemd`.",
       },
       {
         command: "sudo fail2ban-client status",
-        description: "Jails ativas.",
+        description: "Lista as jails ativas. Para ver o trabalho de uma delas, use `status sshd`: aparecem tentativas detectadas, IPs banidos agora e o total acumulado desde que o serviço subiu.",
         output: `Status
 |- Number of jail:	1
 \`- Jail list:	sshd`,
@@ -2426,7 +2426,7 @@ active`,
       },
       {
         command: "man fail2ban",
-        description: "Visão geral; veja também jail.conf(5).",
+        description: "Visão geral do serviço; a configuração de verdade está em `man jail.conf`. A regra de ouro é nunca editar o `jail.conf`: escreva em `jail.local`, que sobrevive à atualização do pacote.",
       },
     ],
     tips: [
@@ -2549,23 +2549,23 @@ active`,
       {
         command: "grep -vE '^#|^$' /etc/security/pwquality.conf 2>/dev/null | head -n 30",
         description:
-          "Política efetiva comentada/ativa (minlen, etc.).",
+          "Mostra só as linhas que valem, sem comentário nem linha em branco. Saída vazia depois desse filtro significa que a política de senha está inteira no padrão do pacote, e não nas suas mãos.",
         example: "grep -vE '^#|^$' /etc/security/pwquality.conf | head",
       },
       {
         command: "man pam_pwquality",
         description:
-          "Opções do módulo.",
+          "Opções do módulo que decide se a senha é aceitável: `minlen`, os créditos por tipo de caractere, `retry` e o frequentemente esquecido `enforce_for_root` — sem ele, a política não vale para o root.",
       },
       {
         command: "man pwquality.conf",
         description:
-          "Arquivo de configuração de qualidade.",
+          "Formato do arquivo de qualidade de senha. Configurar por aqui é melhor do que empilhar argumentos na linha do PAM: sobrevive à atualização e fica legível para quem herdar a máquina.",
       },
       {
         command: "man pam",
         description:
-          "Visão geral da arquitetura PAM.",
+          "Visão geral da arquitetura: os quatro tipos (`auth`, `account`, `password`, `session`) e as flags de controle (`required`, `requisite`, `sufficient`). Errar a ordem dessas linhas é a forma mais rápida de se trancar para fora do próprio servidor.",
       },
       {
         command: "grep -n 'password' /etc/pam.d/sshd 2>/dev/null | head",
@@ -2716,7 +2716,7 @@ active`,
       {
         command: "sudo apt install -y acl libcap2-bin",
         description:
-          "Ferramentas setfacl/getfacl e getcap/setcap.",
+          "Instala as duas famílias de ferramentas: ACL, para dar permissão a mais de um grupo no mesmo arquivo, e capabilities, para conceder um poder específico a um binário sem entregar root inteiro por SUID.",
       },
       {
         command: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
@@ -2759,7 +2759,7 @@ active`,
       {
         command: "man getcap",
         description:
-          "Ler capabilities de arquivos.",
+          "Lê as capabilities gravadas em binários. Rodar `getcap -r /usr/bin` é auditoria barata: qualquer programa com `cap_setuid` ou `cap_sys_admin` precisa ter explicação.",
       },
       {
         command: "namei -l /tmp/acl-lab/arq.txt",
@@ -2904,7 +2904,7 @@ active`,
       {
         command: "journalctl -u ssh -u sshd -n 30 --no-pager 2>/dev/null | tail -n 30",
         description:
-          "Amostra de auth SSH recente.",
+          "Amostra recente da autenticação SSH, cobrindo os dois nomes possíveis da unit. Você procura padrão: falha repetida do mesmo IP é ruído da internet; login bem-sucedido de IP desconhecido é incidente.",
         example: "journalctl -u ssh --no-pager -n 20 2>/dev/null || journalctl -u sshd -n 20 --no-pager",
       },
       {
@@ -2927,7 +2927,7 @@ active`,
       {
         command: "dpkg -l auditd 2>/dev/null | tail -n 1; systemctl is-active auditd 2>/dev/null || true",
         description:
-          "auditd presente/ativo? Intro apenas.",
+          "Responde se o `auditd` existe e está rodando. Ele registra chamadas de sistema com muito mais detalhe que o journal, ao custo de disco e CPU — por isso entra quando há requisito de conformidade, não por padrão.",
         example: "systemctl is-active auditd 2>/dev/null; dpkg -l auditd 2>/dev/null | tail -n 1",
       },
       {

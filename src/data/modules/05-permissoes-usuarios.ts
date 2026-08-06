@@ -397,7 +397,7 @@ sudo -u nobody cat /tmp/site/index.html`,
       },
       {
         command: "userdel",
-        description: "Apaga usuário do sistema.",
+        description: "Remove a conta. Sem `-r` a home fica para trás com um UID órfão; com `-r`, some tudo. Antes de apagar, procure processos e tarefas de cron do usuário — em servidor é comum descobrir que a conta esquecida rodava algo em produção.",
         example: "sudo userdel -r maria",
         flags: [
           { flag: "-r", description: "Remove home, mail e arquivos do usuário" },

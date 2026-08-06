@@ -323,7 +323,7 @@ pwd`,
       },
       {
         command: "cd",
-        description: "Muda o diretório atual.",
+        description: "Muda o diretório atual; sem argumento volta para a sua home e `cd -` volta para o anterior. É um comando interno do shell, não um programa — por isso não aparece no `which` e está documentado em `man bash`.",
         example: "cd /var/log",
         flags: [
           { flag: "/", description: "Raiz do sistema" },
@@ -628,7 +628,7 @@ ls /proc | grep -c '^[0-9]'`,
       },
       {
         command: "mkdir",
-        description: "Cria diretórios.",
+        description: "Cria diretórios. As duas opções de todo dia são `-p`, que cria a árvore inteira e não reclama se já existir (ideal em script), e `-m`, que já nasce com a permissão certa em vez de depender de um `chmod` depois.",
         example: "mkdir -p projeto/src/components",
         flags: [
           { flag: "-p", description: "Cria pais que não existem (essencial)" },
@@ -638,7 +638,7 @@ ls /proc | grep -c '^[0-9]'`,
       },
       {
         command: "cp",
-        description: "Copia arquivos e diretórios.",
+        description: "Copia arquivos e diretórios; para diretório é preciso `-r`. Em cópia de configuração use `-a`, que preserva dono, permissão e data — cópia sem isso é a origem clássica do serviço que não sobe depois da restauração.",
         example: "cp -riv pasta/ /tmp/",
         flags: [
           { flag: "-r", description: "Recursivo (obrigatório para diretórios)" },

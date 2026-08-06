@@ -1200,11 +1200,11 @@ examples`,
     commands: [
       {
         command: "sudo apt install -y tmux",
-        description: "Instala o multiplexador no Debian.",
+        description: "Instala o multiplexador de terminal. É o que permite fechar o SSH sem matar o que estava rodando: o processo continua vivo dentro da sessão do tmux, no servidor.",
       },
       {
         command: "tmux -V",
-        description: "Confirma binário e versão.",
+        description: "Confirma binário e versão. A versão importa porque a sintaxe do `~/.tmux.conf` mudou entre as séries 2.x e 3.x; receita copiada da internet costuma falhar exatamente por isso.",
         output: `tmux 3.4`,
       },
       {
@@ -1214,12 +1214,12 @@ examples`,
       },
       {
         command: "tmux ls",
-        description: "Lista sessões ativas no host.",
+        description: "Lista as sessões ativas com nome, número de janelas e se alguém está conectado. É o primeiro comando ao entrar num servidor: quase sempre existe uma sessão sua esperando desde ontem.",
         output: `lab: 1 windows (created Thu Aug  6 18:00:00 2026)`,
       },
       {
         command: "tmux attach -t lab",
-        description: "Reconecta na sessão lab.",
+        description: "Reconecta na sessão chamada `lab`. Se ela já estiver aberta em outro lugar, acrescente `-d` para desanexar o outro cliente — sem isso, duas telas de tamanhos diferentes disputam a mesma sessão.",
       },
       {
         command: "tmux detach",
@@ -1506,17 +1506,17 @@ examples`,
       {
         command: "python3 --version",
         description:
-          "Python do sistema.",
+          "Mostra o Python do sistema, aquele de que o próprio Debian depende. Guarde o número: é a versão que seu ambiente virtual vai herdar, a menos que você aponte outro interpretador explicitamente.",
       },
       {
         command: "sudo apt install -y python3-venv python3-pip python3-full",
         description:
-          "Ferramentas para venv e pip.",
+          "Instala o que falta para criar ambientes: o Debian separa `venv` e `pip` do interpretador. Este é o caminho suportado — instalar pip por script de terceiro mistura arquivos com os que o dpkg controla.",
       },
       {
         command: "mkdir -p ~/lab-venv && cd ~/lab-venv && python3 -m venv .venv",
         description:
-          "Cria ambiente .venv.",
+          "Cria o ambiente isolado dentro do projeto. A pasta `.venv` é descartável: se algo quebrar, apague e recrie a partir do `requirements.txt`, em vez de tentar consertar pacote a pacote.",
       },
       {
         command: "source ~/lab-venv/.venv/bin/activate && which python && python -V",
@@ -1526,7 +1526,7 @@ examples`,
       {
         command: "source ~/lab-venv/.venv/bin/activate && pip install -U pip wheel",
         description:
-          "Atualiza pip dentro do venv.",
+          "Ativa o ambiente e atualiza o pip dentro dele. Confira o prompt: sem o nome do venv na frente, você está instalando no sistema e vai esbarrar no erro `externally-managed-environment`.",
       },
       {
         command: "source ~/lab-venv/.venv/bin/activate && pip install requests && pip show requests | head",
@@ -1536,7 +1536,7 @@ examples`,
       {
         command: "source ~/lab-venv/.venv/bin/activate && pip freeze > ~/lab-venv/requirements.txt && head ~/lab-venv/requirements.txt",
         description:
-          "Congela deps.",
+          "Congela as versões exatas do que está instalado num `requirements.txt`. É esse arquivo que vai para o Git, nunca a pasta `.venv`, e é ele que torna o ambiente reproduzível em outra máquina.",
       },
       {
         command: "deactivate 2>/dev/null; ~/lab-venv/.venv/bin/python -c 'import sys; print(sys.prefix)'",
@@ -1556,7 +1556,7 @@ examples`,
       {
         command: "man python3",
         description:
-          "Página man do interpretador.",
+          "Manual do interpretador. Vale pelas opções pouco lembradas: `-m`, que roda um módulo e está por trás de `python3 -m venv` e `-m http.server`, e `-X dev`, que liga avisos úteis durante o desenvolvimento.",
       },
       {
         command: "rm -rf ~/lab-venv/.venv && echo 'venv removido — projeto volta a precisar recriar'",
@@ -1699,7 +1699,7 @@ examples`,
       {
         command: "rg --version; jq --version",
         description:
-          "Confirma rg e jq.",
+          "Confirma se as duas ferramentas existem e em que versão. No Debian o pacote do ripgrep se chama `ripgrep`, mas o binário é `rg`; comando não encontrado aqui é pacote faltando, não nome errado.",
       },
       {
         command: "fdfind --version 2>/dev/null || fd --version",
@@ -1724,27 +1724,27 @@ examples`,
       {
         command: "batcat -n /etc/hostname 2>/dev/null || bat -n /etc/hostname",
         description:
-          "Leitura com numeração.",
+          "Lê o arquivo com numeração e cor. O comando tem dois nomes porque no Debian o binário virou `batcat` para não colidir com outro pacote; o `||` cobre os dois casos sem você precisar lembrar.",
       },
       {
         command: "printf '%s\n' '{\"ok\":true,\"n\":3}' | jq '.n'",
         description:
-          "Extrai campo JSON.",
+          "Extrai um campo de um JSON. É a diferença entre tratar saída de API com `grep` e com uma ferramenta que entende a estrutura: `.n` devolve o valor, não a linha inteira em que ele aparece.",
       },
       {
         command: "printf '%s\n' '[{\"p\":22},{\"p\":80}]' | jq '.[].p'",
         description:
-          "Itera array JSON.",
+          "Percorre um array e imprime um campo de cada elemento. O `.[]` é o laço do jq; junto com `-r`, devolve texto puro sem aspas, pronto para alimentar o próximo comando do pipe.",
       },
       {
         command: "rg --help | head -n 20",
         description:
-          "Flags essenciais do rg.",
+          "As flags do dia a dia: `-i` ignora maiúsculas, `-n` mostra o número da linha, `-t` limita por tipo de arquivo e `-g` filtra por caminho. Por padrão o rg já pula `.git` e o que estiver no `.gitignore`.",
       },
       {
         command: "man jq",
         description:
-          "Manual do jq.",
+          "Manual da linguagem de filtros. Comece pelos três blocos que resolvem quase tudo: seleção por chave, `select()` para filtrar por condição e a opção `-r` para sair do modo com aspas.",
       },
       {
         command: "dpkg -L ripgrep | grep bin",

@@ -612,17 +612,17 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       {
         command: "docker info 2>/dev/null | egrep -i \"rootless|server version\" | head || echo docker indisponivel",
         description:
-          "Rootless? versão?",
+          "Responde duas coisas de uma vez: qual versão do servidor está rodando e se o modo rootless está ativo. No modo padrão o daemon é root, e quem entra no grupo `docker` ganha, na prática, poder de root.",
       },
       {
         command: "docker compose version 2>/dev/null || docker-compose version 2>/dev/null || echo sem compose",
         description:
-          "Ponte para compose-pratica.",
+          "Descobre qual compose você tem: o plugin moderno (`docker compose`, do pacote `docker-compose-plugin`) ou o binário antigo com hífen. O arquivo YAML é quase o mesmo, mas os comandos e o suporte não são.",
       },
       {
         command: "podman version 2>/dev/null | head -n 3 || echo ver podman-debian",
         description:
-          "Alternativa rootless.",
+          "Verifica se o Podman está disponível. Ele roda os mesmos contêineres sem daemon e sem root por padrão, o que em servidor pequeno costuma ser a escolha mais segura; o capítulo dele aprofunda a comparação.",
       },
 
       {
@@ -698,7 +698,7 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       },
       {
         command: "docker network",
-        description: "Gerencia redes virtuais entre containers.",
+        description: "Gerencia as redes virtuais. O detalhe que economiza horas: contêineres numa rede criada por você se enxergam pelo nome do serviço, enquanto na rede `bridge` padrão essa resolução por nome não existe.",
         example: "docker network create app-net",
       },
       {
@@ -957,7 +957,7 @@ docker compose ps`,
       },
       {
         command: "ssh user@host",
-        description: "Abre sessão remota interativa.",
+        description: "Abre a sessão remota. Na primeira conexão o cliente mostra a impressão digital do servidor e pede confirmação: compare com a que você viu no console, porque é esse aceite que protege contra alguém no meio do caminho.",
         example: "ssh wallyson@192.168.1.50",
         flags: [
           { flag: "-p PORTA", description: "Conecta em porta diferente de 22" },
@@ -968,7 +968,7 @@ docker compose ps`,
       },
       {
         command: "ssh-keygen",
-        description: "Gera par de chaves SSH.",
+        description: "Gera o par de chaves no cliente. Envie a pública com `ssh-copy-id` e, só depois de testar o login por chave, desligue a autenticação por senha no servidor — é o ajuste que mais reduz ruído de ataque.",
         example: "ssh-keygen -t ed25519 -C 'wallyson@laptop'",
         output:
           "Generating public/private ed25519 key pair.\nYour identification has been saved in /home/wallyson/.ssh/id_ed25519",
@@ -994,7 +994,7 @@ docker compose ps`,
       },
       {
         command: "sftp",
-        description: "Sessão interativa para transferir arquivos.",
+        description: "Transfere arquivos pelo mesmo canal do SSH, em sessão interativa com `put`, `get` e `ls`. Para cópia pontual dentro de script, `scp` ou `rsync -e ssh` costumam ser mais práticos.",
         example: "sftp wallyson@servidor",
       },
       {
@@ -1038,7 +1038,7 @@ docker compose ps`,
       {
         command: "sudo ss -lntp | grep -E ':22|:2222' || true",
         description:
-          "Porta SSH escutando de verdade.",
+          "Confirma que o SSH está mesmo escutando, em qual porta e em qual endereço. Ver `127.0.0.1:22` no lugar de `0.0.0.0:22` explica por que ninguém de fora conecta, mesmo com o firewall liberado.",
       },
     ],
     tips: [
@@ -1235,7 +1235,7 @@ ssh user@servidor "
       },
       {
         command: "sudo ufw allow",
-        description: "Libera portas/serviços específicos.",
+        description: "Abre uma porta ou um perfil de serviço. Prefira o nome (`ufw allow OpenSSH`) ao número: fica legível no `ufw status` e não quebra se a porta mudar. Libere o SSH antes de ativar o firewall, nunca depois.",
         example: "sudo ufw allow OpenSSH",
         flags: [
           { flag: "OpenSSH", description: "Perfil pré-definido (porta 22)" },
@@ -1278,7 +1278,7 @@ ssh user@servidor "
       },
       {
         command: "sudo last",
-        description: "Lista logins bem-sucedidos.",
+        description: "Lista os logins bem-sucedidos, com origem e duração, lendo o `/var/log/wtmp`. Complementa o fail2ban: lá você vê quem tentou entrar, aqui você vê quem conseguiu.",
         example: "sudo last -n 20",
       },
       {
@@ -1854,12 +1854,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "mkdir -p ~/lab-ansible && printf '%s\n' '[local]' 'localhost ansible_connection=local' > ~/lab-ansible/inventory.ini",
         description:
-          "Inventário local para lab seguro.",
+          "Cria um inventário que aponta apenas para a própria máquina, com conexão local. É o jeito de treinar playbook sem risco: nada sai deste host e nenhum servidor de verdade é tocado por engano.",
       },
       {
         command: "printf '%s\n' '---' '- name: baseline lab' '  hosts: local' '  become: true' '  tasks:' '    - name: garantir curl' '      ansible.builtin.apt:' '        name: curl' '        state: present' '        update_cache: true' '    - name: garantir ssh enabled se existir' '      ansible.builtin.service:' '        name: ssh' '        state: started' '        enabled: true' '      failed_when: false' > ~/lab-ansible/site.yml",
         description:
-          "Playbook mínimo apt+service.",
+          "Escreve um playbook mínimo com as duas tarefas mais comuns: garantir um pacote instalado e um serviço ativo. Repare no vocabulário declarativo — você descreve o estado desejado, não os comandos para chegar nele.",
       },
       {
         command: "cd ~/lab-ansible && ansible-inventory -i inventory.ini --list | head",
@@ -1899,7 +1899,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "printf '%s\n' '*.retry' > ~/lab-ansible/.gitignore",
         description:
-          "Ignora artefatos ansible-playbook.",
+          "Impede que os arquivos `.retry` gerados em falhas entrem no repositório. Acrescente aqui também qualquer arquivo de variáveis com segredo: playbook versionado com senha em texto puro é acidente clássico.",
       },
     ],
     tips: [
@@ -2042,22 +2042,22 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo tail -n 40 /var/log/cloud-init.log 2>/dev/null || true",
         description:
-          "Log principal.",
+          "Log principal do cloud-init, com o passo a passo dos módulos e os erros de execução. É o primeiro lugar a olhar quando a VPS subiu, mas não ficou como o seu user-data mandava.",
       },
       {
         command: "sudo tail -n 40 /var/log/cloud-init-output.log 2>/dev/null || true",
         description:
-          "Stdout dos módulos (pacotes, runcmd).",
+          "Traz a saída bruta do que os módulos rodaram: instalação de pacotes e cada linha do `runcmd`. Quando um comando do user-data falhou em silêncio, a mensagem real está aqui, e não no log principal.",
       },
       {
         command: "ls /etc/cloud/cloud.cfg /etc/cloud/cloud.cfg.d 2>/dev/null | head",
         description:
-          "Config empacotada e drop-ins.",
+          "Mostra a configuração local: o arquivo que vem no pacote e os drop-ins. É aí que se define, por exemplo, se o cloud-init pode reescrever hostname e `/etc/hosts` a cada boot.",
       },
       {
         command: "ls /var/lib/cloud 2>/dev/null | head",
         description:
-          "Estado/instance data.",
+          "Diretório de estado: guarda o ID da instância e a marca do que já rodou uma vez. Por isso, em imagem clonada, limpar esse estado é o que faz o cloud-init tratar a máquina como nova.",
       },
       {
         command: "cat /etc/hostname; hostnamectl 2>/dev/null | head",
@@ -2067,7 +2067,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo cloud-id 2>/dev/null || true",
         description:
-          "Datasource detectado.",
+          "Diz qual datasource foi detectado (`nocloud`, `hetzner`, `openstack`, `ec2`). É ele que define de onde vêm user-data e metadados; datasource errado é a causa mais comum de nada ser aplicado no primeiro boot.",
       },
       {
         command: "printf '%s\n' '#cloud-config' 'users:' '  - name: devops' '    groups: [sudo]' '    shell: /bin/bash' '    sudo: ALL=(ALL) NOPASSWD:ALL' '    ssh_authorized_keys:' '      - ssh-ed25519 AAAA...comente_sua_chave' 'package_update: true' 'packages:' '  - qemu-guest-agent' > ~/user-data-exemplo.yaml",
@@ -2077,7 +2077,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "man cloud-init 2>/dev/null || true",
         description:
-          "Manual se disponível.",
+          "Manual da ferramenta. Além do panorama, vale por dois subcomandos: `status --long`, que diz se a inicialização terminou, e `schema --annotate`, que valida seu user-data antes do próximo boot.",
       },
       {
         command: "grep -R 'ssh_authorized_keys\\|disable_root' /etc/cloud 2>/dev/null | head",
@@ -2087,7 +2087,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "systemctl status cloud-init cloud-final --no-pager 2>/dev/null | head -n 30 || true",
         description:
-          "Units relacionadas.",
+          "Mostra as units que executam as fases. A `cloud-final` é a última: enquanto ela não conclui, o servidor ainda está se configurando, mesmo que o SSH já aceite conexão.",
       },
     ],
     tips: [
@@ -2815,7 +2815,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "printf '%s\n' '[Interface]' 'Address = 10.66.66.1/24' 'ListenPort = 51820' 'PrivateKey = COLE_PRIV' '# [Peer]' '# PublicKey = ...' '# AllowedIPs = 10.66.66.2/32' '# Endpoint = vps.example:51820' | sudo tee /etc/wireguard/wg0.conf.example",
         description:
-          "Modelo de config (exemplo).",
+          "Grava um modelo comentado em `/etc/wireguard`, com o bloco `[Interface]` do servidor e o `[Peer]` a preencher. Guarde como exemplo: o arquivo real contém chave privada e precisa ficar com permissão 600.",
       },
       {
         command: "sudo wg show",
@@ -3217,7 +3217,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "printf '%s\n' '## Capstone DoD' '- [ ] ssh chave' '- [ ] firewall' '- [ ] unattended' '- [ ] ntp' '- [ ] app health' '- [ ] backup testado' '- [ ] notas' > ~/capstone-dod.md && cat ~/capstone-dod.md",
         description:
-          "Definition of done em markdown.",
+          "Escreve os critérios de conclusão do projeto final e mostra o resultado. Serve para marcar item por item: acesso por chave, firewall, atualizações automáticas, hora certa, aplicação de pé, backup testado e anotações.",
       },
     ],
     tips: [

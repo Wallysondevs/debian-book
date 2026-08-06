@@ -67,7 +67,7 @@ export const glossario: Module[] = [
       },
       {
         command: "whatis dpkg apt systemd",
-        description: "Uma linha oficial por comando.",
+        description: "Devolve a descrição de uma linha que cada manual traz para o comando. É a definição oficial do próprio sistema, boa para conferir vocabulário sem abrir três páginas de manual inteiras.",
       },
     ],
     tips: [
