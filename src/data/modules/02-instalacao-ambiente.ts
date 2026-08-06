@@ -672,8 +672,35 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
       "Display manager é peça menor mas confunde quando aparece. Cada DE tem o seu favorito: GDM3 (GNOME), SDDM (KDE), LightDM (XFCE/MATE/Cinnamon), LXDM (LXDE). Quando você instala um DE novo, o instalador pergunta qual display manager usar — pode escolher qualquer um, todos funcionam com qualquer DE. Para trocar depois: 'sudo dpkg-reconfigure NOME_DM'. Para saber qual está ativo: 'systemctl status display-manager' mostra o serviço por trás do nome genérico. Se quiser remover ambiente gráfico em servidor: 'sudo systemctl set-default multi-user.target' faz o boot ir direto para o console.",
       "Customizar o ambiente é parte do prazer de usar Linux. Cada DE tem seu painel de configurações: gnome-tweaks (precisa instalar separado) e gnome-shell-extensions para o GNOME, systemsettings para o KDE, xfce4-settings-manager para o XFCE. Para temas visuais, projetos populares como Arc, Materia, Numix, Adwaita-dark cobrem todos os DEs. Para ícones, Papirus, Numix Circle, Flat-Remix são clássicos. Pacote ttf-mscorefonts-installer instala Arial/Times/Verdana, fonts-firacode adiciona Fira Code com ligaduras para programadores. A regra é: experimente até achar o seu, e depois pare de mexer — ninguém produz nada se passa o dia trocando tema.",
       "Ao final deste capítulo você sabe escolher um DE consciente do hardware e do gosto, instalar mais de um sem comprometer o atual, alternar entre eles na tela de login, distinguir X11 e Wayland (escolhendo o adequado quando algum app dá problema) e remover ambiente gráfico em servidor que não precisa mais. Mais importante: você não precisa decidir agora qual será seu DE 'definitivo'. Use o que veio padrão por algumas semanas, depois experimente outro como teste, e a escolha aparece naturalmente. Linux é assim: a interface segue você, não o contrário.",
+      "[expansão 06/08] **Tasksel e display manager:** task-gnome-desktop, task-xfce-desktop etc. puxam o meta-conjunto Debian. O display manager (gdm3, lightdm, sddm) mostra o login — trocar desktop sem olhar o DM deixa o boot estranho. VPS em geral não precisa de GUI.",
+      "Úteis: tasksel --list-tasks, systemctl status display-manager. Em cloud, prefira headless.",
     ],
     commands: [
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno expansão 06/08.",
+        example: "true",
+      },
+      {
+        command: "tasksel --list-tasks 2>/dev/null | head -n 20 || echo tasksel ausente",
+        description:
+          "Tasks de desktop.",
+        example: "tasksel --list-tasks 2>/dev/null | head -n 20 || echo tasksel ausente",
+      },
+      {
+        command: "systemctl status display-manager --no-pager 2>/dev/null | head -n 12 || true",
+        description:
+          "DM ativo se houver GUI.",
+        example: "systemctl status display-manager --no-pager 2>/dev/null | head -n 12 || true",
+      },
+      {
+        command: "dpkg -l \"task-*-desktop\" 2>/dev/null | grep ^ii || echo nenhuma task desktop",
+        description:
+          "Metapacotes instalados.",
+        example: "dpkg -l \"task-*-desktop\" 2>/dev/null | grep ^ii || echo nenhuma task desktop",
+      },
+
       {
         command: "echo $XDG_CURRENT_DESKTOP",
         description: "Mostra qual ambiente gráfico está ativo na sessão atual.",
@@ -756,6 +783,20 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
       },
     ],
     tips: [
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
+      {
+        type: "info",
+        title: "VPS",
+        content:
+          "GUI come RAM — só se precisar.",
+      },
+      {
+        type: "warning",
+        title: "Dois DMs",
+        content:
+          "Dois display managers habilitados = dor de boot.",
+      },
+
       {
         type: "info",
         title: "Wayland vs X11 — qual escolher?",

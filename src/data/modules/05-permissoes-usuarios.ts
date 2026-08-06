@@ -319,7 +319,7 @@ sudo -u nobody cat /tmp/site/index.html`,
       "Definir senhas, expirar contas e bloquear acesso",
       "Ler e interpretar /etc/passwd, /etc/shadow e /etc/group sem medo",
       "Diferenciar usuários humanos de usuários de sistema (UID < 1000)",
-      "Auditar logins e tentativas suspeitas com last, lastb e who",
+      "Auditar logins e tentativas suspeitas com last, wtmpdb/lastb e who",
     ],
     content: [
       `Imagine um cinema que abre 24 horas. Cada espectador tem sua poltrona numerada, seu pacote de pipoca, sua conta de bar separada. Ninguém come a pipoca do outro nem paga a bebida do vizinho. Em Linux, cada usuário é um espectador desse cinema: tem seu próprio diretório /home, suas próprias configurações, seus próprios processos rodando sob seu nome. O sistema multi-usuário não é um detalhe enxertado depois — é o coração do desenho desde 1969, quando o Unix nasceu para ser compartilhado entre vários programadores.`,
@@ -458,9 +458,9 @@ sudo -u nobody cat /tmp/site/index.html`,
         output: "wallyson tty7         :0               Thu Apr 25 09:00   still logged in\nmaria    pts/1        192.168.1.50     Thu Apr 25 14:23   still logged in\nreboot   system boot  6.1.0-18-amd64   Thu Apr 25 08:55   still running",
       },
       {
-        command: "lastb",
+        command: "lastb 2>/dev/null || wtmpdb lastb 2>/dev/null || journalctl -u ssh --since today | tail",
         description: "Lista tentativas de login que FALHARAM. Em servidor exposto, esse log é cheio.",
-        example: "sudo lastb -10",
+        example: "sudo lastb -10 2>/dev/null || sudo wtmpdb lastb 2>/dev/null | head",
       },
       {
         command: "chage",
@@ -538,14 +538,14 @@ aluno:x:1001:1001:,,,:/home/aluno:/bin/bash`,
           "Liste os 10 últimos logins com last -10.",
           "Procure invocações de sudo no /var/log/auth.log.",
           "Procure tentativas de login que falharam.",
-          "Veja se tem alguém tentando força bruta no SSH (lastb -20).",
+          "Veja se tem alguém tentando força bruta no SSH (lastb/wtmpdb -20).",
         ],
         command: `who
 w
 last -10
 sudo grep sudo /var/log/auth.log | tail -20
 sudo grep "Failed password" /var/log/auth.log | tail -10
-sudo lastb -20`,
+sudo lastb/wtmpdb -20`,
         verify: "Você deve ver registros datados de cada login e cada uso de sudo. Em servidor exposto à internet, lastb costuma estar lotado de tentativas de root, admin, oracle, etc.",
       },
       {

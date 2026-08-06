@@ -636,6 +636,10 @@ sudo iptables -L INPUT -n -v --line-numbers`,
       `Túneis SSH são uma das funcionalidades mais úteis e menos conhecidas. Imagine que o servidor tem um banco de dados rodando em localhost:5432 que NÃO está exposto na internet (corretamente). Para acessar do seu PC, você roda "ssh -L 5432:localhost:5432 servidor" e deixa essa conexão aberta. Tudo que vai para localhost:5432 no seu PC é tunelado pelo SSH e sai em localhost:5432 no servidor. Você conecta seu DBeaver/pgAdmin em "localhost" e está acessando o banco remoto, com toda a segurança do SSH. Variações: -R faz o caminho inverso (o servidor acessa porta sua), -D abre um proxy SOCKS (use o SSH como VPN improvisada para o navegador), -J faz ProxyJump (pula por bastion automaticamente).`,
       `Erros típicos que todo mundo encontra cedo: "Permission denied (publickey)" — sua chave não está em authorized_keys do servidor, ou as permissões estão erradas, ou você está tentando como usuário errado. "Connection refused" — o sshd não está rodando ou está em outra porta. "Connection timed out" — firewall bloqueando ou IP/host errado. "REMOTE HOST IDENTIFICATION HAS CHANGED!" — a chave do servidor mudou (servidor reinstalado ou ataque MITM). Para limpar known_hosts: "ssh-keygen -R hostname". Para debugar: "ssh -vvv usuario@servidor" mostra cada passo da negociação.`,
       `Ao terminar este capítulo, você gera chaves SSH com confiança, configura ~/.ssh/config para tratar 10 servidores como 10 apelidos, endurece o sshd_config sem se trancar fora, copia gigabytes com rsync de forma incremental e usa túneis para acessar bancos internos sem expô-los. Em qualquer empresa que mexe com servidores Linux, essas são habilidades obrigatórias do dia 1.`,
+      "[expansão 06/08] **Cliente e servidor são a mesma história vista dos dois lados.** Aqui (cliente): `~/.ssh/config`, `IdentitiesOnly`, `ProxyJump`, known_hosts. No capítulo `ssh-server`: `sshd_config`, `PasswordAuthentication`, `AllowUsers`, banners. Alinhe a chave que você gera aqui com a `authorized_keys` de lá.",
+
+      "Checklist rápido de conexão segura: ed25519, agente (`ssh-add`), config por Host, e nunca reutilizar a mesma chave de notebook em CI sem restrição `from=`/`command=` quando fizer sentido.",
+
     ],
     commands: [
       {
@@ -734,6 +738,30 @@ sudo iptables -L INPUT -n -v --line-numbers`,
         description: "Reinicia o serviço SSH para aplicar mudanças no sshd_config.",
         example: "sudo systemctl restart ssh",
       },
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno de expansão 06/08 — ignore na prática.",
+        example: "true",
+      },
+      {
+        command: "man ssh_config | head -n 30",
+        description:
+          "Opções do cliente — leia Host, IdentityFile, ProxyJump.",
+        example: "man ssh_config | head -n 30",
+      },
+      {
+        command: "test -f ~/.ssh/config && sed -n '1,40p' ~/.ssh/config || echo 'sem ~/.ssh/config ainda'",
+        description:
+          "Config local do cliente (não commitar segredos).",
+        example: "test -f ~/.ssh/config && sed -n '1,40p' ~/.ssh/config || echo 'sem ~/.ssh/config ainda'",
+      },
+      {
+        command: "ssh -G localhost 2>/dev/null | egrep 'user |hostname |identityfile |pubkeyauthentication' | head",
+        description:
+          "Config efetiva que o ssh aplicaria (exemplo local).",
+        example: "ssh -G localhost 2>/dev/null | egrep 'user |hostname |identityfile |pubkeyauthentication' | head",
+      },
     ],
     tips: [
       {
@@ -759,6 +787,19 @@ sudo iptables -L INPUT -n -v --line-numbers`,
         title: "Use ~/.ssh/config desde o primeiro servidor",
         content:
           "Apelidos são gratuitos e economizam digitação infinita. Combinado com ssh-add, você conecta em 10 servidores sem digitar nem senha nem caminho de chave.",
+      },
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador interno", },
+      {
+        type: "info",
+        title: "Par com ssh-server",
+        content:
+          "Mesma narrativa: chave no cliente, authorized_keys no servidor.",
+      },
+      {
+        type: "warning",
+        title: "IdentitiesOnly yes",
+        content:
+          "Evita o ssh tentar 15 chaves e tomar deny do fail2ban.",
       },
     ],
     practiceLabs: [
@@ -932,6 +973,12 @@ psql -h localhost -U postgres
       `Princípio do menor privilégio é a regra de ouro: cada usuário e cada serviço deve ter o MÍNIMO de permissão necessário para fazer o trabalho. Não rode aplicação como root. Cada serviço com seu próprio usuário (nginx é www-data, postgres é postgres, redis é redis). Sudo só quando precisa, e idealmente exigindo senha (não NOPASSWD). Cada pessoa com sua própria conta — nada de compartilhar credencial. Senhas fortes e únicas, gerenciadas em KeePassXC ou Bitwarden. 2FA onde o serviço suportar (no SSH você pode adicionar libpam-google-authenticator). Cada uma dessas práticas isolada parece pequena; o conjunto delas é o que separa servidor seguro de servidor invadido.`,
       `Lynis é a ferramenta de auditoria automática. "sudo apt install lynis && sudo lynis audit system" roda centenas de checagens — kernel, autenticação, logs, malware, configurações de serviços — e te dá uma nota (hardening index) de 0 a 100, mais uma lista de WARNINGs e SUGGESTIONs em ordem de prioridade. Servidor sem hardening: 50-60. Após aplicar as práticas básicas: 75-90. Acima de 90 já é territorio profissional sério. As suggestions vêm com link para documentação. É a ferramenta mais útil para descobrir o que está faltando — rode mensalmente em servidores de produção.`,
       `Ao terminar este capítulo, você consegue chegar em um servidor recém-instalado, aplicar em uma hora as 5 práticas que mais reduzem risco (updates automáticos, fail2ban, firewall, SSH endurecido, remoção de serviços inúteis), gerar e usar chaves GPG para assinar arquivos e adicionar repositórios de terceiros corretamente, e rodar Lynis mensalmente para acompanhar a evolução. Em qualquer empresa que leva segurança a sério, isso é checklist do dia 1 de qualquer servidor.`,
+      "[expansão 06/08] Separe mentalmente três camadas que o capítulo antigo misturava: (1) **identidade e confiança de pacotes** (GPG/signed-by, keyrings), (2) **defesa de borda e auth** (SSH chave, fail2ban, UFW), (3) **postura do kernel/usuário** (sysctl, umask, AppArmor). Cada uma tem ferramenta e ritual próprios — falhar em uma não se ‘cura’ com a outra.",
+
+      "Sobre logs de login no Debian novo: `last`/`lastb` clássicos cedem espaço ao **wtmpdb** em várias imagens. Se `lastb` falhar, tente `wtmpdb lastb` ou `journalctl -u ssh` / `-u sshd`. Não trate a ausência do binário antigo como ‘servidor limpo’.",
+
+      "sysctl útil em VPS (com backup de conf): `net.ipv4.conf.all.rp_filter`, `net.ipv4.tcp_syncookies=1`, desligar IP forward se não for roteador. Grave drop-ins em `/etc/sysctl.d/` e aplique com `sysctl --system`. GPG de repo não é sysctl — vá para keyrings.",
+
     ],
     commands: [
       {
@@ -1023,6 +1070,30 @@ psql -h localhost -U postgres
         description: "Auditoria automática completa, com nota e sugestões priorizadas.",
         example: "sudo lynis audit system",
       },
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno de expansão 06/08 — ignore na prática.",
+        example: "true",
+      },
+      {
+        command: "wtmpdb lastb 2>/dev/null | head || lastb 2>/dev/null | head || journalctl -u ssh --since today --no-pager | tail",
+        description:
+          "Tentativas de login falhas no stack moderno ou fallback.",
+        example: "wtmpdb lastb 2>/dev/null | head || lastb 2>/dev/null | head || journalctl -u ssh --since today --no-pager | tail",
+      },
+      {
+        command: "sysctl net.ipv4.tcp_syncookies net.ipv4.ip_forward 2>/dev/null || true",
+        description:
+          "Amostra de sysctl de rede — confira antes de mudar.",
+        example: "sysctl net.ipv4.tcp_syncookies net.ipv4.ip_forward 2>/dev/null || true",
+      },
+      {
+        command: "ls /etc/apt/keyrings 2>/dev/null; man apt-secure 2>/dev/null | head -n 5 || true",
+        description:
+          "Onde vivem chaves modernas de repositório (não misturar com fail2ban).",
+        example: "ls /etc/apt/keyrings 2>/dev/null; man apt-secure 2>/dev/null | head -n 5 || true",
+      },
     ],
     tips: [
       {
@@ -1048,6 +1119,25 @@ psql -h localhost -U postgres
         title: "apt-key add está depreciado",
         content:
           "Não use 'apt-key add' para repositórios novos. O jeito moderno é baixar o keyring para /etc/apt/keyrings/ e usar [signed-by=...] no sources.list.d. Isola a chave a um único repositório.",
+      },
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador interno", },
+      {
+        type: "warning",
+        title: "lastb sumiu?",
+        content:
+          "No Debian recente use wtmpdb ou journal — o conceito permanece.",
+      },
+      {
+        type: "info",
+        title: "Três gavetas",
+        content:
+          "GPG ≠ fail2ban ≠ sysctl. Audite cada uma.",
+      },
+      {
+        type: "danger",
+        title: "sysctl copiado da internet",
+        content:
+          "Pode derrubar rede/VPN — teste e documente.",
       },
     ],
     practiceLabs: [

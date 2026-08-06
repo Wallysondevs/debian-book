@@ -30,8 +30,35 @@ export const servidores: Module[] = [
       `Onde isso aparece no dia a dia? Em literalmente qualquer lugar onde existe um site. A loja online da padaria do bairro provavelmente está atrás de um Apache em alguma hospedagem compartilhada. Aplicações modernas em Node, Python ou Go costumam rodar atrás de um Nginx que faz HTTPS e proxy reverso. Quando você precisa hospedar uma landing page para um cliente, expor a documentação interna da empresa ou subir uma API, o servidor web é o primeiro tijolo. Saber configurá-lo é diferença entre depender de painel de hospedagem e ter autonomia real sobre uma VPS.`,
 
       `Ao final deste capítulo você vai conseguir levantar um servidor web do zero em um Debian limpo, decidir conscientemente entre Apache e Nginx, criar virtual hosts para múltiplos domínios e habilitar HTTPS com um certificado válido emitido pela Let's Encrypt — sem pagar nada e com renovação automática. Esse é o conjunto mínimo para colocar qualquer site no ar de um jeito profissional.`,
+      "[expansão 06/08] **HTTPS não é opcional em produção.** Depois do site em HTTP local, siga o capítulo tls-certbot (#23) ou, se já usa proxy, proxy-reverso (#24). Neste capítulo: virtual host limpo, nginx -t/apache2ctl configtest, e só então certificado.",
+      "Ordem mental: app responde em 127.0.0.1 → proxy/vhost → certbot/TLS → headers mínimos (HSTS só quando estável).",
     ],
     commands: [
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno expansão 06/08.",
+        example: "true",
+      },
+      {
+        command: "curl -sI http://127.0.0.1/ 2>/dev/null | head || true",
+        description:
+          "HTTP local antes de caçar DNS/TLS.",
+        example: "curl -sI http://127.0.0.1/ 2>/dev/null | head || true",
+      },
+      {
+        command: "command -v certbot >/dev/null && certbot certificates 2>/dev/null | head || echo ver tls-certbot",
+        description:
+          "Ponte para o capítulo de TLS.",
+        example: "command -v certbot >/dev/null && certbot certificates 2>/dev/null | head || echo ver tls-certbot",
+      },
+      {
+        command: "sudo nginx -t 2>/dev/null || sudo apache2ctl configtest 2>/dev/null || true",
+        description:
+          "Teste de config do servidor web.",
+        example: "sudo nginx -t 2>/dev/null || sudo apache2ctl configtest 2>/dev/null || true",
+      },
+
       {
         command: "sudo apt install apache2",
         description: "Instala o servidor Apache HTTP a partir do repositório oficial Debian.",
@@ -149,6 +176,20 @@ export const servidores: Module[] = [
       },
     ],
     tips: [
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
+      {
+        type: "info",
+        title: "Ver também",
+        content:
+          "tls-certbot e proxy-reverso na trilha de rede.",
+      },
+      {
+        type: "warning",
+        title: "HSTS cedo demais",
+        content:
+          "Só depois de HTTPS estável.",
+      },
+
       {
         type: "info",
         title: "Apache OU Nginx, raramente os dois",
@@ -581,8 +622,35 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       `Quando uma aplicação tem várias peças (banco + cache + worker + web), gerenciar com 'docker run' vira pesadelo. Aí entra o Docker Compose: um arquivo YAML descreve todos os serviços, redes e volumes; 'docker compose up -d' sobe tudo de uma vez, 'docker compose down' derruba. É a forma natural de hospedar aplicações reais e a porta de entrada para orquestradores maiores como Kubernetes mais para frente.`,
 
       `No dia a dia, Docker aparece em quase tudo: rodar PostgreSQL para testar uma migração sem instalar no host, subir um WordPress de demonstração em 30 segundos, empacotar uma API Python para rodar igualzinho em qualquer servidor, criar um ambiente de testes que sobe e desce em CI/CD. Ao final deste capítulo você vai conseguir instalar o Docker do jeito certo, rodar containers individuais, escrever um docker-compose.yml para uma aplicação multi-serviço e cuidar do disco para o servidor não entupir.`,
+      "[expansão 06/08] **Rootless e Compose:** o motor clássico docker no Debian costuma ser rootful (docker.io ou repo Docker Inc). Para menos privilégio, veja podman-debian (#35). Para stack multi-serviço, compose-pratica (#36).",
+      "Se ficar no Docker Engine: isole o que puder, não exponha o socket Docker em containers de app, e lembre: grupo docker ≈ root.",
     ],
     commands: [
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno expansão 06/08.",
+        example: "true",
+      },
+      {
+        command: "docker info 2>/dev/null | egrep -i \"rootless|server version\" | head || echo docker indisponivel",
+        description:
+          "Rootless? versão?",
+        example: "docker info 2>/dev/null | egrep -i \"rootless|server version\" | head || echo docker indisponivel",
+      },
+      {
+        command: "docker compose version 2>/dev/null || docker-compose version 2>/dev/null || echo sem compose",
+        description:
+          "Ponte para compose-pratica.",
+        example: "docker compose version 2>/dev/null || docker-compose version 2>/dev/null || echo sem compose",
+      },
+      {
+        command: "podman version 2>/dev/null | head -n 3 || echo ver podman-debian",
+        description:
+          "Alternativa rootless.",
+        example: "podman version 2>/dev/null | head -n 3 || echo ver podman-debian",
+      },
+
       {
         command: "docker version",
         description: "Mostra as versões do cliente e do daemon Docker — primeiro comando após instalar.",
@@ -699,6 +767,20 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       },
     ],
     tips: [
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador", },
+      {
+        type: "warning",
+        title: "grupo docker",
+        content:
+          "Membro do grupo docker ≈ root no host.",
+      },
+      {
+        type: "info",
+        title: "Trilha",
+        content:
+          "#35 Podman e #36 Compose aprofundam.",
+      },
+
       {
         type: "info",
         title: "Use o repositório oficial Docker",
@@ -888,6 +970,10 @@ docker compose ps`,
       `No dia a dia, SSH não serve só para abrir shell remoto. SCP copia arquivos ('scp arquivo.txt user@servidor:/destino/'), SFTP é como FTP mas seguro, e os túneis SSH permitem expor um serviço local de forma criptografada — útil para acessar um banco de dados que só escuta em localhost do servidor sem precisar abrir a porta no firewall. ProxyJump (-J) deixa pular por bastion: você acessa servidor interno passando por um servidor de borda em uma única linha de comando.`,
 
       `Ao final deste capítulo você vai conseguir configurar um servidor SSH endurecido em qualquer Debian, gerar par de chaves do jeito moderno, instalar a chave pública sem perder acesso, fazer cópias remotas e abrir túneis. Esse é o conjunto de habilidades que transforma "consigo ligar minha VPS" em "administro VPS com confiança e segurança".`,
+      "[expansão 06/08] **Servidor SSH no Debian:** depois de instalar `openssh-server`, a fonte da verdade é `/etc/ssh/sshd_config` + `sshd_config.d/*.conf`. Desligue senha quando a chave estiver testada (`PasswordAuthentication no`), restrinja usuários, e recarregue com `systemctl reload ssh` (nome da unit pode ser `ssh` ou `sshd`).",
+
+      "Una a história com o cliente: a chave pública que o capítulo `ssh-conexao` gerou entra em `~usuario/.ssh/authorized_keys` com permissões 700/600. Console cloud antes de fechar senha/porta.",
+
     ],
     commands: [
       {
@@ -973,6 +1059,30 @@ docker compose ps`,
         description: "Instala o fail2ban para banir IPs com tentativas falhas.",
         example: "sudo apt install -y fail2ban && sudo systemctl enable --now fail2ban",
       },
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno de expansão 06/08 — ignore na prática.",
+        example: "true",
+      },
+      {
+        command: "sudo sshd -T 2>/dev/null | egrep 'passwordauthentication|permitrootlogin|pubkeyauthentication|port ' | head",
+        description:
+          "Config efetiva do daemon (não só o arquivo).",
+        example: "sudo sshd -T 2>/dev/null | egrep 'passwordauthentication|permitrootlogin|pubkeyauthentication|port ' | head",
+      },
+      {
+        command: "ls /etc/ssh/sshd_config.d 2>/dev/null; systemctl is-active ssh sshd 2>/dev/null",
+        description:
+          "Drop-ins e nome da unit ativa.",
+        example: "ls /etc/ssh/sshd_config.d 2>/dev/null; systemctl is-active ssh sshd 2>/dev/null",
+      },
+      {
+        command: "sudo ss -lntp | grep -E ':22|:2222' || true",
+        description:
+          "Porta SSH escutando de verdade.",
+        example: "sudo ss -lntp | grep -E ':22|:2222' || true",
+      },
     ],
     tips: [
       {
@@ -998,6 +1108,19 @@ docker compose ps`,
         title: "Use ~/.ssh/config para apelidos",
         content:
           "Um arquivo com 'Host meuservidor\\n  HostName 1.2.3.4\\n  User wallyson\\n  Port 2222\\n  IdentityFile ~/.ssh/id_ed25519' deixa você rodar só 'ssh meuservidor'. Para múltiplos servidores, é divisor de águas.",
+      },
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador interno", },
+      {
+        type: "danger",
+        title: "Fechar senha sem chave testada",
+        content:
+          "Garanta outra sessão ou console.",
+      },
+      {
+        type: "info",
+        title: "reload > restart",
+        content:
+          "reload ssh aplica muita coisa sem derrubar todas as sessões.",
       },
     ],
     practiceLabs: [
@@ -1124,7 +1247,7 @@ ssh user@servidor "
 
       `Confusão três: liberar firewall "para tudo funcionar enquanto debug". Política padrão do ufw deve ser 'deny incoming, allow outgoing'. Libere especificamente o que precisa: SSH, HTTP, HTTPS. Cada porta extra é um risco. Quando precisa de algo temporário, libere especificamente e LEMBRE de fechar depois. Bots aproveitam janelas curtas — você esquece a porta aberta por um dia, e na manhã seguinte tem cripto-miner instalado.`,
 
-      `Logging e monitoramento mínimo: o journalctl agrega tudo no Debian moderno. Olhar 'sudo journalctl -p err -b' (erros desde o boot) deve fazer parte da rotina semanal. 'sudo lastb' mostra tentativas de login que falharam — se aparecer milhares, fail2ban precisa de mais carinho. 'sudo last' mostra logins bem-sucedidos. Para servidores mais sérios, ferramentas como Logwatch enviam um resumo diário por e-mail. Monitorar é a única forma de descobrir invasão antes do invasor terminar o trabalho.`,
+      `Logging e monitoramento mínimo: o journalctl agrega tudo no Debian moderno. Olhar 'sudo journalctl -p err -b' (erros desde o boot) deve fazer parte da rotina semanal. 'sudo lastb' (ou wtmpdb lastb no Debian novo) mostra tentativas de login que falharam — se aparecer milhares, fail2ban precisa de mais carinho. 'sudo last' mostra logins bem-sucedidos. Para servidores mais sérios, ferramentas como Logwatch enviam um resumo diário por e-mail. Monitorar é a única forma de descobrir invasão antes do invasor terminar o trabalho.`,
 
       `No dia a dia, esse hardening básico permite dormir tranquilo com VPS na internet. Não substitui auditoria séria nem proteção de dados sensíveis (criptografia em repouso, segredos em vault, MFA), mas elimina a quase totalidade dos ataques oportunistas. Ao final deste capítulo você vai ter um checklist concreto para aplicar em qualquer Debian novo, com comandos copiáveis e ordem certa para não se trancar fora do servidor durante o processo.`,
     ],
@@ -1208,9 +1331,9 @@ ssh user@servidor "
         example: "sudo last -n 20",
       },
       {
-        command: "sudo lastb",
+        command: "sudo lastb 2>/dev/null || sudo wtmpdb lastb 2>/dev/null || true",
         description: "Lista tentativas de login falhas (útil para detectar ataques).",
-        example: "sudo lastb -n 20",
+        example: "sudo lastb -n 20 2>/dev/null || sudo wtmpdb lastb 2>/dev/null | head -n 20",
       },
       {
         command: "sudo timedatectl set-timezone",
@@ -1318,10 +1441,10 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         id: 4,
         question:
-          "Qual a diferença entre 'sudo last' e 'sudo lastb', e o que cada um indica?",
+          "Qual a diferença entre 'sudo last' e 'sudo lastb' (ou wtmpdb lastb no Debian novo), e o que cada um indica?",
         hint: "Um mostra sucessos, outro falhas.",
         answer:
-          "'sudo last' lista logins BEM-SUCEDIDOS (com origem, hora, duração) — ajuda a confirmar acessos legítimos. 'sudo lastb' lista tentativas FALHAS — útil para detectar ataques de força bruta. Centenas de entradas em lastb por dia indicam que o fail2ban está tendo trabalho ou precisa de regras mais agressivas.",
+          "'sudo last' lista logins BEM-SUCEDIDOS (com origem, hora, duração) — ajuda a confirmar acessos legítimos. 'sudo lastb' (ou wtmpdb lastb no Debian novo) lista tentativas FALHAS — útil para detectar ataques de força bruta. Centenas de entradas em lastb por dia indicam que o fail2ban está tendo trabalho ou precisa de regras mais agressivas.",
       },
       {
         id: 5,

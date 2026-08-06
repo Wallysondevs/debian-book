@@ -668,6 +668,10 @@ dpkg -l | grep ^rc`,
       "Existe uma confusão comum: 'tenho que mudar de stable para testing para ter Firefox novo'. Não, você não tem. Mudar a base inteira é arriscado. O caminho certo é manter stable como base e usar backports ou Flatpak para casos específicos. Quem migra a base inteira para testing geralmente acaba com algo que quebra a cada update e descobre tarde demais que estabilidade tem valor. Outra confusão: 'non-free = ilegal/pirata'. Não. non-free contém software com licença proprietária mas legal para usar, distribuído pelo projeto Debian para conveniência do usuário. Não usar é uma escolha filosófica, não jurídica.",
       "A segurança ao mexer em sources.list merece atenção especial. Sempre faça backup antes de editar (sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak). Sempre rode apt update logo depois de editar para detectar erros de sintaxe imediatamente. Nunca aceite chaves GPG de fontes desconhecidas: assinar uma chave maliciosa significa que o atacante pode te entregar pacotes falsos com root. Em geral, siga o tutorial oficial do fornecedor do software, e desconfie de tutoriais que mandam você baixar chaves de URLs estranhas.",
       "Ao terminar este capítulo, você vai conseguir interpretar qualquer sources.list que cair na sua frente, adicionar repositórios de terceiros com segurança, ativar backports quando precisar de algo mais novo, e usar pinning para garantir que apenas pacotes específicos venham de branches mais novas, sem comprometer a estabilidade do resto do sistema.",
+      "[expansão 06/08] **DEB822 lado a lado:** o formato clássico de uma linha `deb http://... suite main` convive com blocos em `/etc/apt/sources.list.d/*.sources` (Types/URIs/Suites/Components/Signed-By). O capítulo `deb822-sources` aprofunda; aqui o mínimo é: não misture a mesma suíte duas vezes com opções conflitantes, e prefira `Signed-By:` em vez de `apt-key`.",
+
+      "Migração prática: se ainda tem só `sources.list` one-line, você pode manter até o próximo upgrade maior — mas repositórios novos (terceiros, backports finos) já nascem melhor em `.sources`. `apt update` lê os dois mundos.",
+
     ],
     commands: [
       {
@@ -733,6 +737,30 @@ deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-f
         description: "Mostra todos os pacotes atualmente em hold.",
         example: "apt-mark showhold",
       },
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno de expansão 06/08 — ignore na prática.",
+        example: "true",
+      },
+      {
+        command: "ls /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
+        description:
+          "Mapa clássico + drop-ins.",
+        example: "ls /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
+      },
+      {
+        command: "grep -R \"Types:\\|Signed-By:\\|^deb \" /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 40",
+        description:
+          "Detecta one-line vs DEB822 no host.",
+        example: "grep -R \"Types:\\|Signed-By:\\|^deb \" /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 40",
+      },
+      {
+        command: "man sources.list | head -n 20",
+        description:
+          "Documenta ambos os formatos nas manpages recentes.",
+        example: "man sources.list | head -n 20",
+      },
     ],
     tips: [
       {
@@ -758,6 +786,19 @@ deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-f
         title: "Use https sempre que possível",
         content:
           "Os mirrors oficiais Debian aceitam http e https. Embora pacotes sejam assinados (https não é estritamente necessário), usar https esconde de bisbilhoteiros da sua rede o que você instala. Bom para privacidade.",
+      },
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador interno", },
+      {
+        type: "info",
+        title: "Ver também",
+        content:
+          "Capítulo deb822-sources (#3) para o formato novo completo.",
+      },
+      {
+        type: "warning",
+        title: "Duplicar suíte",
+        content:
+          "Mesma suite em .list e .sources = confusão de prioridade.",
       },
     ],
     practiceLabs: [
@@ -929,6 +970,10 @@ apt-mark showhold`,
       "Confusões clássicas valem destaque. Primeira: 'instalei o Spotify via .deb e via Flatpak — agora tenho dois!'. Sim, eles coexistem, ocupam memória dobrada e te confundem. Escolha um e remova o outro. Segunda: 'meus Flatpaks somem do menu'. Você esqueceu o logout/login após o primeiro install. Terceira: 'Flatpak ocupa muito disco'. Verdade. Use flatpak uninstall --unused regularmente para remover runtimes que nenhum app usa mais. Quarta: 'Flatpak roda devagar'. Em apps modernos a diferença é imperceptível; só sente em casos raros de I/O intenso ou jogos pesados.",
       "Atualizar Flatpaks é independente de apt. Use flatpak update para verificar e atualizar todos os apps Flatpak instalados. Você pode automatizar via cron ou systemd timer se quiser. Note que apt upgrade NÃO atualiza Flatpaks — são sistemas separados. Quem se lembra disso evita a surpresa de descobrir, meses depois, que o Discord Flatpak está desatualizado mesmo tendo rodado todas as atualizações do sistema religiosamente.",
       "Ao terminar este capítulo, você vai conseguir habilitar backports para conseguir um kernel mais novo no seu laptop, instalar Flatpak no Debian e usar Flathub para ter Spotify, Discord e Telegram sempre atualizados, ajustar permissões de Flatpaks com Flatseal quando algo não acessar suas pastas, e decidir com critério qual caminho usar para cada tipo de software. Vai parar de achar que precisa migrar de distro toda vez que quer um software mais novo.",
+      "[expansão 06/08] **Snap no Debian:** o Debian **não** trata Snap como cidadão de primeira classe como o Ubuntu. Você *pode* instalar `snapd` de backports/terceiros em alguns releases, mas a expectativa da comunidade e da infra oficial pesa em **.deb + Flatpak**. Se um tutorial Ubuntu mandar `snap install`, pergunte se existe flatpak flathub ou pacote Debian antes de puxar mais um daemon.",
+
+      "Flatpak brilha em apps de desktop com sandbox; backports brilham em versões mais novas de software ainda ‘Debian’. Não use backports inteiros como se fossem testing.",
+
     ],
     commands: [
       {
@@ -1004,6 +1049,30 @@ Flatseal              com.github.tchx84.Flatseal    2.2.0    stable`,
         description: "Lista os repositórios Flatpak configurados (remotes).",
         example: "flatpak remotes",
       },
+      {
+        command: "# EXPANSAO_0608_CMDS",
+        description:
+          "Marcador interno de expansão 06/08 — ignore na prática.",
+        example: "true",
+      },
+      {
+        command: "apt-cache policy snapd 2>/dev/null | head -n 15 || true",
+        description:
+          "Snapd está disponível/pinnado? Muitas vezes não é o caminho default.",
+        example: "apt-cache policy snapd 2>/dev/null | head -n 15 || true",
+      },
+      {
+        command: "flatpak --version 2>/dev/null || echo 'flatpak não instalado'",
+        description:
+          "Checagem honesta do caminho de apps sandboxed.",
+        example: "flatpak --version 2>/dev/null || echo 'flatpak não instalado'",
+      },
+      {
+        command: "grep -R backports /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
+        description:
+          "Confirme se backports está habilitado de propósito.",
+        example: "grep -R backports /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
+      },
     ],
     tips: [
       {
@@ -1035,6 +1104,19 @@ Flatseal              com.github.tchx84.Flatseal    2.2.0    stable`,
         title: "Não confunda flatpak update com apt upgrade",
         content:
           "São sistemas separados. apt upgrade NÃO atualiza Flatpaks. flatpak update NÃO atualiza pacotes APT. Para manter tudo em dia, rode os dois (ou automatize com cron).",
+      },
+      { type: "info", title: "EXPANSAO_0608_TIPS", content: "marcador interno", },
+      {
+        type: "warning",
+        title: "Tutorial Ubuntu ≠ Debian",
+        content:
+          "snap install pode ser o atalho errado aqui.",
+      },
+      {
+        type: "success",
+        title: "Flatpak + Flathub",
+        content:
+          "Bom default para GUI; mantenha runtimes atualizados.",
       },
     ],
     practiceLabs: [
