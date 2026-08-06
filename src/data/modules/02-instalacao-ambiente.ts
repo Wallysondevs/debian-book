@@ -140,7 +140,6 @@ export const instalacaoAmbiente: Module[] = [
       {
         command: "lsusb",
         description: "Lista dispositivos USB conectados. Útil para confirmar se um pendrive está sendo reconhecido.",
-        example: "lsusb",
         output: "Bus 002 Device 003: ID 0781:5567 SanDisk Corp. Cruzer Blade",
       },
       {
@@ -155,7 +154,7 @@ export const instalacaoAmbiente: Module[] = [
       {
         command: "sync",
         description: "Força a escrita de todos os buffers pendentes em disco. Sempre rode após dd antes de remover o pendrive.",
-        example: "sync",
+        example: "sync && echo 'buffers gravados no disco'",
       },
     ],
     tips: [
@@ -354,7 +353,6 @@ sudo eject /dev/sdb`,
       {
         command: "sudo apt update",
         description: "Atualiza o índice local de pacotes consultando os repositórios. NÃO instala nada — só sincroniza a lista.",
-        example: "sudo apt update",
         output: "Hit:1 http://deb.debian.org/debian trixie InRelease\nGet:2 http://security.debian.org trixie-security InRelease [48.0 kB]\nReading package lists... Done\nAll packages are up to date.",
       },
       {
@@ -370,7 +368,6 @@ sudo eject /dev/sdb`,
       {
         command: "su -",
         description: "Troca para o usuário root carregando o ambiente dele. Use quando o sudo não está configurado ainda.",
-        example: "su -",
         output: "Password: \nroot@debian:~#",
       },
       {
@@ -386,7 +383,6 @@ sudo eject /dev/sdb`,
       {
         command: "timedatectl",
         description: "Mostra e configura data, hora, fuso e sincronização NTP via systemd-timesyncd.",
-        example: "timedatectl",
         output: "               Local time: ven 2026-04-25 18:32:15 -03\n           Universal time: ven 2026-04-25 21:32:15 UTC\n                Time zone: America/Sao_Paulo (-03, -0300)\nSystem clock synchronized: yes\n              NTP service: active",
         flags: [
           { flag: "set-timezone TZ", description: "Define fuso (ex: America/Sao_Paulo)" },
@@ -398,7 +394,6 @@ sudo eject /dev/sdb`,
       {
         command: "locale",
         description: "Mostra as variáveis de locale ativas — idioma, formato de data, número e moeda.",
-        example: "locale",
         output: "LANG=pt_BR.UTF-8\nLANGUAGE=pt_BR\nLC_CTYPE=\"pt_BR.UTF-8\"\nLC_NUMERIC=\"pt_BR.UTF-8\"\nLC_TIME=\"pt_BR.UTF-8\"\nLC_ALL=",
       },
       {
@@ -428,7 +423,6 @@ sudo eject /dev/sdb`,
       {
         command: "sudo visudo",
         description: "Edita /etc/sudoers com validação de sintaxe. NUNCA edite o arquivo direto com nano/vim.",
-        example: "sudo visudo",
       },
       {
         command: "sudo apt install",
@@ -481,7 +475,6 @@ sudo eject /dev/sdb`,
       {
         command: "apt list --upgradable",
         description: "Lista quais pacotes têm atualização disponível, sem instalar nada.",
-        example: "apt list --upgradable",
         output: "Listing... Done\ncurl/stable 7.88.1-10+deb12u5 amd64 [upgradable from: 7.88.1-10+deb12u4]\nlinux-image-amd64/stable 6.1.0-18 amd64 [upgradable from: 6.1.0-17]",
       },
     ],
@@ -680,31 +673,26 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
         command: "tasksel --list-tasks 2>/dev/null | head -n 20 || echo tasksel ausente",
         description:
           "Tasks de desktop.",
-        example: "tasksel --list-tasks 2>/dev/null | head -n 20 || echo tasksel ausente",
       },
       {
         command: "systemctl status display-manager --no-pager 2>/dev/null | head -n 12 || true",
         description:
           "DM ativo se houver GUI.",
-        example: "systemctl status display-manager --no-pager 2>/dev/null | head -n 12 || true",
       },
       {
         command: "dpkg -l \"task-*-desktop\" 2>/dev/null | grep ^ii || echo nenhuma task desktop",
         description:
           "Metapacotes instalados.",
-        example: "dpkg -l \"task-*-desktop\" 2>/dev/null | grep ^ii || echo nenhuma task desktop",
       },
 
       {
         command: "echo $XDG_CURRENT_DESKTOP",
         description: "Mostra qual ambiente gráfico está ativo na sessão atual.",
-        example: "echo $XDG_CURRENT_DESKTOP",
         output: "GNOME",
       },
       {
         command: "echo $XDG_SESSION_TYPE",
         description: "Mostra se a sessão atual usa X11 ou Wayland.",
-        example: "echo $XDG_SESSION_TYPE",
         output: "wayland",
       },
       {
@@ -741,7 +729,6 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
       {
         command: "sudo systemctl restart display-manager",
         description: "Reinicia a tela de login. Mata sua sessão atual sem reiniciar todo o sistema.",
-        example: "sudo systemctl restart display-manager",
       },
       {
         command: "sudo dpkg-reconfigure DM",
@@ -751,28 +738,23 @@ echo "=== Tudo pronto. Reinicie o sistema. ==="`,
       {
         command: "wmctrl -m",
         description: "Mostra qual gerenciador de janelas está ativo (Mutter=GNOME, KWin=KDE, Xfwm=XFCE, Marco=MATE).",
-        example: "wmctrl -m",
         output: "Name: Mutter\nClass: N/A\nPID: N/A\nWindow manager's \"showing the desktop\" mode: OFF",
       },
       {
         command: "gnome-tweaks",
         description: "Painel avançado de ajustes do GNOME. Não vem por padrão — instale com sudo apt install gnome-tweaks.",
-        example: "gnome-tweaks",
       },
       {
         command: "systemsettings",
         description: "Centro de controle completo do KDE Plasma. Acesse tema, atalhos, comportamento de janelas, energia.",
-        example: "systemsettings",
       },
       {
         command: "xfce4-settings-manager",
         description: "Painel de configurações do XFCE.",
-        example: "xfce4-settings-manager",
       },
       {
         command: "free -h",
         description: "Mostra uso de memória RAM em formato legível. Bom para comparar consumo de DEs em ocioso.",
-        example: "free -h",
         output: "               total        used        free      shared  buff/cache   available\nMem:           7.6Gi       1.4Gi       4.2Gi       128Mi       2.0Gi       6.0Gi\nSwap:          4.0Gi          0B       4.0Gi",
       },
     ],

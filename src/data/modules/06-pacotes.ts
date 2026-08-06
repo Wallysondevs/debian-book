@@ -31,7 +31,6 @@ export const pacotes: Module[] = [
       {
         command: "sudo apt update",
         description: "Atualiza a LISTA de pacotes disponíveis nos repositórios. Não instala nada — só lê os índices novos.",
-        example: "sudo apt update",
         output: `Hit:1 http://deb.debian.org/debian trixie InRelease
 Get:2 http://security.debian.org trixie-security InRelease [48.0 kB]
 Get:3 http://deb.debian.org/debian trixie-updates InRelease [55.4 kB]
@@ -159,7 +158,6 @@ Description: Vi IMproved - enhanced vi editor
       {
         command: "apt list --upgradable",
         description: "Lista pacotes que têm versão nova esperando para ser instalada.",
-        example: "apt list --upgradable",
       },
       {
         command: "apt-cache policy",
@@ -176,12 +174,10 @@ Description: Vi IMproved - enhanced vi editor
       {
         command: "sudo apt clean",
         description: "Apaga todos os .deb baixados do cache em /var/cache/apt/archives/. Libera espaço.",
-        example: "sudo apt clean",
       },
       {
         command: "sudo apt autoclean",
         description: "Apaga apenas .deb que não estão mais nos repositórios — mais conservador que clean.",
-        example: "sudo apt autoclean",
       },
       {
         command: "sudo apt-mark hold",
@@ -418,7 +414,6 @@ sudo apt --simulate install docker.io | head -30`,
       {
         command: "sudo apt --fix-broken install",
         description: "Resolve dependências quebradas após dpkg parcial.",
-        example: "sudo apt --fix-broken install",
       },
       {
         command: "dpkg -S",
@@ -677,7 +672,6 @@ dpkg -l | grep ^rc`,
       {
         command: "cat /etc/apt/sources.list",
         description: "Mostra o conteúdo do arquivo principal de fontes APT.",
-        example: "cat /etc/apt/sources.list",
         output: `deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware
 deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
 deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware`,
@@ -685,7 +679,6 @@ deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-f
       {
         command: "ls /etc/apt/sources.list.d/",
         description: "Lista repositórios de terceiros adicionados separadamente.",
-        example: "ls /etc/apt/sources.list.d/",
       },
       {
         command: "sudo nano /etc/apt/sources.list",
@@ -700,12 +693,10 @@ deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-f
       {
         command: "apt-cache policy",
         description: "Sem argumentos, mostra prioridades gerais de todos os repositórios.",
-        example: "apt-cache policy",
       },
       {
         command: "sudo apt update",
         description: "Lê os sources.list e baixa os índices novos. Sempre rode após editar fontes.",
-        example: "sudo apt update",
       },
       {
         command: "sudo install -m 0644 chave.gpg /etc/apt/keyrings/fornecedor.gpg",
@@ -735,25 +726,21 @@ deb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-f
       {
         command: "apt-mark showhold",
         description: "Mostra todos os pacotes atualmente em hold.",
-        example: "apt-mark showhold",
       },
       {
         command: "ls /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
         description:
           "Mapa clássico + drop-ins.",
-        example: "ls /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
       },
       {
         command: "grep -R \"Types:\\|Signed-By:\\|^deb \" /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 40",
         description:
           "Detecta one-line vs DEB822 no host.",
-        example: "grep -R \"Types:\\|Signed-By:\\|^deb \" /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head -n 40",
       },
       {
         command: "man sources.list | head -n 20",
         description:
           "Documenta ambos os formatos nas manpages recentes.",
-        example: "man sources.list | head -n 20",
       },
     ],
     tips: [
@@ -1001,7 +988,6 @@ apt-mark showhold`,
       {
         command: "flatpak list",
         description: "Lista todos os Flatpaks instalados no sistema.",
-        example: "flatpak list",
         output: `Name                  Application ID                Version  Branch
 Signal                org.signal.Signal             6.40.1   stable
 Telegram Desktop      org.telegram.desktop          4.14.4   stable
@@ -1040,25 +1026,21 @@ Flatseal              com.github.tchx84.Flatseal    2.2.0    stable`,
       {
         command: "flatpak remotes",
         description: "Lista os repositórios Flatpak configurados (remotes).",
-        example: "flatpak remotes",
       },
       {
         command: "apt-cache policy snapd 2>/dev/null | head -n 15 || true",
         description:
           "Snapd está disponível/pinnado? Muitas vezes não é o caminho default.",
-        example: "apt-cache policy snapd 2>/dev/null | head -n 15 || true",
       },
       {
         command: "flatpak --version 2>/dev/null || echo 'flatpak não instalado'",
         description:
           "Checagem honesta do caminho de apps sandboxed.",
-        example: "flatpak --version 2>/dev/null || echo 'flatpak não instalado'",
       },
       {
         command: "grep -R backports /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
         description:
           "Confirme se backports está habilitado de propósito.",
-        example: "grep -R backports /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head",
       },
     ],
     tips: [
@@ -1291,7 +1273,6 @@ flatpak override --user --show com.spotify.Client`,
         command: "ls -la /etc/apt/sources.list /etc/apt/sources.list.d/",
         description:
           "Veja o que existe: sources.list legado, *.list e *.sources. O inventário vem antes de qualquer edição.",
-        example: "ls -la /etc/apt/sources.list /etc/apt/sources.list.d/",
         output:
           "-rw-r--r-- 1 root root  92 /etc/apt/sources.list\ndrwxr-xr-x 2 root root 4096 /etc/apt/sources.list.d\n/etc/apt/sources.list.d/debian.sources",
       },
@@ -1307,21 +1288,16 @@ flatpak override --user --show com.spotify.Client`,
         command: "man sources.list",
         description:
           "Documentação oficial dos dois formatos (one-line e deb822). Busque a seção DEB822 dentro do manual.",
-        example: "man sources.list",
       },
       {
         command: "grep -nE '^(Types|URIs|Suites|Components|Signed-By):' /etc/apt/sources.list.d/*.sources 2>/dev/null",
         description:
           "Atalho para listar só os campos-chave de todos os .sources — útil em auditoria rápida.",
-        example:
-          "grep -nE '^(Types|URIs|Suites|Components|Signed-By):' /etc/apt/sources.list.d/*.sources 2>/dev/null",
       },
       {
         command: "grep -nE '^deb |^deb-src ' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null",
         description:
           "Inventário do formato clássico de uma linha, para comparar lado a lado com DEB822.",
-        example:
-          "grep -nE '^deb |^deb-src ' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null",
       },
       {
         command: "dpkg -L debian-archive-keyring | grep gpg | head",
@@ -1335,26 +1311,21 @@ flatpak override --user --show com.spotify.Client`,
         command: "sudo cp -a /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak-$(date +%F)",
         description:
           "Backup versionado por data antes de editar. Hábito barato que evita 'apaguei o Suites e o update morreu'.",
-        example:
-          "sudo cp -a /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak-$(date +%F)",
       },
       {
         command: "sudo nano /etc/apt/sources.list.d/debian.sources",
         description:
           "Edição interativa do bloco. Altere Suites com critério (codinome fixo) e mantenha security em stanza separado se já estiver assim.",
-        example: "sudo nano /etc/apt/sources.list.d/debian.sources",
       },
       {
         command: "sudo apt update",
         description:
           "Única validação que importa depois de salvar: índices baixam e assinaturas fecham. Erro aqui = arquivo ou chave, não 'internet genérica'.",
-        example: "sudo apt update",
       },
       {
         command: "apt-cache policy | head -n 35",
         description:
           "Confere se as entradas Package files refletem as suítes que você configurou no DEB822.",
-        example: "apt-cache policy | head -n 35",
         output:
           "Package files:\n 100 /var/lib/dpkg/status\n     release a=now\n 500 http://deb.debian.org/debian trixie/main amd64 Packages\n     release v=13.0,o=Debian,a=stable,n=trixie,l=Debian,c=main,b=amd64",
       },
@@ -1371,7 +1342,6 @@ flatpak override --user --show com.spotify.Client`,
         command: "apt-get indextargets 2>/dev/null | head -n 20",
         description:
           "Visão interna do que o APT enxerga como alvos de índice (quando disponível) — útil para depurar fonte 'sumida'.",
-        example: "apt-get indextargets 2>/dev/null | head -n 20",
       },
     ],
     tips: [
@@ -1612,7 +1582,6 @@ EOF`,
         command: "sudo unattended-upgrade -v",
         description:
           "Executa uma passagem real (verbose). Prefira depois do dry-run e em janela controlada na primeira vez.",
-        example: "sudo unattended-upgrade -v",
       },
       {
         command: "ls -la /var/log/unattended-upgrades/ 2>/dev/null; tail -n 30 /var/log/unattended-upgrades/unattended-upgrades.log 2>/dev/null",
@@ -1630,7 +1599,6 @@ EOF`,
         command: "apt-cache policy unattended-upgrades",
         description:
           "De onde veio o pacote e se a versão é a da sua stable — sanidade básica pós-install.",
-        example: "apt-cache policy unattended-upgrades",
       },
     ],
     tips: [
@@ -1772,7 +1740,6 @@ sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
         command: "sudo apt install -y equivs dpkg-dev",
         description:
           "Ferramentas leves para metapacotes (equivs) e utilitários de empacotamento.",
-        example: "sudo apt install -y equivs dpkg-dev",
       },
       {
         command: "equivs-control meu-meta",
@@ -1790,7 +1757,6 @@ sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
         command: "mkdir -p /tmp/ola-deb/DEBIAN /tmp/ola-deb/usr/local/share/doc/ola-curso",
         description:
           "Layout mínimo para dpkg-deb: DEBIAN/ para metadados e o resto como raiz do filesystem instalado.",
-        example: "mkdir -p /tmp/ola-deb/DEBIAN /tmp/ola-deb/usr/local/share/doc/ola-curso",
       },
       {
         command: "cat > /tmp/ola-deb/DEBIAN/control <<'EOF'\nPackage: ola-curso\nVersion: 1.0-1\nSection: misc\nPriority: optional\nArchitecture: all\nMaintainer: Curso Debian <curso@example.invalid>\nDescription: Pacote minimo de demonstracao do debian-book\n Exemplo didatico: so instala um arquivo de documentacao.\nEOF",
@@ -1808,7 +1774,6 @@ sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
         command: "dpkg-deb --build /tmp/ola-deb /tmp/ola-curso_1.0-1_all.deb",
         description:
           "Gera o .deb. O nome do arquivo costuma seguir nome_versão_arch.deb por convenção.",
-        example: "dpkg-deb --build /tmp/ola-deb /tmp/ola-curso_1.0-1_all.deb",
         flags: [
           { flag: "--build", description: "Empacota o diretório no formato deb" },
           { flag: "-I", description: "Mostra o control de um .deb" },
@@ -1825,7 +1790,6 @@ sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
         command: "sudo apt install -y /tmp/ola-curso_1.0-1_all.deb",
         description:
           "Instala resolvendo dependências via apt (melhor que dpkg -i puro se houver Depends).",
-        example: "sudo apt install -y /tmp/ola-curso_1.0-1_all.deb",
       },
       {
         command: "dpkg -L ola-curso; dpkg -s ola-curso | sed -n '1,20p'",
@@ -1980,7 +1944,6 @@ ls -la /tmp/ola-curso_*.deb 2>/dev/null || echo "Construa o deb com o fluxo do c
         command: "apt-cache policy bash",
         description:
           "Caso típico: instalada vs candidate vs tabela por repositório.",
-        example: "apt-cache policy bash",
         output:
           "bash:\n  Installed: 5.2.37-2\n  Candidate: 5.2.37-2\n  Version table:\n *** 5.2.37-2 500\n        500 http://deb.debian.org/debian trixie/main amd64 Packages\n        100 /var/lib/dpkg/status",
       },
@@ -2006,7 +1969,6 @@ ls -la /tmp/ola-curso_*.deb 2>/dev/null || echo "Construa o deb com o fluxo do c
         command: "man apt_preferences",
         description:
           "Referência oficial de sintaxe Package/Pin/Pin-Priority e armadilhas.",
-        example: "man apt_preferences",
       },
       {
         command: "sudo apt-mark hold openssh-server",
@@ -2023,13 +1985,11 @@ ls -la /tmp/ola-curso_*.deb 2>/dev/null || echo "Construa o deb com o fluxo do c
         command: "apt-mark showhold",
         description:
           "Sempre rode antes de full-upgrade de release: hold esquecido em libc/systemd é drama.",
-        example: "apt-mark showhold",
       },
       {
         command: "sudo apt-mark unhold openssh-server",
         description:
           "Desfaz o exemplo de hold. Em produção, unhold só com intenção e janela.",
-        example: "sudo apt-mark unhold openssh-server",
       },
       {
         command: "apt install -t trixie-backports --dry-run PACKAGE 2>/dev/null | tail -n 20 || echo 'ajuste PACKAGE e codinome backports da sua release'",
@@ -2041,7 +2001,6 @@ ls -la /tmp/ola-curso_*.deb 2>/dev/null || echo "Construa o deb com o fluxo do c
         command: "apt-cache madison bash | head",
         description:
           "Lista versões conhecidas e de onde vêm, formato tabular — complemento da policy.",
-        example: "apt-cache madison bash | head",
       },
     ],
     tips: [

@@ -33,13 +33,11 @@ export const fundamentos: Module[] = [
         command: "lscpu 2>/dev/null | egrep \"Model name|CPU\\(s\\)|Architecture\" || true",
         description:
           "Amostra real da sua máquina.",
-        example: "lscpu 2>/dev/null | egrep \"Model name|CPU\\(s\\)|Architecture\" || true",
       },
       {
         command: "uname -m; dpkg --print-architecture",
         description:
           "Arquitetura kernel vs pacotes Debian.",
-        example: "uname -m; dpkg --print-architecture",
       },
 
       {
@@ -59,7 +57,6 @@ export const fundamentos: Module[] = [
       {
         command: "cat /etc/os-release",
         description: "Exibe informações padronizadas sobre a distribuição: nome, versão, ID, codinome. Funciona em qualquer distro moderna e é o jeito recomendado de identificar o sistema em scripts.",
-        example: "cat /etc/os-release",
         output: 'PRETTY_NAME="Debian GNU/Linux 13 (trixie)"\nNAME="Debian GNU/Linux"\nVERSION_ID="13"\nVERSION="13 (trixie)"\nVERSION_CODENAME=trixie\nID=debian\nHOME_URL="https://www.debian.org/"',
       },
       {
@@ -77,13 +74,11 @@ export const fundamentos: Module[] = [
       {
         command: "hostnamectl",
         description: "Mostra um resumo bonito do sistema: hostname, kernel, distribuição, arquitetura, virtualização. Fornecido pelo systemd.",
-        example: "hostnamectl",
         output: " Static hostname: debian\n       Icon name: computer-laptop\n         Chassis: laptop\n      Machine ID: 9f...\nOperating System: Debian GNU/Linux 13 (trixie)\n          Kernel: Linux 6.12.41-amd64\n    Architecture: x86-64",
       },
       {
         command: "cat /proc/version",
         description: "Detalhes do kernel: versão, compilador usado, data do build. /proc é um sistema de arquivos virtual com informações do kernel em tempo real.",
-        example: "cat /proc/version",
         output: "Linux version 6.12.41-amd64 (debian-kernel@lists.debian.org) (gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP PREEMPT_DYNAMIC Debian 6.12.41-1 (2025-08-01)",
       },
       {
@@ -95,7 +90,6 @@ export const fundamentos: Module[] = [
       {
         command: "nproc",
         description: "Mostra apenas o número de núcleos de CPU disponíveis. Útil em scripts para ajustar paralelismo (make -j$(nproc)).",
-        example: "nproc",
         output: "8",
       },
       {
@@ -114,7 +108,6 @@ export const fundamentos: Module[] = [
       {
         command: "uptime",
         description: "Mostra há quanto tempo o sistema está ligado, quantos usuários conectados e o load average. Servidores Linux costumam ter uptimes longos como medalha.",
-        example: "uptime",
         flags: [
           { flag: "-p", description: "Formato amigável: 'up 3 hours, 15 minutes'" },
           { flag: "-s", description: "Mostra desde quando está ligado (data/hora do boot)" },
@@ -124,19 +117,16 @@ export const fundamentos: Module[] = [
       {
         command: "whoami",
         description: "Diz qual usuário você é agora. Trivial, mas útil quando você usa 'sudo' ou 'su' e perde a noção de quem está executando.",
-        example: "whoami",
         output: "ana",
       },
       {
         command: "id",
         description: "Mostra seu UID, GID e a lista de grupos a que você pertence. É a 'carteira de identidade' Unix do usuário atual.",
-        example: "id",
         output: "uid=1000(ana) gid=1000(ana) groups=1000(ana),27(sudo),100(users)",
       },
       {
         command: "echo $SHELL",
         description: "Mostra qual shell está configurado como padrão para o seu usuário (bash, zsh, fish). Não confunde com qual shell está rodando agora.",
-        example: "echo $SHELL",
         output: "/bin/bash",
       },
     ],
@@ -355,25 +345,21 @@ GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
       {
         command: "cat /etc/debian_version",
         description: "Mostra a versão exata do Debian (mais detalhada que /etc/os-release). Para a branch testing, mostra o codinome em vez do número.",
-        example: "cat /etc/debian_version",
         output: "13.1",
       },
       {
         command: "lsb_release -c",
         description: "Mostra apenas o codinome da release. Útil em scripts (configurar sources.list, por exemplo).",
-        example: "lsb_release -c",
         output: "Codename:       trixie",
       },
       {
         command: "lsb_release -cs",
         description: "Mesma coisa que -c mas no modo 'short': só o codinome puro, sem o rótulo. Ideal para usar em scripts ($(lsb_release -cs)).",
-        example: "lsb_release -cs",
         output: "trixie",
       },
       {
         command: "dpkg --print-architecture",
         description: "Mostra a arquitetura nativa do sistema (amd64, arm64, i386, armhf, riscv64). Importante para decidir quais pacotes baixar.",
-        example: "dpkg --print-architecture",
         output: "amd64",
       },
       {
@@ -385,19 +371,16 @@ GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
       {
         command: "cat /etc/apt/sources.list",
         description: "Mostra de quais repositórios o apt vai buscar pacotes. Cada linha 'deb http://...' é uma fonte ativa.",
-        example: "cat /etc/apt/sources.list",
         output: "deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\ndeb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware\ndeb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware",
       },
       {
         command: "ls /etc/apt/sources.list.d/",
         description: "Lista repositórios extras configurados. Cada arquivo .list adiciona repositórios além do principal.",
-        example: "ls /etc/apt/sources.list.d/",
         output: "google-chrome.list  vscode.list",
       },
       {
         command: "uptime",
         description: "Quanto tempo o sistema está ligado, quantos usuários conectados e load average. Servidores Debian frequentemente acumulam meses de uptime.",
-        example: "uptime",
         output: "14:32:11 up 47 days, 3:18, 2 users, load average: 0.05, 0.12, 0.09",
       },
       {
@@ -409,7 +392,6 @@ GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)
       {
         command: "apt list --upgradable",
         description: "Mostra quais pacotes têm atualização disponível depois de um 'apt update'. Indispensável antes de fazer 'apt upgrade'.",
-        example: "apt list --upgradable",
         output: "Listando... Concluído\nlibssl3/bookworm-security 3.0.13-1~deb12u1 amd64 [atualizável de: 3.0.11-1~deb12u2]\nopenssl/bookworm-security 3.0.13-1~deb12u1 amd64 [atualizável de: 3.0.11-1~deb12u2]",
       },
       {
@@ -586,19 +568,16 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
         command: "grep -R non-free-firmware /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head || echo nao listado",
         description:
           "Componente firmware no APT.",
-        example: "grep -R non-free-firmware /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | head || echo nao listado",
       },
       {
         command: "dpkg -l \"firmware-*\" 2>/dev/null | head -n 15 || true",
         description:
           "Pacotes firmware instalados.",
-        example: "dpkg -l \"firmware-*\" 2>/dev/null | head -n 15 || true",
       },
 
       {
         command: "cat /etc/apt/sources.list",
         description: "Mostra os repositórios principais configurados.",
-        example: "cat /etc/apt/sources.list",
         output: "deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\ndeb-src http://deb.debian.org/debian trixie main contrib non-free non-free-firmware\n\ndeb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware\n\ndeb http://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware",
       },
       {
@@ -648,12 +627,10 @@ echo "Veja bugs em: https://bugs.debian.org/bash"`,
       {
         command: "apt-key list",
         description: "Lista as chaves GPG dos repositórios (forma antiga). Em sistemas modernos, prefira /etc/apt/trusted.gpg.d/ ou /usr/share/keyrings/. O comando apt-key foi descontinuado.",
-        example: "apt-key list",
       },
       {
         command: "ls /usr/share/keyrings/",
         description: "Lista as chaves GPG (forma moderna) usadas pelos repositórios via signed-by. É aqui que devem ficar as chaves de terceiros.",
-        example: "ls /usr/share/keyrings/",
         output: "debian-archive-trixie-automatic.gpg\ndebian-archive-trixie-security-automatic.gpg\nbrave-browser-archive-keyring.gpg",
       },
       {
@@ -892,7 +869,6 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         command: "cat /etc/os-release",
         description:
           "Mostra nome, número e codinome da release instalada. É a fonte mais portátil para scripts e para copiar/colar em pedido de ajuda.",
-        example: "cat /etc/os-release",
         output:
           'PRETTY_NAME="Debian GNU/Linux 13 (trixie)"\nNAME="Debian GNU/Linux"\nVERSION_ID="13"\nVERSION="13 (trixie)"\nVERSION_CODENAME=trixie\nID=debian',
       },
@@ -900,7 +876,6 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         command: "lsb_release -a",
         description:
           "Resumo LSB da distribuição (pode exigir o pacote lsb-release). Útil quando você quer só codinome/release sem abrir arquivo.",
-        example: "lsb_release -a",
         flags: [
           { flag: "-a", description: "Todas as linhas (distributor, description, release, codename)" },
           { flag: "-c", description: "Só o codinome (trixie, bookworm…)" },
@@ -913,7 +888,6 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         command: "cat /etc/debian_version",
         description:
           "Arquivo clássico com a versão Debian (número ou codinome/sid). Em stable costuma ser só o número; em testing/sid aparece o codinome ou ‘trixie/sid’.",
-        example: "cat /etc/debian_version",
         output: "13.0",
       },
       {
@@ -945,7 +919,6 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         command: "apt-cache policy bash",
         description:
           "Exemplo prático: de onde o bash instalado e o candidato a instalar estão vindo. Se aparecer testing/sid sem você querer, suas fontes estão perigosas.",
-        example: "apt-cache policy bash",
         output:
           "bash:\n  Installed: 5.2.37-2\n  Candidate: 5.2.37-2\n  Version table:\n *** 5.2.37-2 500\n        500 http://deb.debian.org/debian trixie/main amd64 Packages\n        100 /var/lib/dpkg/status",
       },
@@ -966,7 +939,6 @@ apt list --installed 2>/dev/null | grep -v "Debian" | head -20`,
         command: "apt list --upgradable 2>/dev/null | head",
         description:
           "Mostra o que o apt já considera atualizável na release atual. Não é upgrade de release (bookworm→trixie); é manutenção dentro do ciclo.",
-        example: "apt list --upgradable 2>/dev/null | head",
         output: "Listing...\nlinux-image-amd64/stable 6.12.x-y amd64 [upgradable from: 6.12.x-x]",
       },
       {
@@ -1162,7 +1134,6 @@ echo "Leia também: https://wiki.debian.org/DebianReleases"`,
         command: "df -h / /var /boot",
         description:
           "Upgrade unpacka gigabytes. Se `/` ou `/var` estiver no limite, pare e limpe (apt clean, logs, kernels velhos) antes de continuar.",
-        example: "df -h / /var /boot",
         output:
           "Filesystem      Size  Used Avail Use% Mounted on\n/dev/vda1        40G   22G   16G  58% /\n/dev/vda1        40G   22G   16G  58% /var\n/dev/vda1        40G   22G   16G  58% /boot",
       },
@@ -1170,14 +1141,12 @@ echo "Leia também: https://wiki.debian.org/DebianReleases"`,
         command: "apt-mark showhold",
         description:
           "Lista pacotes em hold. Hold em libc/systemd/apt no meio de upgrade de release é sabotagem acidental — revise um a um.",
-        example: "apt-mark showhold",
         output: "",
       },
       {
         command: "sudo apt update && sudo apt upgrade",
         description:
           "Ainda no bookworm: deixe a release atual limpa e atualizada. Não mude sources antes disso.",
-        example: "sudo apt update && sudo apt upgrade",
         flags: [
           { flag: "update", description: "Recarrega índices das fontes atuais" },
           { flag: "upgrade", description: "Atualiza pacotes sem remover outros (mais conservador)" },
@@ -1194,8 +1163,6 @@ echo "Leia também: https://wiki.debian.org/DebianReleases"`,
         command: "grep -RInE 'bookworm|trixie|stable|sid' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null",
         description:
           "Inventário das fontes antes e depois da troca. Você quer ver só trixie (e security/updates) no final — zero sid, zero bookworm esquecido.",
-        example:
-          "grep -RInE 'bookworm|trixie|stable|sid' /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null",
         output:
           "/etc/apt/sources.list:1:deb http://deb.debian.org/debian bookworm main contrib non-free-firmware\n/etc/apt/sources.list:2:deb http://security.debian.org/debian-security bookworm-security main",
       },
@@ -1214,13 +1181,11 @@ echo "Leia também: https://wiki.debian.org/DebianReleases"`,
         command: "sudo apt update",
         description:
           "Depois de apontar para trixie: recarrega índices. Erros 404 em repo de terceiro = desabilite esse repo e tente de novo.",
-        example: "sudo apt update",
       },
       {
         command: "sudo apt full-upgrade",
         description:
           "O coração do upgrade de release. Pode remover pacotes para resolver dependências — leia o resumo antes de confirmar. Em sessão remota, use tmux.",
-        example: "sudo apt full-upgrade",
         flags: [
           { flag: "full-upgrade", description: "Permite instalar/remover o necessário para a nova release" },
           { flag: "-y", description: "Assume yes (evite na primeira vez em produção)" },
@@ -1243,7 +1208,6 @@ echo "Leia também: https://wiki.debian.org/DebianReleases"`,
         command: "sudo apt autoremove --purge",
         description:
           "Depois do upgrade bem-sucedido e validado: remove dependências órfãs e restos. Não rode no meio de um conflito ainda aberto.",
-        example: "sudo apt autoremove --purge",
       },
     ],
     tips: [

@@ -38,19 +38,16 @@ export const servidores: Module[] = [
         command: "curl -sI http://127.0.0.1/ 2>/dev/null | head || true",
         description:
           "HTTP local antes de caçar DNS/TLS.",
-        example: "curl -sI http://127.0.0.1/ 2>/dev/null | head || true",
       },
       {
         command: "command -v certbot >/dev/null && certbot certificates 2>/dev/null | head || echo ver tls-certbot",
         description:
           "Ponte para o capítulo de TLS.",
-        example: "command -v certbot >/dev/null && certbot certificates 2>/dev/null | head || echo ver tls-certbot",
       },
       {
         command: "sudo nginx -t 2>/dev/null || sudo apache2ctl configtest 2>/dev/null || true",
         description:
           "Teste de config do servidor web.",
-        example: "sudo nginx -t 2>/dev/null || sudo apache2ctl configtest 2>/dev/null || true",
       },
 
       {
@@ -101,13 +98,11 @@ export const servidores: Module[] = [
       {
         command: "sudo apache2ctl configtest",
         description: "Valida a sintaxe da configuração do Apache antes de aplicar.",
-        example: "sudo apache2ctl configtest",
         output: "Syntax OK",
       },
       {
         command: "sudo nginx -t",
         description: "Equivalente do configtest no Nginx — testa o arquivo antes do reload.",
-        example: "sudo nginx -t",
         output:
           "nginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file /etc/nginx/nginx.conf test is successful",
         flags: [
@@ -153,7 +148,6 @@ export const servidores: Module[] = [
       {
         command: "sudo apache2ctl -S",
         description: "Lista todos os virtual hosts vistos pelo Apache e qual responde por cada nome.",
-        example: "sudo apache2ctl -S",
         output:
           "VirtualHost configuration:\n*:80                   meusite.com (/etc/apache2/sites-enabled/meusite.conf:1)",
       },
@@ -165,7 +159,6 @@ export const servidores: Module[] = [
       {
         command: "sudo certbot renew --dry-run",
         description: "Simula a renovação dos certificados sem alterar nada — confirma que vai funcionar quando vencer.",
-        example: "sudo certbot renew --dry-run",
         output: "Congratulations, all simulated renewals succeeded",
       },
     ],
@@ -361,12 +354,10 @@ sudo certbot --nginx -d meusite.com -d www.meusite.com`,
         command: "sudo mysql_secure_installation",
         description:
           "Wizard pós-instalação que define senha de root, remove usuário anônimo e o banco de teste.",
-        example: "sudo mysql_secure_installation",
       },
       {
         command: "sudo mariadb",
         description: "Abre o cliente como root SQL via socket Unix (sem senha).",
-        example: "sudo mariadb",
         output: "Welcome to the MariaDB monitor.\nMariaDB [(none)]>",
       },
       {
@@ -387,7 +378,6 @@ sudo certbot --nginx -d meusite.com -d www.meusite.com`,
       {
         command: "sudo -u postgres psql",
         description: "Vira o usuário Linux 'postgres' e abre o cliente psql como superusuário SQL.",
-        example: "sudo -u postgres psql",
         output: "psql (15.5 (Debian 15.5-0+deb12u1))\npostgres=#",
       },
       {
@@ -623,25 +613,21 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
         command: "docker info 2>/dev/null | egrep -i \"rootless|server version\" | head || echo docker indisponivel",
         description:
           "Rootless? versão?",
-        example: "docker info 2>/dev/null | egrep -i \"rootless|server version\" | head || echo docker indisponivel",
       },
       {
         command: "docker compose version 2>/dev/null || docker-compose version 2>/dev/null || echo sem compose",
         description:
           "Ponte para compose-pratica.",
-        example: "docker compose version 2>/dev/null || docker-compose version 2>/dev/null || echo sem compose",
       },
       {
         command: "podman version 2>/dev/null | head -n 3 || echo ver podman-debian",
         description:
           "Alternativa rootless.",
-        example: "podman version 2>/dev/null | head -n 3 || echo ver podman-debian",
       },
 
       {
         command: "docker version",
         description: "Mostra as versões do cliente e do daemon Docker — primeiro comando após instalar.",
-        example: "docker version",
         output: "Client: Docker Engine - Community\n Version:           26.1.4",
       },
       {
@@ -697,7 +683,6 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       {
         command: "docker images",
         description: "Lista imagens locais com tag e tamanho.",
-        example: "docker images",
         output:
           "REPOSITORY   TAG       IMAGE ID       CREATED         SIZE\nnginx        latest    abcdef         2 weeks ago     192MB",
       },
@@ -728,7 +713,6 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       {
         command: "docker compose down",
         description: "Para e remove tudo que o compose criou (containers, redes). Volumes só com -v.",
-        example: "docker compose down",
         flags: [
           { flag: "-v", description: "Apaga também os volumes (cuidado: perde dados)" },
         ],
@@ -750,7 +734,6 @@ sudo -u postgres pg_dump -F c app_demo > ~/backups/app_demo.dump`,
       {
         command: "docker stats",
         description: "Mostra uso de CPU, memória e rede dos containers em tempo real.",
-        example: "docker stats",
       },
     ],
     tips: [
@@ -970,7 +953,6 @@ docker compose ps`,
       {
         command: "sudo systemctl status ssh",
         description: "Verifica se o daemon está rodando e em que porta escuta.",
-        example: "sudo systemctl status ssh",
         output: "Active: active (running) since Tue 2025-03-04 10:00:00 UTC",
       },
       {
@@ -1028,12 +1010,10 @@ docker compose ps`,
       {
         command: "sudo systemctl reload ssh",
         description: "Recarrega o sshd após editar /etc/ssh/sshd_config.",
-        example: "sudo systemctl reload ssh",
       },
       {
         command: "sudo sshd -t",
         description: "Testa a sintaxe do sshd_config sem aplicar.",
-        example: "sudo sshd -t",
       },
       {
         command: "sudo journalctl -u ssh -f",
@@ -1049,19 +1029,16 @@ docker compose ps`,
         command: "sudo sshd -T 2>/dev/null | egrep 'passwordauthentication|permitrootlogin|pubkeyauthentication|port ' | head",
         description:
           "Config efetiva do daemon (não só o arquivo).",
-        example: "sudo sshd -T 2>/dev/null | egrep 'passwordauthentication|permitrootlogin|pubkeyauthentication|port ' | head",
       },
       {
         command: "ls /etc/ssh/sshd_config.d 2>/dev/null; systemctl is-active ssh sshd 2>/dev/null",
         description:
           "Drop-ins e nome da unit ativa.",
-        example: "ls /etc/ssh/sshd_config.d 2>/dev/null; systemctl is-active ssh sshd 2>/dev/null",
       },
       {
         command: "sudo ss -lntp | grep -E ':22|:2222' || true",
         description:
           "Porta SSH escutando de verdade.",
-        example: "sudo ss -lntp | grep -E ':22|:2222' || true",
       },
     ],
     tips: [
@@ -1234,7 +1211,6 @@ ssh user@servidor "
       {
         command: "sudo apt update && sudo apt full-upgrade -y",
         description: "Atualiza lista de pacotes e aplica todas as atualizações disponíveis.",
-        example: "sudo apt update && sudo apt full-upgrade -y",
       },
       {
         command: "sudo adduser",
@@ -1270,12 +1246,10 @@ ssh user@servidor "
       {
         command: "sudo ufw enable",
         description: "Ativa o firewall (cuidado: aplica regras de imediato).",
-        example: "sudo ufw enable",
       },
       {
         command: "sudo ufw status verbose",
         description: "Lista regras ativas e política padrão.",
-        example: "sudo ufw status verbose",
         output:
           "Status: active\nDefault: deny (incoming), allow (outgoing)\n22/tcp                     ALLOW IN    Anywhere",
       },
@@ -1297,12 +1271,10 @@ ssh user@servidor "
       {
         command: "sudo fail2ban-client status sshd",
         description: "Mostra IPs banidos atualmente para o serviço sshd.",
-        example: "sudo fail2ban-client status sshd",
       },
       {
         command: "sudo journalctl -p err -b",
         description: "Mostra todas as mensagens de prioridade error desde o último boot.",
-        example: "sudo journalctl -p err -b",
       },
       {
         command: "sudo last",
@@ -1492,79 +1464,66 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y podman",
         description:
           "Engine Podman no Debian.",
-        example: "sudo apt install -y podman",
       },
       {
         command: "podman version",
         description:
           "Cliente/API e versão.",
-        example: "podman version",
       },
       {
         command: "podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null || podman info | head -n 40",
         description:
           "Confere modo rootless / resumo.",
-        example: "podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null || podman info | head -n 40",
       },
       {
         command: "podman run --rm debian:bookworm-slim cat /etc/os-release | head",
         description:
           "Container efêmero com imagem Debian.",
-        example: "podman run --rm debian:bookworm-slim cat /etc/os-release | head",
       },
       {
         command: "podman images",
         description:
           "Imagens locais.",
-        example: "podman images",
       },
       {
         command: "podman ps -a",
         description:
           "Containers incluindo parados.",
-        example: "podman ps -a",
       },
       {
         command: "podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine",
         description:
           "Nginx de lab em porta alta.",
-        example: "podman run -d --name hello-pod -p 8080:80 docker.io/library/nginx:alpine",
       },
       {
         command: "podman logs --tail 20 hello-pod",
         description:
           "Logs do container.",
-        example: "podman logs --tail 20 hello-pod",
       },
       {
         command: "podman stop hello-pod && podman rm hello-pod",
         description:
           "Para e remove o lab.",
-        example: "podman stop hello-pod && podman rm hello-pod",
       },
       {
         command: "man podman",
         description:
           "Manual principal.",
-        example: "man podman",
       },
       {
         command: "podman volume ls; mkdir -p $HOME/podman-lab",
         description:
           "Prepara dir de volume bind de lab.",
-        example: "podman volume ls; mkdir -p $HOME/podman-lab",
       },
       {
         command: "podman run --rm -v $HOME/podman-lab:/data:rw debian:bookworm-slim touch /data/ping.txt",
         description:
           "Volume bind simples (crie o dir antes).",
-        example: "podman run --rm -v $HOME/podman-lab:/data:rw debian:bookworm-slim touch /data/ping.txt",
       },
       {
         command: "id; grep $USER /etc/subuid /etc/subgid 2>/dev/null | head",
         description:
           "Mapeamento subuid/subgid para rootless.",
-        example: "id; grep $USER /etc/subuid /etc/subgid 2>/dev/null | head",
       },
     ],
     tips: [
@@ -1698,73 +1657,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y docker.io docker-compose 2>/dev/null || sudo apt install -y podman-compose",
         description:
           "Tenta toolchain compose (Docker ou Podman) conforme disponível.",
-        example: "sudo apt install -y docker.io docker-compose 2>/dev/null || sudo apt install -y podman-compose",
       },
       {
         command: "mkdir -p ~/lab-compose && printf '%s\n' 'services:' '  web:' '    image: docker.io/library/nginx:alpine' '    ports:' '      - 8088:80' '  db:' '    image: docker.io/library/postgres:16-alpine' '    environment:' '      POSTGRES_PASSWORD: labonly' '    volumes:' '      - pgdata:/var/lib/postgresql/data' 'volumes:' '  pgdata:' > ~/lab-compose/compose.yaml",
         description:
           "YAML minimo web+db de lab (senha fraca de proposito local).",
-        example: "mkdir -p ~/lab-compose && printf '%s\n' 'services:' '  web:' '    image: docker.io/library/nginx:alpine' '    ports:' '      - 8088:80' '  db:' '    image: docker.io/library/postgres:16-alpine' '    environment:' '      POSTGRES_PASSWORD: labonly' '    volumes:' '      - pgdata:/var/lib/postgresql/data' 'volumes:' '  pgdata:' > ~/lab-compose/compose.yaml",
       },
       {
         command: "cd ~/lab-compose && (docker compose version || docker-compose version || podman compose version) 2>/dev/null | head",
         description:
           "Qual binário compose existe.",
-        example: "cd ~/lab-compose && (docker compose version || docker-compose version || podman compose version) 2>/dev/null | head",
       },
       {
         command: "cd ~/lab-compose && (docker compose up -d || docker-compose up -d || podman-compose up -d)",
         description:
           "Sobe a stack em background.",
-        example: "cd ~/lab-compose && (docker compose up -d || docker-compose up -d || podman-compose up -d)",
       },
       {
         command: "cd ~/lab-compose && (docker compose ps || docker-compose ps || podman-compose ps)",
         description:
           "Status dos serviços.",
-        example: "cd ~/lab-compose && (docker compose ps || docker-compose ps || podman-compose ps)",
       },
       {
         command: "curl -sI http://127.0.0.1:8088 | head -n 5",
         description:
           "HTTP no nginx publicado.",
-        example: "curl -sI http://127.0.0.1:8088 | head -n 5",
       },
       {
         command: "cd ~/lab-compose && (docker compose logs --tail 10 db || docker-compose logs --tail=10 db || podman-compose logs db) 2>/dev/null | tail",
         description:
           "Logs do banco.",
-        example: "cd ~/lab-compose && (docker compose logs --tail 10 db || docker-compose logs --tail=10 db || podman-compose logs db) 2>/dev/null | tail",
       },
       {
         command: "cd ~/lab-compose && (docker compose down || docker-compose down || podman-compose down)",
         description:
           "Derruba containers (mantém volume por padrão).",
-        example: "cd ~/lab-compose && (docker compose down || docker-compose down || podman-compose down)",
       },
       {
         command: "man docker-compose 2>/dev/null || man podman-compose 2>/dev/null || true",
         description:
           "Manual se empacotado.",
-        example: "man docker-compose 2>/dev/null || man podman-compose 2>/dev/null || true",
       },
       {
         command: "printf '%s\n' 'POSTGRES_PASSWORD=labonly' > ~/lab-compose/.env && printf '%s\n' '.env' >> ~/lab-compose/.gitignore",
         description:
           "Hábitos: env fora do YAML commitável.",
-        example: "printf '%s\n' 'POSTGRES_PASSWORD=labonly' > ~/lab-compose/.env && printf '%s\n' '.env' >> ~/lab-compose/.gitignore",
       },
       {
         command: "cd ~/lab-compose && (docker compose config || docker-compose config || true) 2>/dev/null | head -n 40",
         description:
           "Renderiza config efetiva.",
-        example: "cd ~/lab-compose && (docker compose config || docker-compose config || true) 2>/dev/null | head -n 40",
       },
       {
         command: "ss -lnt | grep 8088 || true",
         description:
           "Confirma porta publicada no host.",
-        example: "ss -lnt | grep 8088 || true",
       },
     ],
     tips: [
@@ -1898,73 +1845,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y ansible",
         description:
           "Control node com Ansible.",
-        example: "sudo apt install -y ansible",
       },
       {
         command: "ansible --version | head -n 5",
         description:
           "Versão e config path.",
-        example: "ansible --version | head -n 5",
       },
       {
         command: "mkdir -p ~/lab-ansible && printf '%s\n' '[local]' 'localhost ansible_connection=local' > ~/lab-ansible/inventory.ini",
         description:
           "Inventário local para lab seguro.",
-        example: "mkdir -p ~/lab-ansible && printf '%s\n' '[local]' 'localhost ansible_connection=local' > ~/lab-ansible/inventory.ini",
       },
       {
         command: "printf '%s\n' '---' '- name: baseline lab' '  hosts: local' '  become: true' '  tasks:' '    - name: garantir curl' '      ansible.builtin.apt:' '        name: curl' '        state: present' '        update_cache: true' '    - name: garantir ssh enabled se existir' '      ansible.builtin.service:' '        name: ssh' '        state: started' '        enabled: true' '      failed_when: false' > ~/lab-ansible/site.yml",
         description:
           "Playbook mínimo apt+service.",
-        example: "printf '%s\n' '---' '- name: baseline lab' '  hosts: local' '  become: true' '  tasks:' '    - name: garantir curl' '      ansible.builtin.apt:' '        name: curl' '        state: present' '        update_cache: true' '    - name: garantir ssh enabled se existir' '      ansible.builtin.service:' '        name: ssh' '        state: started' '        enabled: true' '      failed_when: false' > ~/lab-ansible/site.yml",
       },
       {
         command: "cd ~/lab-ansible && ansible-inventory -i inventory.ini --list | head",
         description:
           "Valida inventário.",
-        example: "cd ~/lab-ansible && ansible-inventory -i inventory.ini --list | head",
       },
       {
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml --check",
         description:
           "Dry-run / check mode.",
-        example: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml --check",
       },
       {
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml",
         description:
           "Aplica de verdade no lab local.",
-        example: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml",
       },
       {
         command: "cd ~/lab-ansible && ansible local -i inventory.ini -m ping",
         description:
           "Ping module no grupo local.",
-        example: "cd ~/lab-ansible && ansible local -i inventory.ini -m ping",
       },
       {
         command: "ansible-doc apt | head -n 40",
         description:
           "Documentação do module apt.",
-        example: "ansible-doc apt | head -n 40",
       },
       {
         command: "man ansible-playbook",
         description:
           "Manual do runner.",
-        example: "man ansible-playbook",
       },
       {
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml | tail -n 20",
         description:
           "Segunda corrida — deve mostrar ok/changed baixo (idempotência).",
-        example: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml | tail -n 20",
       },
       {
         command: "printf '%s\n' '*.retry' > ~/lab-ansible/.gitignore",
         description:
           "Ignora artefatos ansible-playbook.",
-        example: "printf '%s\n' '*.retry' > ~/lab-ansible/.gitignore",
       },
     ],
     tips: [
@@ -2098,73 +2033,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "cloud-init --version 2>/dev/null || dpkg -l cloud-init | tail -n 1",
         description:
           "Se cloud-init está instalado (imagens cloud quase sempre).",
-        example: "cloud-init --version 2>/dev/null || dpkg -l cloud-init | tail -n 1",
       },
       {
         command: "cloud-init status --long 2>/dev/null || echo 'cloud-init indisponivel neste host'",
         description:
           "Fases e resultado do last run.",
-        example: "cloud-init status --long 2>/dev/null || echo 'cloud-init indisponivel neste host'",
       },
       {
         command: "sudo tail -n 40 /var/log/cloud-init.log 2>/dev/null || true",
         description:
           "Log principal.",
-        example: "sudo tail -n 40 /var/log/cloud-init.log 2>/dev/null || true",
       },
       {
         command: "sudo tail -n 40 /var/log/cloud-init-output.log 2>/dev/null || true",
         description:
           "Stdout dos módulos (pacotes, runcmd).",
-        example: "sudo tail -n 40 /var/log/cloud-init-output.log 2>/dev/null || true",
       },
       {
         command: "ls /etc/cloud/cloud.cfg /etc/cloud/cloud.cfg.d 2>/dev/null | head",
         description:
           "Config empacotada e drop-ins.",
-        example: "ls /etc/cloud/cloud.cfg /etc/cloud/cloud.cfg.d 2>/dev/null | head",
       },
       {
         command: "ls /var/lib/cloud 2>/dev/null | head",
         description:
           "Estado/instance data.",
-        example: "ls /var/lib/cloud 2>/dev/null | head",
       },
       {
         command: "cat /etc/hostname; hostnamectl 2>/dev/null | head",
         description:
           "Hostname atual (muitas vezes setado no boot).",
-        example: "cat /etc/hostname; hostnamectl 2>/dev/null | head",
       },
       {
         command: "sudo cloud-id 2>/dev/null || true",
         description:
           "Datasource detectado.",
-        example: "sudo cloud-id 2>/dev/null || true",
       },
       {
         command: "printf '%s\n' '#cloud-config' 'users:' '  - name: devops' '    groups: [sudo]' '    shell: /bin/bash' '    sudo: ALL=(ALL) NOPASSWD:ALL' '    ssh_authorized_keys:' '      - ssh-ed25519 AAAA...comente_sua_chave' 'package_update: true' 'packages:' '  - qemu-guest-agent' > ~/user-data-exemplo.yaml",
         description:
           "Modelo de user-data (NÃO use NOPASSWD em prod sem critério).",
-        example: "printf '%s\n' '#cloud-config' 'users:' '  - name: devops' '    groups: [sudo]' '    shell: /bin/bash' '    sudo: ALL=(ALL) NOPASSWD:ALL' '    ssh_authorized_keys:' '      - ssh-ed25519 AAAA...comente_sua_chave' 'package_update: true' 'packages:' '  - qemu-guest-agent' > ~/user-data-exemplo.yaml",
       },
       {
         command: "man cloud-init 2>/dev/null || true",
         description:
           "Manual se disponível.",
-        example: "man cloud-init 2>/dev/null || true",
       },
       {
         command: "grep -R 'ssh_authorized_keys\\|disable_root' /etc/cloud 2>/dev/null | head",
         description:
           "Pistas de política SSH na config cloud.",
-        example: "grep -R 'ssh_authorized_keys\\|disable_root' /etc/cloud 2>/dev/null | head",
       },
       {
         command: "systemctl status cloud-init cloud-final --no-pager 2>/dev/null | head -n 30 || true",
         description:
           "Units relacionadas.",
-        example: "systemctl status cloud-init cloud-final --no-pager 2>/dev/null | head -n 30 || true",
       },
     ],
     tips: [
@@ -2298,73 +2221,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y unbound dnsutils",
         description:
           "Unbound + dig/nslookup.",
-        example: "sudo apt install -y unbound dnsutils",
       },
       {
         command: "systemctl status unbound --no-pager | head -n 15",
         description:
           "Serviço ativo?",
-        example: "systemctl status unbound --no-pager | head -n 15",
       },
       {
         command: "sudo systemctl enable --now unbound",
         description:
           "Sobe e habilita.",
-        example: "sudo systemctl enable --now unbound",
       },
       {
         command: "dig @127.0.0.1 debian.org +short",
         description:
           "Query via Unbound local.",
-        example: "dig @127.0.0.1 debian.org +short",
       },
       {
         command: "dig @127.0.0.1 debian.org DNSKEY +dnssec | head -n 20",
         description:
           "Pista de DNSSEC/resposta validada.",
-        example: "dig @127.0.0.1 debian.org DNSKEY +dnssec | head -n 20",
       },
       {
         command: "sudo unbound-checkconf",
         description:
           "Valida config antes de reload.",
-        example: "sudo unbound-checkconf",
       },
       {
         command: "ls /etc/unbound/unbound.conf.d 2>/dev/null | head",
         description:
           "Drop-ins de configuração.",
-        example: "ls /etc/unbound/unbound.conf.d 2>/dev/null | head",
       },
       {
         command: "ss -lntup | grep -E ':53\\b' || true",
         description:
           "Quem escuta na porta 53.",
-        example: "ss -lntup | grep -E ':53\\b' || true",
       },
       {
         command: "man unbound.conf",
         description:
           "Referência de opções.",
-        example: "man unbound.conf",
       },
       {
         command: "apt-cache show bind9 | sed -n '1,12p'",
         description:
           "BIND existe no Debian se precisar autoritativo.",
-        example: "apt-cache show bind9 | sed -n '1,12p'",
       },
       {
         command: "resolvectl status 2>/dev/null | head -n 30 || cat /etc/resolv.conf",
         description:
           "DNS do host cliente agora.",
-        example: "resolvectl status 2>/dev/null | head -n 30 || cat /etc/resolv.conf",
       },
       {
         command: "sudo journalctl -u unbound -n 30 --no-pager",
         description:
           "Logs recentes.",
-        example: "sudo journalctl -u unbound -n 30 --no-pager",
       },
     ],
     tips: [
@@ -2498,73 +2409,62 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y postfix mailutils",
         description:
           "MTA + utilitários mail (interativo na 1ª config — use debconf-set-selections em automação).",
-        example: "sudo apt install -y postfix mailutils",
       },
       {
         command: "dpkg-reconfigure -plow postfix 2>/dev/null | head || true",
         description:
           "Reconfiguração guiada se precisar.",
-        example: "dpkg-reconfigure -plow postfix 2>/dev/null | head || true",
       },
       {
         command: "postconf -n | head -n 40",
         description:
           "Config efetiva principal.",
-        example: "postconf -n | head -n 40",
       },
       {
         command: "postconf relayhost",
         description:
           "Se há smarthost definido.",
-        example: "postconf relayhost",
       },
       {
         command: "mailq",
         description:
           "Fila de mensagens pendentes.",
-        example: "mailq",
+        example: "mailq | tail -1",
       },
       {
         command: "printf '%s\n' 'Teste debian-book' | mail -s 'lab relay' root",
         description:
           "Envia mail local de teste para root.",
-        example: "printf '%s\n' 'Teste debian-book' | mail -s 'lab relay' root",
       },
       {
         command: "sudo tail -n 30 /var/log/mail.log 2>/dev/null || sudo journalctl -u postfix -n 30 --no-pager",
         description:
           "Logs de entrega.",
-        example: "sudo tail -n 30 /var/log/mail.log 2>/dev/null || sudo journalctl -u postfix -n 30 --no-pager",
       },
       {
         command: "sudo postfix check && echo OK",
         description:
           "Sanidade da config.",
-        example: "sudo postfix check && echo OK",
       },
       {
         command: "man postfix",
         description:
           "Visão geral.",
-        example: "man postfix",
       },
       {
         command: "ss -lnt | grep -E ':25|:587' || true",
         description:
           "Listeners SMTP locais.",
-        example: "ss -lnt | grep -E ':25|:587' || true",
       },
       {
         command: "host -t TXT debian.org | head",
         description:
           "Exemplo de registros TXT (SPF etc. em domínios reais).",
-        example: "host -t TXT debian.org | head",
       },
       {
         command: "sudo postqueue -p",
         description:
           "Outra visão da fila.",
-        example: "sudo postqueue -p",
       },
     ],
     tips: [
@@ -2698,73 +2598,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y nfs-kernel-server",
         description:
           "Servidor NFS.",
-        example: "sudo apt install -y nfs-kernel-server",
       },
       {
         command: "sudo mkdir -p /srv/nfs-lab && sudo chown nobody:nogroup /srv/nfs-lab && echo lab > /srv/nfs-lab/README.txt",
         description:
           "Dir de lab.",
-        example: "sudo mkdir -p /srv/nfs-lab && sudo chown nobody:nogroup /srv/nfs-lab && echo lab > /srv/nfs-lab/README.txt",
       },
       {
         command: "echo '/srv/nfs-lab 127.0.0.1(rw,sync,no_subtree_check)' | sudo tee /etc/exports",
         description:
           "Export só para localhost (lab seguro).",
-        example: "echo '/srv/nfs-lab 127.0.0.1(rw,sync,no_subtree_check)' | sudo tee /etc/exports",
       },
       {
         command: "sudo exportfs -ra && sudo exportfs -v",
         description:
           "Reexporta e lista.",
-        example: "sudo exportfs -ra && sudo exportfs -v",
       },
       {
         command: "sudo apt install -y nfs-common && sudo mkdir -p /mnt/nfs-lab && sudo mount -t nfs 127.0.0.1:/srv/nfs-lab /mnt/nfs-lab && ls /mnt/nfs-lab && sudo umount /mnt/nfs-lab",
         description:
           "Monta e desmonta localmente.",
-        example: "sudo apt install -y nfs-common && sudo mkdir -p /mnt/nfs-lab && sudo mount -t nfs 127.0.0.1:/srv/nfs-lab /mnt/nfs-lab && ls /mnt/nfs-lab && sudo umount /mnt/nfs-lab",
       },
       {
         command: "sudo apt install -y samba smbclient",
         description:
           "Samba + cliente de teste.",
-        example: "sudo apt install -y samba smbclient",
       },
       {
         command: "testparm -s 2>/dev/null | head -n 40 || true",
         description:
           "Valida smb.conf.",
-        example: "testparm -s 2>/dev/null | head -n 40 || true",
       },
       {
         command: "sudo systemctl enable --now smbd nmbd 2>/dev/null || sudo systemctl enable --now smbd",
         description:
           "Serviços SMB.",
-        example: "sudo systemctl enable --now smbd nmbd 2>/dev/null || sudo systemctl enable --now smbd",
       },
       {
         command: "smbclient -L localhost -N 2>/dev/null | head || true",
         description:
           "Lista shares (pode falhar sem share).",
-        example: "smbclient -L localhost -N 2>/dev/null | head || true",
       },
       {
         command: "man exports",
         description:
           "Sintaxe NFS exports.",
-        example: "man exports",
       },
       {
         command: "man smb.conf",
         description:
           "Referência Samba.",
-        example: "man smb.conf",
       },
       {
         command: "ss -lnt | grep -E ':2049|:445|:139' || true",
         description:
           "Portas NFS/SMB escutando.",
-        example: "ss -lnt | grep -E ':2049|:445|:139' || true",
       },
     ],
     tips: [
@@ -2898,73 +2786,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y wireguard wireguard-tools",
         description:
           "Ferramentas WireGuard.",
-        example: "sudo apt install -y wireguard wireguard-tools",
       },
       {
         command: "wg --version || true",
         description:
           "Versão userspace tools.",
-        example: "wg --version || true",
       },
       {
         command: "umask 077; wg genkey | tee /tmp/wg-lab-priv | wg pubkey | tee /tmp/wg-lab-pub; echo 'chaves lab em /tmp (não use em prod)'",
         description:
           "Gera par de chaves de lab.",
-        example: "umask 077; wg genkey | tee /tmp/wg-lab-priv | wg pubkey | tee /tmp/wg-lab-pub; echo 'chaves lab em /tmp (não use em prod)'",
       },
       {
         command: "sudo sh -c 'install -m 700 -d /etc/wireguard'",
         description:
           "Dir de configs.",
-        example: "sudo sh -c 'install -m 700 -d /etc/wireguard'",
       },
       {
         command: "man wg",
         description:
           "Comando de status/config live.",
-        example: "man wg",
       },
       {
         command: "man wg-quick",
         description:
           "Sobe/desce a partir de arquivo.",
-        example: "man wg-quick",
       },
       {
         command: "printf '%s\n' '[Interface]' 'Address = 10.66.66.1/24' 'ListenPort = 51820' 'PrivateKey = COLE_PRIV' '# [Peer]' '# PublicKey = ...' '# AllowedIPs = 10.66.66.2/32' '# Endpoint = vps.example:51820' | sudo tee /etc/wireguard/wg0.conf.example",
         description:
           "Modelo de config (exemplo).",
-        example: "printf '%s\n' '[Interface]' 'Address = 10.66.66.1/24' 'ListenPort = 51820' 'PrivateKey = COLE_PRIV' '# [Peer]' '# PublicKey = ...' '# AllowedIPs = 10.66.66.2/32' '# Endpoint = vps.example:51820' | sudo tee /etc/wireguard/wg0.conf.example",
       },
       {
         command: "sudo wg show",
         description:
           "Interfaces e handshakes.",
-        example: "sudo wg show",
       },
       {
         command: "ip link show type wireguard 2>/dev/null || true",
         description:
           "Ifaces WG no kernel.",
-        example: "ip link show type wireguard 2>/dev/null || true",
       },
       {
         command: "sudo sysctl net.ipv4.ip_forward",
         description:
           "Forwarding (só se for rotear redes).",
-        example: "sudo sysctl net.ipv4.ip_forward",
       },
       {
         command: "sudo ss -lunp | grep 51820 || true",
         description:
           "UDP listen do WG.",
-        example: "sudo ss -lunp | grep 51820 || true",
       },
       {
         command: "sudo wg-quick strip wg0 2>/dev/null | head || true",
         description:
           "Mostra config efetiva se wg0 existir.",
-        example: "sudo wg-quick strip wg0 2>/dev/null | head || true",
       },
     ],
     tips: [
@@ -3098,73 +2974,61 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt install -y postgresql postgresql-contrib",
         description:
           "Servidor e contrib.",
-        example: "sudo apt install -y postgresql postgresql-contrib",
       },
       {
         command: "sudo systemctl enable --now postgresql",
         description:
           "Sobe o cluster.",
-        example: "sudo systemctl enable --now postgresql",
       },
       {
         command: "sudo -u postgres psql -c 'SELECT version();'",
         description:
           "Conecta via peer como postgres.",
-        example: "sudo -u postgres psql -c 'SELECT version();'",
       },
       {
         command: "sudo -u postgres psql -c \"CREATE USER app WITH PASSWORD 'labonly';\" 2>/dev/null || true",
         description:
           "Role de lab (troque a senha).",
-        example: "sudo -u postgres psql -c \"CREATE USER app WITH PASSWORD 'labonly';\" 2>/dev/null || true",
       },
       {
         command: "sudo -u postgres psql -c 'CREATE DATABASE app OWNER app;' 2>/dev/null || true",
         description:
           "Database de lab.",
-        example: "sudo -u postgres psql -c 'CREATE DATABASE app OWNER app;' 2>/dev/null || true",
       },
       {
         command: "sudo -u postgres pg_dump app > /tmp/app-lab.sql && wc -l /tmp/app-lab.sql",
         description:
           "Dump lógico.",
-        example: "sudo -u postgres pg_dump app > /tmp/app-lab.sql && wc -l /tmp/app-lab.sql",
       },
       {
         command: "sudo -u postgres psql -c 'CREATE DATABASE app_restore;' 2>/dev/null || true; sudo -u postgres psql app_restore < /tmp/app-lab.sql",
         description:
           "Restore em outra base.",
-        example: "sudo -u postgres psql -c 'CREATE DATABASE app_restore;' 2>/dev/null || true; sudo -u postgres psql app_restore < /tmp/app-lab.sql",
       },
       {
         command: "sudo sed -n '1,80p' /etc/postgresql/*/main/pg_hba.conf 2>/dev/null | head -n 40",
         description:
           "Trecho de hba (paths variam com versão).",
-        example: "sudo sed -n '1,80p' /etc/postgresql/*/main/pg_hba.conf 2>/dev/null | head -n 40",
       },
       {
         command: "sudo ss -lntp | grep 5432 || true",
         description:
           "Onde escuta.",
-        example: "sudo ss -lntp | grep 5432 || true",
       },
       {
         command: "man pg_dump",
         description:
           "Opções de dump.",
-        example: "man pg_dump",
       },
       {
         command: "sudo -u postgres psql -c 'SELECT datname FROM pg_database;'",
         description:
           "Lista databases.",
-        example: "sudo -u postgres psql -c 'SELECT datname FROM pg_database;'",
       },
       {
         command: "sudo journalctl -u postgresql -n 20 --no-pager",
         description:
           "Logs do serviço.",
-        example: "sudo journalctl -u postgresql -n 20 --no-pager",
       },
     ],
     tips: [
@@ -3298,73 +3162,62 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
         command: "sudo apt update && apt list --upgradable 2>/dev/null | head",
         description:
           "Superfície de patch.",
-        example: "sudo apt update && apt list --upgradable 2>/dev/null | head",
       },
       {
         command: "sudo systemctl is-active ssh sshd 2>/dev/null; sudo sshd -T 2>/dev/null | grep -Ei 'passwordauthentication|permitrootlogin' | head",
         description:
           "SSH ativo e hardening básico.",
-        example: "sudo systemctl is-active ssh sshd 2>/dev/null; sudo sshd -T 2>/dev/null | grep -Ei 'passwordauthentication|permitrootlogin' | head",
       },
       {
         command: "sudo ufw status verbose 2>/dev/null || sudo nft list ruleset 2>/dev/null | head -n 20",
         description:
           "Firewall.",
-        example: "sudo ufw status verbose 2>/dev/null || sudo nft list ruleset 2>/dev/null | head -n 20",
       },
       {
         command: "systemctl is-active unattended-upgrades 2>/dev/null; ls /var/log/unattended-upgrades 2>/dev/null | head",
         description:
           "Updates automáticos.",
-        example: "systemctl is-active unattended-upgrades 2>/dev/null; ls /var/log/unattended-upgrades 2>/dev/null | head",
       },
       {
         command: "timedatectl",
         description:
           "Tempo e NTP.",
-        example: "timedatectl",
+        example: "timedatectl status",
       },
       {
         command: "systemctl --failed --no-pager",
         description:
           "Sem failed units surpresa.",
-        example: "systemctl --failed --no-pager",
       },
       {
         command: "curl -sI http://127.0.0.1/ 2>/dev/null | head || curl -sI http://127.0.0.1:8080 2>/dev/null | head || echo 'defina seu health local'",
         description:
           "Health HTTP local.",
-        example: "curl -sI http://127.0.0.1/ 2>/dev/null | head || curl -sI http://127.0.0.1:8080 2>/dev/null | head || echo 'defina seu health local'",
       },
       {
         command: "journalctl --disk-usage",
         description:
           "Journal sob controle.",
-        example: "journalctl --disk-usage",
       },
       {
         command: "df -h /; free -h",
         description:
           "Recursos básicos.",
-        example: "df -h /; free -h",
       },
       {
         command: "sudo last -n 5 2>/dev/null || journalctl -u ssh --since today --no-pager | tail",
         description:
           "Acessos recentes.",
-        example: "sudo last -n 5 2>/dev/null || journalctl -u ssh --since today --no-pager | tail",
       },
       {
         command: "sudo tar -czf /tmp/etc-lab-backup.tgz /etc/hostname /etc/hosts 2>/dev/null; ls -l /tmp/etc-lab-backup.tgz",
         description:
           "Amostra de backup de config (lab).",
-        example: "sudo tar -czf /tmp/etc-lab-backup.tgz /etc/hostname /etc/hosts 2>/dev/null; ls -l /tmp/etc-lab-backup.tgz",
       },
       {
         command: "printf '%s\n' '## Capstone DoD' '- [ ] ssh chave' '- [ ] firewall' '- [ ] unattended' '- [ ] ntp' '- [ ] app health' '- [ ] backup testado' '- [ ] notas' > ~/capstone-dod.md && cat ~/capstone-dod.md",
         description:
           "Definition of done em markdown.",
-        example: "printf '%s\n' '## Capstone DoD' '- [ ] ssh chave' '- [ ] firewall' '- [ ] unattended' '- [ ] ntp' '- [ ] app health' '- [ ] backup testado' '- [ ] notas' > ~/capstone-dod.md && cat ~/capstone-dod.md",
       },
     ],
     tips: [

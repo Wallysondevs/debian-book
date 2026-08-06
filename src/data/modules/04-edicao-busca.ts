@@ -91,7 +91,6 @@ Lição 1.1:  MOVENDO O CURSOR
       {
         command: "nano --version",
         description: "Confere a versão do nano instalado.",
-        example: "nano --version",
         output: ` GNU nano, version 7.2
  (C) 1999-2011, 2013-2023 Free Software Foundation, Inc.
  Compiled options: --enable-utf8`,

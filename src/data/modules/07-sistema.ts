@@ -55,7 +55,7 @@ export const sistema: Module[] = [
       {
         command: "top",
         description: "Monitor de processos em tempo real, atualiza a cada 3 segundos.",
-        example: "top",
+        example: "top -b -n 1 | head -12",
         flags: [
           { flag: "M (dentro do top)", description: "Ordena por uso de memória" },
           { flag: "P (dentro do top)", description: "Ordena por CPU (padrão)" },
@@ -67,7 +67,7 @@ export const sistema: Module[] = [
       {
         command: "htop",
         description: "Versão moderna do top com cores, scroll horizontal, mouse e atalhos visíveis.",
-        example: "htop",
+        example: "htop -u aluno",
         flags: [
           { flag: "F5", description: "Modo árvore (parent-child)" },
           { flag: "F6", description: "Escolher coluna de ordenação" },
@@ -113,7 +113,6 @@ export const sistema: Module[] = [
       {
         command: "jobs",
         description: "Lista jobs do shell atual em background ou pausados.",
-        example: "jobs",
         output: "[1]+  Running                 sleep 300 &\n[2]-  Stopped                 vim notas.txt",
       },
       {
@@ -134,13 +133,11 @@ export const sistema: Module[] = [
       {
         command: "uptime",
         description: "Mostra há quanto tempo o sistema está ligado e a carga média (1, 5, 15 min).",
-        example: "uptime",
         output: " 19:23:51 up 2 days,  5:18,  2 users,  load average: 0.42, 0.38, 0.30",
       },
       {
         command: "free -h",
         description: "Memória RAM e swap em formato humano.",
-        example: "free -h",
         output: "               total        used        free      shared  buff/cache   available\nMem:           7.7Gi       3.2Gi       1.1Gi       412Mi       3.4Gi       3.8Gi\nSwap:          2.0Gi          0B       2.0Gi",
       },
       {
@@ -410,7 +407,6 @@ pgrep -a sleep`,
       {
         command: "sudo systemctl daemon-reload",
         description: "Recarrega definições de unit files após editar/criar. Necessário antes de start em serviço novo.",
-        example: "sudo systemctl daemon-reload",
       },
       {
         command: "sudo systemctl edit NOME",
@@ -709,29 +705,24 @@ sudo systemctl daemon-reload`,
       {
         command: "sudo journalctl --since today -p err",
         description: "Erros (e mais críticos) do dia atual. Combinação muito útil.",
-        example: "sudo journalctl --since today -p err",
       },
       {
         command: "sudo journalctl --list-boots",
         description: "Lista todos os boots conhecidos com índice e timestamp.",
-        example: "sudo journalctl --list-boots",
         output: "-1 abc123  Mon 2024-04-22 09:00 — Mon 2024-04-22 18:30\n 0 def456  Mon 2024-04-22 18:31 — now",
       },
       {
         command: "sudo journalctl --disk-usage",
         description: "Quanto espaço o journal está ocupando.",
-        example: "sudo journalctl --disk-usage",
         output: "Archived and active journals take up 1.2G in the file system.",
       },
       {
         command: "sudo journalctl --vacuum-size=500M",
         description: "Apaga arquivos antigos do journal até sobrar só 500MB.",
-        example: "sudo journalctl --vacuum-size=500M",
       },
       {
         command: "sudo journalctl --vacuum-time=7d",
         description: "Mantém só os últimos 7 dias.",
-        example: "sudo journalctl --vacuum-time=7d",
       },
       {
         command: "dmesg",
@@ -747,7 +738,6 @@ sudo systemctl daemon-reload`,
       {
         command: "sudo tail -f /var/log/syslog",
         description: "Acompanha o log clássico do sistema em tempo real.",
-        example: "sudo tail -f /var/log/syslog",
       },
       {
         command: "sudo less /var/log/auth.log",
@@ -981,22 +971,18 @@ journalctl -t meu-backup -p warning --since '5 min ago'`,
       {
         command: "crontab -e",
         description: "Edita seu crontab pessoal (cria se não existir).",
-        example: "crontab -e",
       },
       {
         command: "crontab -l",
         description: "Lista o conteúdo atual do seu crontab.",
-        example: "crontab -l",
       },
       {
         command: "crontab -r",
         description: "Remove TODO o seu crontab. Cuidado, não pede confirmação.",
-        example: "crontab -r",
       },
       {
         command: "sudo crontab -e",
         description: "Edita crontab do root.",
-        example: "sudo crontab -e",
       },
       {
         command: "sudo crontab -e -u USUARIO",
@@ -1259,7 +1245,6 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       {
         command: "free -h",
         description: "Memória RAM e swap em formato humano (K/M/G).",
-        example: "free -h",
         output: "               total        used        free      shared  buff/cache   available\nMem:           7.7Gi       3.2Gi       1.1Gi       412Mi       3.4Gi       3.8Gi\nSwap:          2.0Gi          0B       2.0Gi",
         flags: [
           { flag: "-h", description: "Tamanhos legíveis" },
@@ -1283,13 +1268,11 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       {
         command: "swapon --show",
         description: "Lista dispositivos de swap ativos.",
-        example: "swapon --show",
         output: "NAME      TYPE      SIZE USED PRIO\n/swapfile file        2G   0B   -2",
       },
       {
         command: "sudo fallocate -l 2G /swapfile",
         description: "Cria arquivo de 2 GB para swap.",
-        example: "sudo fallocate -l 2G /swapfile",
       },
       {
         command: "sudo mkswap /swapfile",
@@ -1299,17 +1282,14 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       {
         command: "sudo swapon /swapfile",
         description: "Ativa o swap (manualmente, até o próximo reboot).",
-        example: "sudo swapon /swapfile",
       },
       {
         command: "sudo sysctl vm.swappiness=10",
         description: "Ajusta swappiness em tempo real (perde no reboot).",
-        example: "sudo sysctl vm.swappiness=10",
       },
       {
         command: "cat /proc/sys/vm/swappiness",
         description: "Lê o valor atual de swappiness.",
-        example: "cat /proc/sys/vm/swappiness",
         output: "60",
       },
       {
@@ -1325,12 +1305,10 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       {
         command: "ls /sys/class/",
         description: "Lista classes de dispositivos do kernel (block, net, backlight, power_supply...).",
-        example: "ls /sys/class/",
       },
       {
         command: "cat /sys/class/power_supply/BAT0/capacity",
         description: "Lê capacidade atual da bateria (notebook). Funciona sem ferramenta extra.",
-        example: "cat /sys/class/power_supply/BAT0/capacity",
         output: "87",
       },
       {
@@ -1567,13 +1545,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "sudo update-grub",
         description:
           "Regenera grub.cfg a partir de /etc/default/grub e /etc/grub.d. Em UEFI o ecossistema pode usar grub-mkconfig diretamente.",
-        example: "sudo update-grub",
       },
       {
         command: "sudo update-initramfs -u",
         description:
           "Atualiza o initramfs do kernel atual (-u). Use -k all com cuidado (tempo/espaço).",
-        example: "sudo update-initramfs -u",
         flags: [
           { flag: "-u", description: "atualiza initramfs existente" },
           { flag: "-k", description: "seleciona versão de kernel" },
@@ -1584,26 +1560,22 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "cat /proc/cmdline",
         description:
           "Parâmetros com que ESTE boot foi iniciado (root, ro/rw, quiet…).",
-        example: "cat /proc/cmdline",
         output: "BOOT_IMAGE=/boot/vmlinuz-6.12.x-amd64 root=UUID=... ro quiet",
       },
       {
         command: "systemctl get-default",
         description:
           "Alvo padrão após o boot (graphical.target ou multi-user.target em servidores).",
-        example: "systemctl get-default",
       },
       {
         command: "journalctl -b -p err..alert --no-pager | tail -n 40",
         description:
           "Erros do boot atual — primeiro lugar a olhar depois que o sistema já subiu.",
-        example: "journalctl -b -p err..alert --no-pager | tail -n 40",
       },
       {
         command: "journalctl --list-boots | tail -n 5",
         description:
           "Índice de boots anteriores para comparar ‘antes/depois’ de uma mudança.",
-        example: "journalctl --list-boots | tail -n 5",
       },
       {
         command: "sudo grub-file --is-x86-multiboot /boot/vmlinuz-$(uname -r) 2>/dev/null; uname -r",
@@ -1615,7 +1587,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "man grub-mkconfig",
         description:
           "Como a config do GRUB é gerada — leia antes de scripts ‘mágicos’ da internet.",
-        example: "man grub-mkconfig",
       },
     ],
     tips: [
@@ -1752,13 +1723,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "uname -r",
         description:
           "Versão do kernel em execução — base para headers e módulos.",
-        example: "uname -r",
       },
       {
         command: "dpkg -l 'linux-image-*' | grep ^ii",
         description:
           "Imagens de kernel instaladas (várias versões podem coexistir no /boot).",
-        example: "dpkg -l 'linux-image-*' | grep ^ii",
       },
       {
         command: "lsmod | head",
@@ -1782,7 +1751,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "journalctl -k -b --no-pager | grep -i firmware | tail -n 20",
         description:
           "Mensagens de firmware do boot atual.",
-        example: "journalctl -k -b --no-pager | grep -i firmware | tail -n 20",
       },
       {
         command: "apt-cache search '^firmware-' | head",
@@ -1800,13 +1768,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "ls /etc/modprobe.d/",
         description:
           "Configs de opções e blacklist de módulos.",
-        example: "ls /etc/modprobe.d/",
       },
       {
         command: "man modprobe",
         description:
           "Referência de carga, blacklist e dependências.",
-        example: "man modprobe",
       },
     ],
     tips: [
@@ -1948,13 +1914,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "ls -la /dev/disk/by-id/ | head",
         description:
           "Nomes por identificador de hardware (serial/modelo). Ótimo para scripts de disco cru.",
-        example: "ls -la /dev/disk/by-id/ | head",
       },
       {
         command: "lsblk -o NAME,SIZE,TYPE,FSTYPE,UUID,MOUNTPOINT",
         description:
           "Visão humana cruzando kernel names e UUID.",
-        example: "lsblk -o NAME,SIZE,TYPE,FSTYPE,UUID,MOUNTPOINT",
       },
       {
         command: "udevadm info -q all -n /dev/sda 2>/dev/null | head -n 40",
@@ -1966,7 +1930,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "ip -br link",
         description:
           "Nomes de interfaces atuais (enp*, wlp*, eth*).",
-        example: "ip -br link",
       },
       {
         command: "ls /etc/udev/rules.d/",
@@ -1984,19 +1947,16 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "sudo udevadm control --reload-rules && sudo udevadm trigger",
         description:
           "Recarrega regras e reprocessa eventos. Depois confira symlinks.",
-        example: "sudo udevadm control --reload-rules && sudo udevadm trigger",
       },
       {
         command: "man udev",
         description:
           "Sintaxe de regras e matches.",
-        example: "man udev",
       },
       {
         command: "man udevadm",
         description:
           "info, trigger, control, monitor — ferramenta de diagnóstico.",
-        example: "man udevadm",
       },
     ],
     tips: [
@@ -2132,7 +2092,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "timedatectl",
         description:
           "Painel completo: hora local, UTC, timezone, NTP, RTC.",
-        example: "timedatectl",
         output: "               Local time: Thu 2026-08-06 12:00:00 -03\n           Universal time: Thu 2026-08-06 15:00:00 UTC\n                 RTC time: Thu 2026-08-06 15:00:00\n                Time zone: America/Fortaleza (-03, -0300)\nSystem clock synchronized: yes\n              NTP service: active",
       },
       {
@@ -2145,13 +2104,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "sudo timedatectl set-timezone America/Fortaleza",
         description:
           "Define timezone. Ajuste para o seu local real.",
-        example: "sudo timedatectl set-timezone America/Fortaleza",
       },
       {
         command: "sudo timedatectl set-ntp true",
         description:
           "Liga sincronização NTP via o serviço configurado no systemd.",
-        example: "sudo timedatectl set-ntp true",
       },
       {
         command: "systemctl status systemd-timesyncd --no-pager 2>/dev/null | head -n 20",
@@ -2181,13 +2138,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "man timedatectl",
         description:
           "Referência de set-time, set-timezone, set-ntp.",
-        example: "man timedatectl",
       },
       {
         command: "man systemd-timesyncd",
         description:
           "Cliente NTP leve do systemd (se for o seu caso).",
-        example: "man systemd-timesyncd",
       },
     ],
     tips: [
@@ -2335,7 +2290,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "man systemd.service",
         description:
           "Referência de Type, ExecStart, Restart, etc.",
-        example: "man systemd.service",
       },
       {
         command: "sudo tee /etc/systemd/system/lab-hello.service >/dev/null <<'EOF'\n[Unit]\nDescription=Lab hello oneshot do debian-book\n\n[Service]\nType=oneshot\nExecStart=/bin/bash -c 'echo hello-from-systemd $(date -Is) >> /tmp/lab-hello.log'\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target\nEOF",
@@ -2347,7 +2301,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "sudo systemctl daemon-reload",
         description:
           "Relê units do disco. Sem isso o systemd pode não ver o arquivo novo/editado.",
-        example: "sudo systemctl daemon-reload",
       },
       {
         command: "sudo systemctl start lab-hello.service && systemctl status lab-hello.service --no-pager",
@@ -2513,13 +2466,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "systemctl list-timers --all --no-pager | head -n 25",
         description:
           "Próximas e últimas execuções dos timers do sistema.",
-        example: "systemctl list-timers --all --no-pager | head -n 25",
       },
       {
         command: "systemctl list-sockets --no-pager | head -n 20",
         description:
           "Sockets que o systemd está ouvindo e units associadas.",
-        example: "systemctl list-sockets --no-pager | head -n 20",
       },
       {
         command: "systemd-analyze calendar '*-*-* 03:15:00'",
@@ -2561,7 +2512,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "journalctl -u lab-tick.service -n 10 --no-pager",
         description:
           "Logs das execuções.",
-        example: "journalctl -u lab-tick.service -n 10 --no-pager",
       },
       {
         command: "sudo systemctl disable --now lab-tick.timer; sudo rm -f /etc/systemd/system/lab-tick.{service,timer}; sudo systemctl daemon-reload",
@@ -2703,44 +2653,38 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "systemctl get-default",
         description:
           "Target padrão do sistema.",
-        example: "systemctl get-default",
         output: "multi-user.target",
       },
       {
         command: "systemctl list-units --type=target --no-pager | head -n 30",
         description:
           "Targets carregados/ativos no momento.",
-        example: "systemctl list-units --type=target --no-pager | head -n 30",
       },
       {
         command: "systemctl list-dependencies multi-user.target --no-pager | head -n 40",
         description:
           "Árvore do que multi-user quer puxar.",
-        example: "systemctl list-dependencies multi-user.target --no-pager | head -n 40",
       },
       {
         command: "systemctl --failed --no-pager",
         description:
           "Units que falharam — primeiro painel pós-boot ruim.",
-        example: "systemctl --failed --no-pager",
       },
       {
         command: "systemd-analyze",
         description:
           "Tempo total de firmware/loader/kernel/userspace quando disponível.",
-        example: "systemd-analyze",
+        example: "systemd-analyze time",
       },
       {
         command: "systemd-analyze blame | head -n 20",
         description:
           "O que mais demorou a ficar ready no boot atual.",
-        example: "systemd-analyze blame | head -n 20",
       },
       {
         command: "systemd-analyze critical-chain --no-pager | head -n 30",
         description:
           "Cadeia crítica até o default target.",
-        example: "systemd-analyze critical-chain --no-pager | head -n 30",
       },
       {
         command: "systemctl show ssh.service -p After -p Wants -p Requires --no-pager 2>/dev/null || systemctl show cron.service -p After -p Wants -p Requires --no-pager",
@@ -2752,13 +2696,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "man systemd.special",
         description:
           "Documenta multi-user, graphical, network-online, etc.",
-        example: "man systemd.special",
       },
       {
         command: "man systemd.unit",
         description:
           "Semântica de After/Wants/Requires/BindsTo/Conflicts.",
-        example: "man systemd.unit",
       },
     ],
     tips: [
@@ -2894,7 +2836,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "journalctl --disk-usage",
         description:
           "Quanto espaço o journal ocupa agora.",
-        example: "journalctl --disk-usage",
       },
       {
         command: "ls -la /var/log/journal 2>/dev/null || echo 'sem /var/log/journal (talvez volátil em /run)'",
@@ -2906,13 +2847,11 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "journalctl -b -p err..alert --no-pager | tail -n 40",
         description:
           "Erros e acima do boot atual.",
-        example: "journalctl -b -p err..alert --no-pager | tail -n 40",
       },
       {
         command: "journalctl --list-boots --no-pager | tail -n 8",
         description:
           "Boots indexados; use -b -1 para o anterior.",
-        example: "journalctl --list-boots --no-pager | tail -n 8",
       },
       {
         command: "journalctl -u ssh.service -n 30 --no-pager 2>/dev/null || journalctl -u sshd.service -n 30 --no-pager 2>/dev/null || journalctl -u cron.service -n 20 --no-pager",
@@ -2936,7 +2875,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "man journald.conf",
         description:
           "Storage=, SystemMaxUse=, Compress=, ForwardToSyslog=.",
-        example: "man journald.conf",
       },
       {
         command: "sudo journalctl --vacuum-size=200M",
@@ -2948,7 +2886,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "journalctl -xe --no-pager | tail -n 40",
         description:
           "Atalho de incidente recente com contexto.",
-        example: "journalctl -xe --no-pager | tail -n 40",
       },
     ],
     tips: [
@@ -3084,73 +3021,61 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "uptime; nproc",
         description:
           "Load vs quantidade de CPUs.",
-        example: "uptime; nproc",
       },
       {
         command: "free -h",
         description:
           "RAM e swap.",
-        example: "free -h",
       },
       {
         command: "ps aux --sort=-%cpu | head -n 15",
         description:
           "Top CPU.",
-        example: "ps aux --sort=-%cpu | head -n 15",
       },
       {
         command: "ps aux --sort=-%mem | head -n 15",
         description:
           "Top memória.",
-        example: "ps aux --sort=-%mem | head -n 15",
       },
       {
         command: "vmstat 1 5",
         description:
           "CPU runqueue, swap, io.",
-        example: "vmstat 1 5",
       },
       {
         command: "sudo apt install -y sysstat && iostat -xz 1 3",
         description:
           "Utilização e await de disco.",
-        example: "sudo apt install -y sysstat && iostat -xz 1 3",
       },
       {
         command: "df -h; df -i",
         description:
           "Espaço e inodes.",
-        example: "df -h; df -i",
       },
       {
         command: "systemctl --failed --no-pager",
         description:
           "Units quebradas somando caos.",
-        example: "systemctl --failed --no-pager",
       },
       {
         command: "pidstat -ur 1 3 2>/dev/null || true",
         description:
           "CPU/mem por PID se sysstat completo.",
-        example: "pidstat -ur 1 3 2>/dev/null || true",
       },
       {
         command: "sudo journalctl -p err..alert --since '1 hour ago' --no-pager | tail -n 40",
         description:
           "Erros recentes.",
-        example: "sudo journalctl -p err..alert --since '1 hour ago' --no-pager | tail -n 40",
       },
       {
         command: "cat /proc/pressure/cpu 2>/dev/null || true",
         description:
           "PSI de CPU se o kernel expõe.",
-        example: "cat /proc/pressure/cpu 2>/dev/null || true",
       },
       {
         command: "sudo systemd-cgtop -n 1 2>/dev/null | head -n 20 || true",
         description:
           "Quem no cgroup come recurso.",
-        example: "sudo systemd-cgtop -n 1 2>/dev/null | head -n 20 || true",
       },
     ],
     tips: [
@@ -3285,73 +3210,61 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
         command: "systemctl get-default; systemctl list-jobs 2>/dev/null | head",
         description:
           "Alvo padrão e jobs presos (se bootou).",
-        example: "systemctl get-default; systemctl list-jobs 2>/dev/null | head",
       },
       {
         command: "journalctl -b -0 -p err..alert --no-pager | tail -n 50",
         description:
           "Erros do boot atual.",
-        example: "journalctl -b -0 -p err..alert --no-pager | tail -n 50",
       },
       {
         command: "journalctl -b -1 -p err..alert --no-pager | tail -n 50",
         description:
           "Erros do boot anterior.",
-        example: "journalctl -b -1 -p err..alert --no-pager | tail -n 50",
       },
       {
         command: "lsblk -f",
         description:
           "Fs types, UUIDs, LUKS.",
-        example: "lsblk -f",
       },
       {
         command: "findmnt /",
         description:
           "O que está montado como root.",
-        example: "findmnt /",
       },
       {
         command: "cat /etc/fstab",
         description:
           "Fontes de mount no boot.",
-        example: "cat /etc/fstab",
       },
       {
         command: "systemctl list-units --failed --no-pager",
         description:
           "Units que impedem boot limpo.",
-        example: "systemctl list-units --failed --no-pager",
       },
       {
         command: "sudo systemd-analyze blame 2>/dev/null | head -n 20 || true",
         description:
           "O que atrasou o último boot bem-sucedido.",
-        example: "sudo systemd-analyze blame 2>/dev/null | head -n 20 || true",
       },
       {
         command: "man systemd-fsck",
         description:
           "Como fsck se encaixa no boot.",
-        example: "man systemd-fsck",
       },
       {
         command: "sudo grub-probe -t device / 2>/dev/null || true",
         description:
           "Device do root segundo GRUB tools.",
-        example: "sudo grub-probe -t device / 2>/dev/null || true",
       },
       {
         command: "cat /proc/cmdline",
         description:
           "Linha de comando do kernel atual.",
-        example: "cat /proc/cmdline",
       },
       {
         command: "dmesg -T 2>/dev/null | tail -n 30 || true",
         description:
           "Mensagens recentes do kernel.",
-        example: "dmesg -T 2>/dev/null | tail -n 30 || true",
       },
     ],
     tips: [
@@ -3477,7 +3390,6 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "ip -br link; ip -br addr",
         description: "Passo 1–2: link e endereços, independente da stack.",
-        example: "ip -br link; ip -br addr",
         output: `lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP>
 enp0s3           UP             08:00:27:aa:bb:cc <BROADCAST,MULTICAST,UP,LOWER_UP>
 lo               UNKNOWN        127.0.0.1/8 ::1/128
@@ -3493,7 +3405,6 @@ enp0s3           UP             10.0.2.15/24`,
       {
         command: "ping -c 2 1.1.1.1",
         description: "Passo 4: L3 até IP público (não usa DNS).",
-        example: "ping -c 2 1.1.1.1",
         output: `PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
 64 bytes from 1.1.1.1: icmp_seq=1 ttl=55 time=12.1 ms
 64 bytes from 1.1.1.1: icmp_seq=2 ttl=55 time=11.8 ms
@@ -3509,7 +3420,6 @@ enp0s3           UP             10.0.2.15/24`,
       {
         command: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
         description: "Quem manda na rede agora.",
-        example: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
         output: `inactive
 inactive
 active`,
@@ -3636,73 +3546,61 @@ active`,
         command: "journalctl --disk-usage",
         description:
           "Quanto o journal ocupa.",
-        example: "journalctl --disk-usage",
       },
       {
         command: "sudo mkdir -p /etc/systemd/journald.conf.d && printf '%s\n' '[Journal]' 'SystemMaxUse=200M' 'MaxRetentionSec=14day' | sudo tee /etc/systemd/journald.conf.d/size.conf",
         description:
           "Teto de disco e retenção.",
-        example: "sudo mkdir -p /etc/systemd/journald.conf.d && printf '%s\n' '[Journal]' 'SystemMaxUse=200M' 'MaxRetentionSec=14day' | sudo tee /etc/systemd/journald.conf.d/size.conf",
       },
       {
         command: "sudo systemctl restart systemd-journald",
         description:
           "Aplica config do journal.",
-        example: "sudo systemctl restart systemd-journald",
       },
       {
         command: "ls /etc/logrotate.d | head",
         description:
           "Regras de rotação empacotadas.",
-        example: "ls /etc/logrotate.d | head",
       },
       {
         command: "sudo logrotate -d /etc/logrotate.conf 2>&1 | head -n 40",
         description:
           "Dry-run do logrotate.",
-        example: "sudo logrotate -d /etc/logrotate.conf 2>&1 | head -n 40",
       },
       {
         command: "mkdir -p ~/bin && printf '%s\n' '#!/bin/bash' 'set -euo pipefail' 'systemctl --failed --quiet' 'echo OK $(date -Is)' > ~/bin/health-check.sh && chmod +x ~/bin/health-check.sh",
         description:
           "Healthcheck mínimo local.",
-        example: "mkdir -p ~/bin && printf '%s\n' '#!/bin/bash' 'set -euo pipefail' 'systemctl --failed --quiet' 'echo OK $(date -Is)' > ~/bin/health-check.sh && chmod +x ~/bin/health-check.sh",
       },
       {
         command: "~/bin/health-check.sh || echo 'falhou — investigue failed units'",
         description:
           "Roda na mão.",
-        example: "~/bin/health-check.sh || echo 'falhou — investigue failed units'",
       },
       {
         command: "mkdir -p ~/.config/systemd/user && printf '%s\n' '[Unit]' 'Description=Health check leve' '' '[Service]' 'Type=oneshot' 'ExecStart=%h/bin/health-check.sh' > ~/.config/systemd/user/health-check.service",
         description:
           "Unit oneshot do usuário.",
-        example: "mkdir -p ~/.config/systemd/user && printf '%s\n' '[Unit]' 'Description=Health check leve' '' '[Service]' 'Type=oneshot' 'ExecStart=%h/bin/health-check.sh' > ~/.config/systemd/user/health-check.service",
       },
       {
         command: "printf '%s\n' '[Unit]' 'Description=Timer health check leve' '' '[Timer]' 'OnBootSec=2min' 'OnUnitActiveSec=5min' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > ~/.config/systemd/user/health-check.timer",
         description:
           "Timer a cada 5 min.",
-        example: "printf '%s\n' '[Unit]' 'Description=Timer health check leve' '' '[Timer]' 'OnBootSec=2min' 'OnUnitActiveSec=5min' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > ~/.config/systemd/user/health-check.timer",
       },
       {
         command: "systemctl --user daemon-reload && systemctl --user enable --now health-check.timer && systemctl --user list-timers | head",
         description:
           "Ativa timer do usuário (se linger/session permitir).",
-        example: "systemctl --user daemon-reload && systemctl --user enable --now health-check.timer && systemctl --user list-timers | head",
       },
       {
         command: "man logrotate",
         description:
           "Referência de rotação.",
-        example: "man logrotate",
       },
       {
         command: "man systemd.timer",
         description:
           "Timers systemd.",
-        example: "man systemd.timer",
       },
     ],
     tips: [

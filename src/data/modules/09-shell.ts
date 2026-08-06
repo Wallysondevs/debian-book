@@ -323,7 +323,6 @@ export const shell: Module[] = [
         command: "set -euo pipefail",
         description:
           "Liga modo seguro: -e sai no primeiro erro, -u erro se variável não definida, -o pipefail propaga erro de qualquer comando do pipe.",
-        example: "set -euo pipefail",
       },
       {
         command: "VAR=valor",
@@ -660,7 +659,6 @@ chmod +x ~/scripts/diag.sh
         command: "source ~/.bashrc",
         description:
           "Recarrega o ~/.bashrc no shell em execução, sem precisar abrir um novo terminal. Sinônimo: '. ~/.bashrc'.",
-        example: "source ~/.bashrc",
       },
       {
         command: "type",
@@ -707,22 +705,18 @@ chmod +x ~/scripts/diag.sh
       {
         command: "Ctrl+L",
         description: "Limpa a tela mantendo o que estava sendo digitado.",
-        example: "Ctrl+L",
       },
       {
         command: "Ctrl+W",
         description: "Apaga a palavra à esquerda do cursor.",
-        example: "Ctrl+W",
       },
       {
         command: "Ctrl+U",
         description: "Apaga tudo à esquerda do cursor (linha inteira até ali).",
-        example: "Ctrl+U",
       },
       {
         command: "Ctrl+X Ctrl+E",
         description: "Abre o comando atual no editor padrão ($EDITOR), útil para comandos longos.",
-        example: "Ctrl+X Ctrl+E",
       },
       {
         command: "PS1",
@@ -1034,17 +1028,14 @@ echo 'agora aperte Ctrl+R para ver o fzf em ação'`,
       {
         command: "man man",
         description: "O manual do próprio man: seções, convenções e como ler o resto da documentação.",
-        example: "man man",
       },
       {
         command: "man 5 crontab",
         description: "Força a seção 5 (formato do arquivo), não o comando da seção 1/8.",
-        example: "man 5 crontab",
       },
       {
         command: "whatis apt ss systemctl",
         description: "Uma linha de descrição para cada nome — confirma se o índice conhece o comando.",
-        example: "whatis apt ss systemctl",
         output: `apt (8)              - command-line interface
 ss (8)               - another utility to investigate sockets
 systemctl (1)        - Control the systemd system and service manager`,
@@ -1062,7 +1053,6 @@ systemctl (1)        - Control the systemd system and service manager`,
       {
         command: "sudo mandb",
         description: "Atualiza a base whatis/apropos depois de instalar muitos pacotes ou manpages.",
-        example: "sudo mandb",
       },
       {
         command: "man -P \"col -b\" ls | head -n 40",
@@ -1077,7 +1067,6 @@ systemctl (1)        - Control the systemd system and service manager`,
       {
         command: "ls /usr/share/doc/apt | head",
         description: "Docs e exemplos empacotados com o apt — além do man.",
-        example: "ls /usr/share/doc/apt | head",
         output: `changelog.gz
 copyright
 NEWS.Debian.gz
@@ -1087,7 +1076,6 @@ examples`,
       {
         command: "help cd | head",
         description: "Ajuda de builtin do Bash — muitas vezes não há man completo do próprio builtin.",
-        example: "help cd | head",
       },
       {
         command: "dpkg -L openssh-client 2>/dev/null | grep -E \"man|doc\" | head",
@@ -1213,12 +1201,10 @@ examples`,
       {
         command: "sudo apt install -y tmux",
         description: "Instala o multiplexador no Debian.",
-        example: "sudo apt install -y tmux",
       },
       {
         command: "tmux -V",
         description: "Confirma binário e versão.",
-        example: "tmux -V",
         output: `tmux 3.4`,
       },
       {
@@ -1229,48 +1215,39 @@ examples`,
       {
         command: "tmux ls",
         description: "Lista sessões ativas no host.",
-        example: "tmux ls",
         output: `lab: 1 windows (created Thu Aug  6 18:00:00 2026)`,
       },
       {
         command: "tmux attach -t lab",
         description: "Reconecta na sessão lab.",
-        example: "tmux attach -t lab",
       },
       {
         command: "tmux detach",
         description: "Detach pela linha de comando (equivale a Ctrl-b d).",
-        example: "tmux detach",
       },
       {
         command: "tmux rename-session -t lab manutencao",
         description: "Renomeia sessão para algo que faça sentido no attach seguinte.",
-        example: "tmux rename-session -t lab manutencao",
       },
       {
         command: "tmux new-window -t lab -n logs",
         description: "Nova janela nomeada dentro da sessão (pode ser de fora).",
-        example: "tmux new-window -t lab -n logs",
       },
       {
         command: "tmux kill-session -t lab",
         description: "Encerra a sessão e os processos dela — definitivo.",
-        example: "tmux kill-session -t lab",
       },
       {
         command: "man tmux",
         description: "Referência completa de atalhos e opções.",
-        example: "man tmux",
       },
       {
         command: "printf \"%s\n\" \"set -g mouse on\" >> ~/.tmux.conf",
         description: "Habilita mouse (opcional) na config do usuário.",
-        example: "printf \"%s\n\" \"set -g mouse on\" >> ~/.tmux.conf",
       },
       {
         command: "tmux source-file ~/.tmux.conf",
         description: "Recarrega config sem matar a sessão.",
-        example: "tmux source-file ~/.tmux.conf",
       },
     ],
     tips: [
@@ -1381,12 +1358,10 @@ examples`,
       {
         command: "sudo apt install -y git",
         description: "Cliente Git no Debian.",
-        example: "sudo apt install -y git",
       },
       {
         command: "git --version",
         description: "Confirma instalação.",
-        example: "git --version",
         output: `git version 2.39.5`,
       },
       {
@@ -1397,27 +1372,22 @@ examples`,
       {
         command: "mkdir -p ~/cfg && cd ~/cfg && git init",
         description: "Repo pequeno — comece estreito.",
-        example: "mkdir -p ~/cfg && cd ~/cfg && git init",
       },
       {
         command: "git status",
         description: "O que mudou / untracked.",
-        example: "git status",
       },
       {
         command: "git diff",
         description: "Diff do working tree — leia ANTES de restart.",
-        example: "git diff",
       },
       {
         command: "git add -p",
         description: "Adiciona hunks — commits cirúrgicos.",
-        example: "git add -p",
       },
       {
         command: "git commit -m \"sshd: document AllowUsers for bastion\"",
         description: "Commit com porquê, não só o quê.",
-        example: "git commit -m \"sshd: document AllowUsers for bastion\"",
       },
       {
         command: "git log --oneline -n 10",
@@ -1429,7 +1399,6 @@ examples`,
       {
         command: "man git-status",
         description: "Manual do subcomando.",
-        example: "man git-status",
       },
     ],
     tips: [
@@ -1538,73 +1507,61 @@ examples`,
         command: "python3 --version",
         description:
           "Python do sistema.",
-        example: "python3 --version",
       },
       {
         command: "sudo apt install -y python3-venv python3-pip python3-full",
         description:
           "Ferramentas para venv e pip.",
-        example: "sudo apt install -y python3-venv python3-pip python3-full",
       },
       {
         command: "mkdir -p ~/lab-venv && cd ~/lab-venv && python3 -m venv .venv",
         description:
           "Cria ambiente .venv.",
-        example: "mkdir -p ~/lab-venv && cd ~/lab-venv && python3 -m venv .venv",
       },
       {
         command: "source ~/lab-venv/.venv/bin/activate && which python && python -V",
         description:
           "Ativa e confere que o binário é o do venv.",
-        example: "source ~/lab-venv/.venv/bin/activate && which python && python -V",
       },
       {
         command: "source ~/lab-venv/.venv/bin/activate && pip install -U pip wheel",
         description:
           "Atualiza pip dentro do venv.",
-        example: "source ~/lab-venv/.venv/bin/activate && pip install -U pip wheel",
       },
       {
         command: "source ~/lab-venv/.venv/bin/activate && pip install requests && pip show requests | head",
         description:
           "Instala e inspeciona um pacote só no venv.",
-        example: "source ~/lab-venv/.venv/bin/activate && pip install requests && pip show requests | head",
       },
       {
         command: "source ~/lab-venv/.venv/bin/activate && pip freeze > ~/lab-venv/requirements.txt && head ~/lab-venv/requirements.txt",
         description:
           "Congela deps.",
-        example: "source ~/lab-venv/.venv/bin/activate && pip freeze > ~/lab-venv/requirements.txt && head ~/lab-venv/requirements.txt",
       },
       {
         command: "deactivate 2>/dev/null; ~/lab-venv/.venv/bin/python -c 'import sys; print(sys.prefix)'",
         description:
           "Usa o python do venv sem ativar.",
-        example: "deactivate 2>/dev/null; ~/lab-venv/.venv/bin/python -c 'import sys; print(sys.prefix)'",
       },
       {
         command: "python3 -m pip install --user nada 2>&1 | head -n 5 || true",
         description:
           "Muitas releases mostram bloqueio externally-managed (PEP 668).",
-        example: "python3 -m pip install --user nada 2>&1 | head -n 5 || true",
       },
       {
         command: "apt-cache search '^python3-' | head",
         description:
           "Alternativa: pacotes Python mantidos pelo Debian.",
-        example: "apt-cache search '^python3-' | head",
       },
       {
         command: "man python3",
         description:
           "Página man do interpretador.",
-        example: "man python3",
       },
       {
         command: "rm -rf ~/lab-venv/.venv && echo 'venv removido — projeto volta a precisar recriar'",
         description:
           "Destruir venv é seguro; não mexe no system Python.",
-        example: "rm -rf ~/lab-venv/.venv && echo 'venv removido — projeto volta a precisar recriar'",
       },
     ],
     tips: [
@@ -1738,73 +1695,61 @@ examples`,
         command: "sudo apt install -y ripgrep fd-find bat jq",
         description:
           "Instala a suíte moderna (nomes de pacote Debian).",
-        example: "sudo apt install -y ripgrep fd-find bat jq",
       },
       {
         command: "rg --version; jq --version",
         description:
           "Confirma rg e jq.",
-        example: "rg --version; jq --version",
       },
       {
         command: "fdfind --version 2>/dev/null || fd --version",
         description:
           "No Debian o binário costuma ser fdfind.",
-        example: "fdfind --version 2>/dev/null || fd --version",
       },
       {
         command: "batcat --version 2>/dev/null || bat --version",
         description:
           "No Debian o binário costuma ser batcat.",
-        example: "batcat --version 2>/dev/null || bat --version",
       },
       {
         command: "rg -n \"PermitRootLogin\" /etc/ssh 2>/dev/null || true",
         description:
           "Busca rápida com número de linha.",
-        example: "rg -n \"PermitRootLogin\" /etc/ssh 2>/dev/null || true",
       },
       {
         command: "fdfind -e conf ssh /etc 2>/dev/null | head",
         description:
           "Arquivos .conf sob /etc ligados a ssh.",
-        example: "fdfind -e conf ssh /etc 2>/dev/null | head",
       },
       {
         command: "batcat -n /etc/hostname 2>/dev/null || bat -n /etc/hostname",
         description:
           "Leitura com numeração.",
-        example: "batcat -n /etc/hostname 2>/dev/null || bat -n /etc/hostname",
       },
       {
         command: "printf '%s\n' '{\"ok\":true,\"n\":3}' | jq '.n'",
         description:
           "Extrai campo JSON.",
-        example: "printf '%s\n' '{\"ok\":true,\"n\":3}' | jq '.n'",
       },
       {
         command: "printf '%s\n' '[{\"p\":22},{\"p\":80}]' | jq '.[].p'",
         description:
           "Itera array JSON.",
-        example: "printf '%s\n' '[{\"p\":22},{\"p\":80}]' | jq '.[].p'",
       },
       {
         command: "rg --help | head -n 20",
         description:
           "Flags essenciais do rg.",
-        example: "rg --help | head -n 20",
       },
       {
         command: "man jq",
         description:
           "Manual do jq.",
-        example: "man jq",
       },
       {
         command: "dpkg -L ripgrep | grep bin",
         description:
           "Onde o pacote colocou o binário.",
-        example: "dpkg -L ripgrep | grep bin",
       },
     ],
     tips: [

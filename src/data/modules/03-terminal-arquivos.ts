@@ -33,7 +33,6 @@ export const terminalArquivos: Module[] = [
       {
         command: "pwd",
         description: "Print Working Directory — mostra o caminho absoluto do diretório atual.",
-        example: "pwd",
         output: "/home/maria",
       },
       {
@@ -67,7 +66,6 @@ export const terminalArquivos: Module[] = [
       {
         command: "clear",
         description: "Limpa a tela do terminal. O atalho Ctrl+L faz a mesma coisa.",
-        example: "clear",
       },
       {
         command: "history",
@@ -83,13 +81,11 @@ export const terminalArquivos: Module[] = [
       {
         command: "whoami",
         description: "Mostra o nome do usuário atual logado no shell.",
-        example: "whoami",
         output: "maria",
       },
       {
         command: "hostname",
         description: "Mostra (ou define) o nome da máquina.",
-        example: "hostname",
         output: "debian-laptop",
       },
       {
@@ -144,7 +140,6 @@ export const terminalArquivos: Module[] = [
       {
         command: "exit",
         description: "Encerra a sessão do shell. Atalho equivalente: Ctrl+D.",
-        example: "exit",
       },
     ],
     tips: [
@@ -324,7 +319,6 @@ pwd`,
       {
         command: "pwd",
         description: "Print Working Directory — mostra o caminho absoluto do diretório atual.",
-        example: "pwd",
         output: "/home/maria/Documentos",
       },
       {
@@ -717,13 +711,11 @@ ls /proc | grep -c '^[0-9]'`,
       {
         command: "trash-list",
         description: "Lista o conteúdo atual da lixeira.",
-        example: "trash-list",
         output: "2026-01-15 10:23:45 /home/maria/notas.txt\n2026-01-14 18:12:09 /home/maria/foto-velha.jpg",
       },
       {
         command: "trash-restore",
         description: "Restaura interativamente um item da lixeira.",
-        example: "trash-restore",
       },
       {
         command: "shred",

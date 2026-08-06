@@ -103,7 +103,6 @@ export const permissoesUsuarios: Module[] = [
       {
         command: "umask",
         description: "Mostra ou define a máscara de permissão padrão para arquivos novos.",
-        example: "umask",
         output: "0022",
         flags: [
           { flag: "022", description: "Default: arquivos viram 644, diretórios 755" },
@@ -149,7 +148,6 @@ export const permissoesUsuarios: Module[] = [
       {
         command: "id",
         description: "Mostra UID, GID e grupos do usuário atual ou de outro.",
-        example: "id",
         output: "uid=1000(wallyson) gid=1000(wallyson) grupos=1000(wallyson),27(sudo),24(cdrom),29(audio)",
       },
     ],
@@ -442,13 +440,11 @@ sudo -u nobody cat /tmp/site/index.html`,
       {
         command: "who",
         description: "Mostra quem está logado no sistema agora.",
-        example: "who",
         output: "wallyson tty7         2024-04-25 09:00 (:0)\nmaria    pts/1        2024-04-25 14:23 (192.168.1.50)",
       },
       {
         command: "w",
         description: "Como o who, mas mostra também o que cada usuário está fazendo no momento.",
-        example: "w",
         output: " 19:45:01 up 10:32,  2 users,  load average: 0.04, 0.10, 0.12\nUSER     TTY      FROM             LOGIN@   IDLE   WHAT\nwallyson tty7     :0               09:00    ?xdm?  /usr/bin/gnome-shell\nmaria    pts/1    192.168.1.50     14:23    0.00s  vim relatorio.md",
       },
       {
@@ -689,13 +685,11 @@ sudo userdel -r temp`,
       {
         command: "sudo -i",
         description: "Abre shell de root completo, como se você tivesse logado como root.",
-        example: "sudo -i",
         output: "root@debian:~#",
       },
       {
         command: "sudo -l",
         description: "Lista o que VOCÊ está autorizado a rodar com sudo.",
-        example: "sudo -l",
         output: "Entradas padrões para wallyson neste host:\n    env_reset, mail_badpass, secure_path=...\n\nO usuário wallyson pode executar os seguintes comandos neste host:\n    (ALL : ALL) ALL",
       },
       {
@@ -729,25 +723,21 @@ sudo userdel -r temp`,
       {
         command: "groups",
         description: "Mostra seus grupos. 'sudo' deve estar lá para você poder usar sudo.",
-        example: "groups",
         output: "wallyson sudo cdrom audio video plugdev",
       },
       {
         command: "id -nG",
         description: "Lista nomes dos grupos do usuário atual (alternativa ao groups).",
-        example: "id -nG",
         output: "wallyson sudo cdrom audio video plugdev",
       },
       {
         command: "getent group sudo",
         description: "Mostra todos os membros do grupo sudo.",
-        example: "getent group sudo",
         output: "sudo:x:27:wallyson,maria",
       },
       {
         command: "sudo -k",
         description: "Esquece a senha cacheada — força a próxima invocação a pedir senha de novo.",
-        example: "sudo -k",
       },
       {
         command: "sudo -u www-data comando",

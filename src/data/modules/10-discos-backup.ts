@@ -182,7 +182,6 @@ tmpfs          tmpfs     7.7G  1.5M  7.7G   1% /run
       {
         command: "sudo mount -a",
         description: "Lê o /etc/fstab e tenta montar tudo. ESSENCIAL após editar fstab — descobre erros antes do reboot.",
-        example: "sudo mount -a",
       },
       {
         command: "sudo tune2fs",
@@ -417,13 +416,11 @@ echo "Sem erros = seguro para reiniciar"`,
         command: "mkdir -p /tmp/backup-lab /tmp/restore-lab && echo ok > /tmp/backup-lab/prova.txt && tar -czf /tmp/prova.tgz -C /tmp/backup-lab . && tar -xzf /tmp/prova.tgz -C /tmp/restore-lab && cat /tmp/restore-lab/prova.txt",
         description:
           "Mini lab backup+restore.",
-        example: "mkdir -p /tmp/backup-lab /tmp/restore-lab && echo ok > /tmp/backup-lab/prova.txt && tar -czf /tmp/prova.tgz -C /tmp/backup-lab . && tar -xzf /tmp/prova.tgz -C /tmp/restore-lab && cat /tmp/restore-lab/prova.txt",
       },
       {
         command: "sha256sum /tmp/backup-lab/prova.txt /tmp/restore-lab/prova.txt 2>/dev/null; rm -rf /tmp/backup-lab /tmp/restore-lab /tmp/prova.tgz",
         description:
           "Hash e limpeza do lab.",
-        example: "sha256sum /tmp/backup-lab/prova.txt /tmp/restore-lab/prova.txt 2>/dev/null; rm -rf /tmp/backup-lab /tmp/restore-lab /tmp/prova.tgz",
       },
 
       {
@@ -529,7 +526,6 @@ snap-20240503-0300  Fri, 2024-05-03 03:00:01  [ghi...]`,
       {
         command: "rclone config",
         description: "Configurador interativo do rclone para conectar a serviços de nuvem.",
-        example: "rclone config",
       },
       {
         command: "rclone sync",
@@ -852,7 +848,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo apt install -y lvm2",
         description:
           "Ferramentas LVM no Debian (pv/vg/lvcreate, lvs, etc.).",
-        example: "sudo apt install -y lvm2",
       },
       {
         command: "sudo pvs; sudo vgs; sudo lvs",
@@ -877,7 +872,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo lvcreate -n lvwww -L 5G vgdata",
         description:
           "Cria LV de 5G chamado lvwww no VG. Use -l 100%FREE para consumir o livre.",
-        example: "sudo lvcreate -n lvwww -L 5G vgdata",
         flags: [
           { flag: "-n", description: "nome do LV" },
           { flag: "-L", description: "tamanho absoluto" },
@@ -888,7 +882,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo mkfs.ext4 /dev/vgdata/lvwww",
         description:
           "Cria filesystem no LV. O path /dev/mapper/vgdata-lvwww é equivalente.",
-        example: "sudo mkfs.ext4 /dev/vgdata/lvwww",
       },
       {
         command: "sudo mkdir -p /mnt/lvwww && sudo mount /dev/vgdata/lvwww /mnt/lvwww && df -h /mnt/lvwww",
@@ -900,13 +893,11 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo lvextend -L +2G /dev/vgdata/lvwww && sudo resize2fs /dev/vgdata/lvwww",
         description:
           "Cresce o LV em 2G e depois o ext4. Ordem: LV primeiro, filesystem depois.",
-        example: "sudo lvextend -L +2G /dev/vgdata/lvwww && sudo resize2fs /dev/vgdata/lvwww",
       },
       {
         command: "sudo lvcreate -s -n lvwww-snap -L 1G /dev/vgdata/lvwww",
         description:
           "Snapshot de 1G do LV (precisa de espaço). Remova com lvremove após o uso.",
-        example: "sudo lvcreate -s -n lvwww-snap -L 1G /dev/vgdata/lvwww",
       },
       {
         command: "sudo lvremove -y /dev/vgdata/lvwww-snap",
@@ -918,7 +909,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo vgdisplay vgdata | egrep 'VG Size|Free'",
         description:
           "Espaço total e livre no VG — o que limita novos LV e snapshots.",
-        example: "sudo vgdisplay vgdata | egrep 'VG Size|Free'",
       },
     ],
     tips: [
@@ -1056,7 +1046,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo apt install -y btrfs-progs",
         description:
           "Userland Btrfs no Debian.",
-        example: "sudo apt install -y btrfs-progs",
       },
       {
         command: "sudo mkfs.btrfs -L dados /dev/sdX1",
@@ -1074,13 +1063,11 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo btrfs subvolume create /mnt/btrfs/@www",
         description:
           "Cria subvolume @www (convenção de nome com @ é só hábito, não mágica).",
-        example: "sudo btrfs subvolume create /mnt/btrfs/@www",
       },
       {
         command: "sudo btrfs subvolume list /mnt/btrfs",
         description:
           "Lista subvolumes e IDs.",
-        example: "sudo btrfs subvolume list /mnt/btrfs",
       },
       {
         command: "sudo btrfs subvolume snapshot -r /mnt/btrfs/@www /mnt/btrfs/@www-snap-$(date +%F)",
@@ -1092,13 +1079,11 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo btrfs filesystem df /mnt/btrfs",
         description:
           "Uso interno (data/metadata). Complementa o df clássico.",
-        example: "sudo btrfs filesystem df /mnt/btrfs",
       },
       {
         command: "sudo btrfs filesystem show",
         description:
           "Visão dos filesystems Btrfs e dispositivos.",
-        example: "sudo btrfs filesystem show",
       },
       {
         command: "sudo btrfs subvolume delete /mnt/btrfs/@www-snap-lab",
@@ -1110,7 +1095,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "man btrfs",
         description:
           "Índice das subferramentas (subvolume, filesystem, device, scrub…).",
-        example: "man btrfs",
       },
     ],
     tips: [
@@ -1247,13 +1231,11 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo apt install -y mdadm",
         description:
           "Instala mdadm; o postinst pode perguntar sobre arrays — em lab responda com consciência.",
-        example: "sudo apt install -y mdadm",
       },
       {
         command: "cat /proc/mdstat",
         description:
           "Visão rápida dos arrays e resync.",
-        example: "cat /proc/mdstat",
         output: "Personalities : [raid1]\nmd0 : active raid1 sdb[0] sdc[1]\n      10465280 blocks super 1.2 [2/2] [UU]",
       },
       {
@@ -1266,7 +1248,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo mdadm --detail /dev/md0",
         description:
           "Estado, UUID, membros, degraded ou não.",
-        example: "sudo mdadm --detail /dev/md0",
       },
       {
         command: "sudo mkfs.ext4 /dev/md0 && sudo mount /dev/md0 /mnt/raid",
@@ -1438,19 +1419,16 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "cat /etc/fstab",
         description:
           "Mapa atual de montagens persistentes. Leia antes de qualquer edição.",
-        example: "cat /etc/fstab",
       },
       {
         command: "lsblk -f",
         description:
           "Árvore de block devices com FSTYPE, LABEL, UUID, mountpoints.",
-        example: "lsblk -f",
       },
       {
         command: "sudo blkid",
         description:
           "UUID/LABEL por dispositivo — fonte para linhas fstab.",
-        example: "sudo blkid",
       },
       {
         command: "findmnt",
@@ -1468,7 +1446,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo cp -a /etc/fstab /etc/fstab.bak-$(date +%F)",
         description:
           "Backup datado — não negociável.",
-        example: "sudo cp -a /etc/fstab /etc/fstab.bak-$(date +%F)",
       },
       {
         command: "echo 'UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /mnt/dados ext4 defaults,nofail 0 2'",
@@ -1492,7 +1469,6 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "man fstab",
         description:
           "Referência dos seis campos e opções comuns.",
-        example: "man fstab",
       },
     ],
     tips: [
@@ -1629,31 +1605,26 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo apt install -y cryptsetup",
         description:
           "Ferramenta userspace para LUKS/dm-crypt.",
-        example: "sudo apt install -y cryptsetup",
       },
       {
         command: "truncate -s 512M /tmp/luks-lab.img",
         description:
           "Arquivo-imagem de 512M para lab sem disco físico extra.",
-        example: "truncate -s 512M /tmp/luks-lab.img",
       },
       {
         command: "sudo cryptsetup luksFormat /tmp/luks-lab.img",
         description:
           "Cria header LUKS no arquivo/device. Pede confirmação YES e passphrase. DESTRUTIVO no alvo.",
-        example: "sudo cryptsetup luksFormat /tmp/luks-lab.img",
       },
       {
         command: "sudo cryptsetup luksOpen /tmp/luks-lab.img luksLab",
         description:
           "Abre o volume como /dev/mapper/luksLab após passphrase.",
-        example: "sudo cryptsetup luksOpen /tmp/luks-lab.img luksLab",
       },
       {
         command: "sudo mkfs.ext4 /dev/mapper/luksLab",
         description:
           "Filesystem dentro do volume já destrancado.",
-        example: "sudo mkfs.ext4 /dev/mapper/luksLab",
       },
       {
         command: "sudo mkdir -p /mnt/luks-lab && sudo mount /dev/mapper/luksLab /mnt/luks-lab",
@@ -1677,13 +1648,11 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
         command: "sudo cryptsetup luksDump /tmp/luks-lab.img | head -n 30",
         description:
           "Metadados LUKS (cipher, keyslots) sem revelar a passphrase.",
-        example: "sudo cryptsetup luksDump /tmp/luks-lab.img | head -n 30",
       },
       {
         command: "man cryptsetup",
         description:
           "Referência luksFormat, open/close, addKey, header backup.",
-        example: "man cryptsetup",
       },
     ],
     tips: [

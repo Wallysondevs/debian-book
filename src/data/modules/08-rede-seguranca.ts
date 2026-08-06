@@ -31,7 +31,6 @@ export const redeSeguranca: Module[] = [
       {
         command: "ip a",
         description: "Lista todas as interfaces de rede com seus IPs e estado.",
-        example: "ip a",
         output: `1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536
     inet 127.0.0.1/8 scope host lo
 2: enp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500
@@ -47,7 +46,6 @@ export const redeSeguranca: Module[] = [
       {
         command: "ip route",
         description: "Mostra a tabela de rotas. A linha 'default' diz por onde sai a internet.",
-        example: "ip route",
         output: `default via 192.168.1.1 dev enp3s0 proto dhcp metric 100
 192.168.1.0/24 dev enp3s0 proto kernel scope link src 192.168.1.100`,
         flags: [
@@ -367,17 +365,14 @@ sudo atrm <numero>`,
       {
         command: "sudo ufw enable",
         description: "Liga o firewall. Aplica todas as regras configuradas.",
-        example: "sudo ufw enable",
       },
       {
         command: "sudo ufw disable",
         description: "Desliga o firewall (regras ficam guardadas mas inativas).",
-        example: "sudo ufw disable",
       },
       {
         command: "sudo ufw status verbose",
         description: "Estado atual + defaults + lista de regras.",
-        example: "sudo ufw status verbose",
         output: `Status: active
 Logging: on (low)
 Default: deny (incoming), allow (outgoing)
@@ -416,17 +411,14 @@ To                Action      From
       {
         command: "sudo ufw status numbered",
         description: "Lista regras com número, útil para deletar.",
-        example: "sudo ufw status numbered",
       },
       {
         command: "sudo ufw app list",
         description: "Lista perfis de aplicação conhecidos (atalhos para conjuntos de portas).",
-        example: "sudo ufw app list",
       },
       {
         command: "sudo ufw reset",
         description: "Apaga TODAS as regras e desabilita. Recomeça do zero.",
-        example: "sudo ufw reset",
       },
       {
         command: "sudo ufw logging",
@@ -436,12 +428,10 @@ To                Action      From
       {
         command: "sudo nft list ruleset",
         description: "Mostra TODAS as regras nftables ativas no kernel (incluindo as geradas pelo UFW).",
-        example: "sudo nft list ruleset",
       },
       {
         command: "sudo iptables -L -n -v",
         description: "Lista regras iptables (no Debian moderno é wrapper para nftables).",
-        example: "sudo iptables -L -n -v",
         flags: [
           { flag: "-n", description: "Numérico (não resolve DNS)" },
           { flag: "-v", description: "Verbose, mostra contadores" },
@@ -742,19 +732,16 @@ sudo iptables -L INPUT -n -v --line-numbers`,
         command: "man ssh_config | head -n 30",
         description:
           "Opções do cliente — leia Host, IdentityFile, ProxyJump.",
-        example: "man ssh_config | head -n 30",
       },
       {
         command: "test -f ~/.ssh/config && sed -n '1,40p' ~/.ssh/config || echo 'sem ~/.ssh/config ainda'",
         description:
           "Config local do cliente (não commitar segredos).",
-        example: "test -f ~/.ssh/config && sed -n '1,40p' ~/.ssh/config || echo 'sem ~/.ssh/config ainda'",
       },
       {
         command: "ssh -G localhost 2>/dev/null | egrep 'user |hostname |identityfile |pubkeyauthentication' | head",
         description:
           "Config efetiva que o ssh aplicaria (exemplo local).",
-        example: "ssh -G localhost 2>/dev/null | egrep 'user |hostname |identityfile |pubkeyauthentication' | head",
       },
     ],
     tips: [
@@ -977,7 +964,6 @@ psql -h localhost -U postgres
       {
         command: "sudo dpkg-reconfigure -plow unattended-upgrades",
         description: "Configura/ativa atualizações automáticas de segurança.",
-        example: "sudo dpkg-reconfigure -plow unattended-upgrades",
       },
       {
         command: "sudo unattended-upgrades --dry-run",
@@ -992,12 +978,10 @@ psql -h localhost -U postgres
       {
         command: "sudo fail2ban-client status",
         description: "Status geral do fail2ban e jails ativas.",
-        example: "sudo fail2ban-client status",
       },
       {
         command: "sudo fail2ban-client status sshd",
         description: "Estatísticas e IPs banidos da jail SSH.",
-        example: "sudo fail2ban-client status sshd",
         output: `Status for the jail: sshd
 |- Filter
 |  |- Currently failed: 2
@@ -1016,7 +1000,6 @@ psql -h localhost -U postgres
       {
         command: "sudo aa-status",
         description: "Status do AppArmor — perfis em enforce/complain.",
-        example: "sudo aa-status",
       },
       {
         command: "sudo systemctl list-unit-files --state=enabled",
@@ -1026,17 +1009,14 @@ psql -h localhost -U postgres
       {
         command: "sudo sysctl --system",
         description: "Aplica todas as configs sysctl de /etc/sysctl.conf e /etc/sysctl.d/.",
-        example: "sudo sysctl --system",
       },
       {
         command: "gpg --full-generate-key",
         description: "Gera par de chaves GPG (interativo).",
-        example: "gpg --full-generate-key",
       },
       {
         command: "gpg --list-keys",
         description: "Lista chaves públicas no seu keyring.",
-        example: "gpg --list-keys",
       },
       {
         command: "gpg --export -a",
@@ -1061,25 +1041,21 @@ psql -h localhost -U postgres
       {
         command: "sudo lynis audit system",
         description: "Auditoria automática completa, com nota e sugestões priorizadas.",
-        example: "sudo lynis audit system",
       },
       {
         command: "wtmpdb lastb 2>/dev/null | head || lastb 2>/dev/null | head || journalctl -u ssh --since today --no-pager | tail",
         description:
           "Tentativas de login falhas no stack moderno ou fallback.",
-        example: "wtmpdb lastb 2>/dev/null | head || lastb 2>/dev/null | head || journalctl -u ssh --since today --no-pager | tail",
       },
       {
         command: "sysctl net.ipv4.tcp_syncookies net.ipv4.ip_forward 2>/dev/null || true",
         description:
           "Amostra de sysctl de rede — confira antes de mudar.",
-        example: "sysctl net.ipv4.tcp_syncookies net.ipv4.ip_forward 2>/dev/null || true",
       },
       {
         command: "ls /etc/apt/keyrings 2>/dev/null; man apt-secure 2>/dev/null | head -n 5 || true",
         description:
           "Onde vivem chaves modernas de repositório (não misturar com fail2ban).",
-        example: "ls /etc/apt/keyrings 2>/dev/null; man apt-secure 2>/dev/null | head -n 5 || true",
       },
     ],
     tips: [
@@ -1330,7 +1306,6 @@ gpg --verify teste.txt.sig teste.txt`,
       {
         command: "ip -br link; ip -br addr",
         description: "Estado bruto das interfaces e endereços — independente do gerenciador. Sempre comece aqui.",
-        example: "ip -br link; ip -br addr",
         output: `lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP>
 enp0s3           UP             08:00:27:a1:b2:c3 <BROADCAST,MULTICAST,UP,LOWER_UP>
 lo               UNKNOWN        127.0.0.1/8 ::1/128
@@ -1374,17 +1349,14 @@ active`,
       {
         command: "man interfaces",
         description: "Manual do formato ifupdown — ainda válido em muitos servidores Debian.",
-        example: "man interfaces",
       },
       {
         command: "man nmcli",
         description: "Referência do cliente NetworkManager.",
-        example: "man nmcli",
       },
       {
         command: "man systemd.network",
         description: "Formato dos arquivos .network do networkd.",
-        example: "man systemd.network",
       },
       {
         command: "ping -c 2 1.1.1.1; ping -c 2 deb.debian.org",
@@ -1511,13 +1483,11 @@ active`,
         command: "cat /etc/resolv.conf",
         description:
           "Servidores e search atuais (pode ser symlink gerenciado).",
-        example: "cat /etc/resolv.conf",
       },
       {
         command: "ls -l /etc/resolv.conf",
         description:
           "Se é symlink para stub do resolved ou arquivo estático.",
-        example: "ls -l /etc/resolv.conf",
       },
       {
         command: "resolvectl status 2>/dev/null | head -n 40 || echo 'resolvectl indisponivel'",
@@ -1529,7 +1499,6 @@ active`,
         command: "getent hosts debian.org",
         description:
           "Resolução via libc/NSS — o que a maioria dos apps usa.",
-        example: "getent hosts debian.org",
       },
       {
         command: "dig +short debian.org @1.1.1.1 2>/dev/null || host debian.org 1.1.1.1 2>/dev/null || echo 'instale dnsutils para dig/host'",
@@ -1559,13 +1528,11 @@ active`,
         command: "man resolvectl",
         description:
           "Comandos do cliente resolved.",
-        example: "man resolvectl",
       },
       {
         command: "man resolv.conf",
         description:
           "Formato clássico nameserver/search/options.",
-        example: "man resolv.conf",
       },
     ],
     tips: [
@@ -1701,31 +1668,26 @@ active`,
         command: "ip -br link",
         description:
           "Interfaces e estado UP/DOWN de forma compacta.",
-        example: "ip -br link",
       },
       {
         command: "ip -br addr",
         description:
           "Endereços por interface.",
-        example: "ip -br addr",
       },
       {
         command: "ip route",
         description:
           "Tabela de rotas; procure a default via.",
-        example: "ip route",
       },
       {
         command: "ip route get 1.1.1.1",
         description:
           "Rota que o kernel usaria até esse destino (útil com várias NICs/VPN).",
-        example: "ip route get 1.1.1.1",
       },
       {
         command: "ss -tulpn | head -n 30",
         description:
           "Sockets TCP/UDP escutando; -p mostra processo (root ajuda).",
-        example: "ss -tulpn | head -n 30",
         flags: [
           { flag: "-t", description: "TCP" },
           { flag: "-u", description: "UDP" },
@@ -1738,7 +1700,6 @@ active`,
         command: "ss -tnp | head -n 20",
         description:
           "Conexões TCP estabelecidas (amostra).",
-        example: "ss -tnp | head -n 20",
       },
       {
         command: "ping -c 2 -W 2 1.1.1.1 2>&1 | tail -n 5",
@@ -1756,13 +1717,11 @@ active`,
         command: "man ip-route",
         description:
           "Referência de rotas iproute2.",
-        example: "man ip-route",
       },
       {
         command: "man ss",
         description:
           "Substituto moderno do netstat.",
-        example: "man ss",
       },
     ],
     tips: [
@@ -1898,13 +1857,11 @@ active`,
         command: "sudo apt install -y certbot",
         description:
           "Cliente Certbot. Plugins nginx/apache são pacotes separados em muitos releases.",
-        example: "sudo apt install -y certbot",
       },
       {
         command: "apt-cache search certbot | head",
         description:
           "Ver plugins disponíveis (python3-certbot-nginx, etc.).",
-        example: "apt-cache search certbot | head",
       },
       {
         command: "sudo certbot certificates 2>/dev/null || echo 'ainda sem certificados ou certbot nao configurado'",
@@ -1916,7 +1873,6 @@ active`,
         command: "sudo certbot renew --dry-run",
         description:
           "Simula renovação — o teste que importa depois do primeiro emit.",
-        example: "sudo certbot renew --dry-run",
       },
       {
         command: "ls -la /etc/letsencrypt/live 2>/dev/null || echo 'sem /etc/letsencrypt/live ainda'",
@@ -1928,7 +1884,6 @@ active`,
         command: "openssl version",
         description:
           "OpenSSL presente para inspeção de certificados.",
-        example: "openssl version",
       },
       {
         command: "echo | openssl s_client -connect deb.debian.org:443 -servername deb.debian.org 2>/dev/null | openssl x509 -noout -subject -dates 2>/dev/null | head",
@@ -1946,7 +1901,6 @@ active`,
         command: "man certbot",
         description:
           "Subcomandos certonly, renew, plugins.",
-        example: "man certbot",
       },
       {
         command: "openssl req -x509 -newkey rsa:2048 -keyout /tmp/lab-self.key -out /tmp/lab-self.crt -days 1 -nodes -subj '/CN=lab.local' 2>/dev/null && openssl x509 -in /tmp/lab-self.crt -noout -subject -dates && rm -f /tmp/lab-self.key /tmp/lab-self.crt",
@@ -2088,7 +2042,6 @@ active`,
         command: "sudo apt install -y nginx",
         description:
           "Nginx do repositório Debian (Caddy: pacote caddy se disponível na sua release).",
-        example: "sudo apt install -y nginx",
       },
       {
         command: "nginx -v 2>&1; systemctl is-active nginx 2>/dev/null",
@@ -2106,13 +2059,11 @@ active`,
         command: "sudo nginx -t",
         description:
           "Testa a config antes do reload — hábito inegociável.",
-        example: "sudo nginx -t",
       },
       {
         command: "sudo systemctl reload nginx",
         description:
           "Aplica config sem dropar conexões desnecessariamente (vs restart).",
-        example: "sudo systemctl reload nginx",
       },
       {
         command: "ss -tulpn | grep -E ':80|:443|:8080' | head",
@@ -2136,7 +2087,6 @@ active`,
         command: "man nginx",
         description:
           "Entrada da documentação local.",
-        example: "man nginx",
       },
       {
         command: "apt-cache search '^caddy' | head",
@@ -2288,13 +2238,11 @@ active`,
         command: "ls /etc/apparmor.d/ | head",
         description:
           "Onde os perfis vivem no Debian.",
-        example: "ls /etc/apparmor.d/ | head",
       },
       {
         command: "dpkg -l 'apparmor*' | grep ^ii",
         description:
           "Pacotes AppArmor instalados.",
-        example: "dpkg -l 'apparmor*' | grep ^ii",
       },
       {
         command: "journalctl -b -g apparmor --no-pager 2>/dev/null | tail -n 20 || sudo dmesg | grep -i apparmor | tail -n 15",
@@ -2306,19 +2254,16 @@ active`,
         command: "man aa-status",
         description:
           "Manual do status.",
-        example: "man aa-status",
       },
       {
         command: "man apparmor",
         description:
           "Visão geral do framework.",
-        example: "man apparmor",
       },
       {
         command: "apt-cache search apparmor | head",
         description:
           "Utils e perfis extras nos repositórios.",
-        example: "apt-cache search apparmor | head",
       },
       {
         command: "sudo aa-complain /etc/apparmor.d/* 2>/dev/null | tail -n 5 || echo 'aa-complain exige apparmor-utils e critério — nao rode em massa na producao'",
@@ -2455,22 +2400,18 @@ active`,
       {
         command: "sudo apt install -y fail2ban",
         description: "Instala o serviço.",
-        example: "sudo apt install -y fail2ban",
       },
       {
         command: "printf \"%s\n\" \"[sshd]\" \"enabled = true\" | sudo tee /etc/fail2ban/jail.d/sshd.local",
         description: "Ativa jail sshd de forma upgrade-safe.",
-        example: "printf \"%s\n\" \"[sshd]\" \"enabled = true\" | sudo tee /etc/fail2ban/jail.d/sshd.local",
       },
       {
         command: "sudo systemctl enable --now fail2ban",
         description: "Sobe e habilita no boot.",
-        example: "sudo systemctl enable --now fail2ban",
       },
       {
         command: "sudo fail2ban-client status",
         description: "Jails ativas.",
-        example: "sudo fail2ban-client status",
         output: `Status
 |- Number of jail:	1
 \`- Jail list:	sshd`,
@@ -2478,17 +2419,14 @@ active`,
       {
         command: "sudo fail2ban-client status sshd",
         description: "IPs banidos e contadores do jail sshd.",
-        example: "sudo fail2ban-client status sshd",
       },
       {
         command: "sudo fail2ban-client set sshd unbanip 203.0.113.10",
         description: "Remove ban de um IP (troque pelo seu).",
-        example: "sudo fail2ban-client set sshd unbanip 203.0.113.10",
       },
       {
         command: "man fail2ban",
         description: "Visão geral; veja também jail.conf(5).",
-        example: "man fail2ban",
       },
     ],
     tips: [
@@ -2595,7 +2533,6 @@ active`,
         command: "ls /etc/pam.d/ | head",
         description:
           "Serviços com pilha PAM (sshd, login, sudo, passwd…).",
-        example: "ls /etc/pam.d/ | head",
       },
       {
         command: "grep -vE '^#|^$' /etc/pam.d/common-password 2>/dev/null | head",
@@ -2619,19 +2556,16 @@ active`,
         command: "man pam_pwquality",
         description:
           "Opções do módulo.",
-        example: "man pam_pwquality",
       },
       {
         command: "man pwquality.conf",
         description:
           "Arquivo de configuração de qualidade.",
-        example: "man pwquality.conf",
       },
       {
         command: "man pam",
         description:
           "Visão geral da arquitetura PAM.",
-        example: "man pam",
       },
       {
         command: "grep -n 'password' /etc/pam.d/sshd 2>/dev/null | head",
@@ -2783,13 +2717,11 @@ active`,
         command: "sudo apt install -y acl libcap2-bin",
         description:
           "Ferramentas setfacl/getfacl e getcap/setcap.",
-        example: "sudo apt install -y acl libcap2-bin",
       },
       {
         command: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
         description:
           "Arquivo de lab e modo clássico inicial.",
-        example: "mkdir -p /tmp/acl-lab && touch /tmp/acl-lab/arq.txt && ls -l /tmp/acl-lab/arq.txt",
       },
       {
         command: "setfacl -m u:$USER:rw /tmp/acl-lab/arq.txt 2>/dev/null; getfacl /tmp/acl-lab/arq.txt",
@@ -2801,7 +2733,6 @@ active`,
         command: "ls -l /tmp/acl-lab/arq.txt",
         description:
           "O + no modo indica ACL estendida.",
-        example: "ls -l /tmp/acl-lab/arq.txt",
       },
       {
         command: "setfacl -b /tmp/acl-lab/arq.txt; getfacl /tmp/acl-lab/arq.txt; ls -l /tmp/acl-lab/arq.txt",
@@ -2819,25 +2750,21 @@ active`,
         command: "man setfacl",
         description:
           "Sintaxe -m -x -b -R default ACL em diretórios.",
-        example: "man setfacl",
       },
       {
         command: "man capabilities",
         description:
           "Lista e significado das capabilities do Linux.",
-        example: "man capabilities",
       },
       {
         command: "man getcap",
         description:
           "Ler capabilities de arquivos.",
-        example: "man getcap",
       },
       {
         command: "namei -l /tmp/acl-lab/arq.txt",
         description:
           "Permissões ao longo do path — ACL no arquivo não salva se o diretório bloqueia traverse.",
-        example: "namei -l /tmp/acl-lab/arq.txt",
       },
     ],
     tips: [
@@ -2973,7 +2900,6 @@ active`,
         command: "systemctl --failed --no-pager",
         description:
           "Units em falha — higiene diária barata.",
-        example: "systemctl --failed --no-pager",
       },
       {
         command: "journalctl -u ssh -u sshd -n 30 --no-pager 2>/dev/null | tail -n 30",
@@ -2991,7 +2917,6 @@ active`,
         command: "man aide",
         description:
           "init, check, update do banco de integridade.",
-        example: "man aide",
       },
       {
         command: "dpkg -l aide 2>/dev/null | tail -n 1; ls /etc/aide 2>/dev/null | head",
@@ -3027,7 +2952,6 @@ active`,
         command: "man auditctl",
         description:
           "Controle de regras do audit (avançado).",
-        example: "man auditctl",
       },
     ],
     tips: [

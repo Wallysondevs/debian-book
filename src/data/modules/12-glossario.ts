@@ -60,17 +60,14 @@ export const glossario: Module[] = [
       {
         command: "man apt",
         description: "Documentação local do APT — complemento offline do glossário.",
-        example: "man apt",
       },
       {
         command: "apropos systemd | head",
         description: "Descobre páginas man relacionadas a um termo.",
-        example: "apropos systemd | head",
       },
       {
         command: "whatis dpkg apt systemd",
         description: "Uma linha oficial por comando.",
-        example: "whatis dpkg apt systemd",
       },
     ],
     tips: [

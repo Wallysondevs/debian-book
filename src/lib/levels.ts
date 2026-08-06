@@ -101,11 +101,23 @@ const BY_ID: Record<string, ModuleLevel> = {
   glossario: "iniciante",
 };
 
-const READ_DEFAULT: Record<ModuleLevel, number> = {
-  iniciante: 12,
-  intermediario: 16,
-  avancado: 20,
-};
+/** Palavras por minuto para leitura tecnica atenta em portugues. */
+const WORDS_PER_MINUTE = 180;
+/** Parar, ler o comando e conferir a saida. */
+const MIN_PER_COMMAND = 0.4;
+/** Fazer o laboratorio de verdade, nao so ler. */
+const MIN_PER_LAB = 3;
+/** Pensar o exercicio antes de abrir a resposta. */
+const MIN_PER_EXERCISE = 0.3;
+
+function countWords(...texts: Array<string | undefined>): number {
+  let total = 0;
+  for (const text of texts) {
+    if (!text) continue;
+    total += text.trim().split(/\s+/).filter(Boolean).length;
+  }
+  return total;
+}
 
 export function resolveLevel(m: Pick<Module, "id" | "level" | "category">): ModuleLevel {
   if (m.level) return m.level;
@@ -120,12 +132,38 @@ export function resolveLevel(m: Pick<Module, "id" | "level" | "category">): Modu
   return "intermediario";
 }
 
+/**
+ * Estimativa a partir do conteudo real do capitulo.
+ *
+ * A versao anterior somava um valor fixo por nivel com a quantidade de
+ * comandos, sem olhar o texto: um capitulo de 152 palavras anunciava os mesmos
+ * "16-20 min" de um capitulo de 1315 palavras. Agora conta as palavras que o
+ * aluno le de fato e soma o custo de praticar comandos, labs e exercicios.
+ */
 export function resolveReadMinutes(m: Module): number {
   if (typeof m.readMinutes === "number" && m.readMinutes > 0) return m.readMinutes;
-  const level = resolveLevel(m);
-  const base = READ_DEFAULT[level];
-  const extra = Math.min(10, Math.floor((m.commands?.length ?? 0) / 4));
-  return base + extra;
+
+  let words = countWords(...(m.content ?? []), ...(m.objectives ?? []));
+  for (const tip of m.tips ?? []) {
+    words += countWords(tip.title, tip.content);
+  }
+  for (const cmd of m.commands ?? []) {
+    words += countWords(cmd.description);
+  }
+  for (const lab of m.practiceLabs ?? []) {
+    words += countWords(lab.title, lab.goal, ...(lab.steps ?? []));
+  }
+  for (const ex of m.exercises ?? []) {
+    words += countWords(ex.question, ex.hint, ex.answer);
+  }
+
+  const minutes =
+    words / WORDS_PER_MINUTE +
+    (m.commands?.length ?? 0) * MIN_PER_COMMAND +
+    (m.practiceLabs?.length ?? 0) * MIN_PER_LAB +
+    (m.exercises?.length ?? 0) * MIN_PER_EXERCISE;
+
+  return Math.max(3, Math.round(minutes));
 }
 
 export function withResolvedMeta(modules: Module[]): Module[] {
