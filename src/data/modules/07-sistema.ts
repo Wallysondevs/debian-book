@@ -3451,204 +3451,155 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       { title: "man journalctl", url: "https://manpages.debian.org/journalctl" },
     ],
   },
-  {
+    {
     id: "runbook-rede",
-    title: "Runbook: rede morta após upgrade — checklist",
-    icon: "🔌",
-    category: "Sistema",
-    description:
-      "Volte conectividade após upgrade/troca de stack: link, IP, rota, DNS, firewall e o clássico ifupdown vs NetworkManager vs networkd.",
+    title: "Runbook — rede morta após upgrade ou reboot",
+    icon: "🚨",
+    category: "Sistema e Processos",
+    description: "Passo a passo quando a rede some: link, stack (NM/ifupdown/networkd), IP, rota, DNS e o que NÃO fazer no SSH sem console.",
+    level: "intermediario",
+    readMinutes: 16,
     objectives: [
-      "Verificar link físico/virtual e operstate",
-      "Checar endereços e rotas default",
-      "Testar L3 (ping) separado de DNS",
-      "Inspecionar firewall e políticas",
-      "Identificar qual stack de rede manda",
-      "Recuperar SSH sem se autoexcluir",
+      "Separar falha de link, L3, rota e DNS",
+      "Identificar a stack de rede antes de editar arquivos",
+      "Usar ip/ping na ordem certa",
+      "Não piorar o caso cortando o próprio SSH",
+      "Documentar o laudo em arquivo",
     ],
     content: [
-      "Depois de full-upgrade a rede some: driver, renome de iface (ens vs eth), DNS, firewall ou stack errada. Checklist impede chutar iptables enquanto o cabo lógico cloud está down.",
-
-      "Jargões. carrier/operstate. default via. resolvectl vs /etc/resolv.conf. nft/ufw. Predictable names. netplan (se existir) vs ifupdown vs NM vs networkd — um deve mandar.",
-
-      "Ordem: ip -br link → ip -br addr → ip route → ping IP numérico → ping nome (DNS) → ss -lnt → ufw status/nft list ruleset head → networkctl/nmcli/ifquery. Cloud: security group além do host.",
-
-      "Armadilhas. Arrumar DNS quando não há rota. flush de regras com SSH na mesma sessão sem console. Assumir eth0 eterno. Dois DHCP clients brigando.",
-
-      "Quando NÃO: app lenta com rede OK (volte ao runbook-lento). Quando SIM: pós-upgrade, clone de VM, troca de netplan.",
-
-      "Ao terminar você separa cabo/IP/rota/DNS/firewall e sabe qual ferramenta da stack usar.",
-
+      "\"A rede morreu\" é sintoma, não diagnóstico. Depois de upgrade, reboot ou alguém \"só mexer no interfaces\", o host pode estar sem link, com link UP mas sem IP, com IP sem rota default, ou com L3 ok e DNS quebrado. Tratar os quatro casos com o mesmo comando mágico piora. Este runbook é a ordem barata que um admin experiente usa antes de tocar em config.",
+      "Regra zero: no SSH remoto, NÃO reinicie a stack de rede às cegas e NÃO faça ifdown da interface que te carrega sem console do provedor. Prefira leitura. Se precisar aplicar IP novo, use tmux e tenha o console aberto. Matar a própria rota default no meio do SSH é o clássico \"me tranciei fora\".",
+      "Ordem de prova. (1) ip -br link — NIC existe e UP? (2) ip -br addr — tem endereço? (3) ip route — tem default? (4) ping -c2 1.1.1.1 — L3 até a internet? (5) ping -c2 deb.debian.org — DNS? (6) Só então systemctl is-active NetworkManager systemd-networkd networking e os arquivos da stack que manda. Se o 4 passa e o 5 falha, pare de mexer em IP: o problema é resolver.",
+      "Pós-upgrade, causas frequentes: interface renomeada (eth0 virou enp0s3 e o arquivo aponta para nome fantasma); cloud-init reescreveu networkd; dois stacks DHCP brigando; NetworkManager puxado sem querer no servidor minimal. Laudo escrito (tee ~/laudo-rede.txt) vale mais que memória.",
+      "Quando escalar: link DOWN no hypervisor; rota sumindo a cada 30s (DHCP concorrente); firewall do provedor. Quando seguir sozinho: DNS errado, default ausente após editar interfaces, unit networking failed com erro claro no journal.",
     ],
     commands: [
       {
         command: "ip -br link; ip -br addr",
-        description:
-          "Links e IPs curtos.",
+        description: "Passo 1–2: link e endereços, independente da stack.",
         example: "ip -br link; ip -br addr",
+        output: `lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP>
+enp0s3           UP             08:00:27:aa:bb:cc <BROADCAST,MULTICAST,UP,LOWER_UP>
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+enp0s3           UP             10.0.2.15/24`,
       },
       {
-        command: "ip route; ip -6 route 2>/dev/null | head",
-        description:
-          "Rotas.",
-        example: "ip route; ip -6 route 2>/dev/null | head",
+        command: "ip route; ip -4 route show default",
+        description: "Passo 3: existe gateway default?",
+        example: "ip route",
+        output: `default via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15`,
       },
       {
-        command: "ping -c 2 1.1.1.1 || ping -c 2 8.8.8.8",
-        description:
-          "L3 sem DNS.",
-        example: "ping -c 2 1.1.1.1 || ping -c 2 8.8.8.8",
+        command: "ping -c 2 1.1.1.1",
+        description: "Passo 4: L3 até IP público (não usa DNS).",
+        example: "ping -c 2 1.1.1.1",
+        output: `PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+64 bytes from 1.1.1.1: icmp_seq=1 ttl=55 time=12.1 ms
+64 bytes from 1.1.1.1: icmp_seq=2 ttl=55 time=11.8 ms
+
+--- 1.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss`,
       },
       {
-        command: "ping -c 2 deb.debian.org || true",
-        description:
-          "L3+DNS.",
-        example: "ping -c 2 deb.debian.org || true",
+        command: "ping -c 2 deb.debian.org; getent hosts deb.debian.org | head",
+        description: "Passo 5: DNS. Se IP pinga e nome não, foque no resolver.",
+        example: "ping -c 2 deb.debian.org",
       },
       {
-        command: "resolvectl status 2>/dev/null | head -n 40 || cat /etc/resolv.conf",
-        description:
-          "Resolvers.",
-        example: "resolvectl status 2>/dev/null | head -n 40 || cat /etc/resolv.conf",
+        command: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
+        description: "Quem manda na rede agora.",
+        example: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
+        output: `inactive
+inactive
+active`,
       },
       {
-        command: "networkctl status 2>/dev/null | head -n 40 || true",
-        description:
-          "systemd-networkd view.",
-        example: "networkctl status 2>/dev/null | head -n 40 || true",
+        command: "cat /etc/resolv.conf; resolvectl status 2>/dev/null | head -n 20",
+        description: "Resolver atual.",
+        example: "cat /etc/resolv.conf",
       },
       {
-        command: "nmcli -t dev status 2>/dev/null || true",
-        description:
-          "NetworkManager devices.",
-        example: "nmcli -t dev status 2>/dev/null || true",
+        command: "journalctl -u networking -u NetworkManager -u systemd-networkd -b --no-pager | tail -n 40",
+        description: "Erros de rede só deste boot.",
+        example: "journalctl -u networking -b --no-pager | tail -n 20",
       },
       {
-        command: "sudo ufw status verbose 2>/dev/null || true",
-        description:
-          "UFW se usado.",
-        example: "sudo ufw status verbose 2>/dev/null || true",
-      },
-      {
-        command: "sudo nft list ruleset 2>/dev/null | head -n 40 || sudo iptables -L -n 2>/dev/null | head",
-        description:
-          "Firewall raw sample.",
-        example: "sudo nft list ruleset 2>/dev/null | head -n 40 || sudo iptables -L -n 2>/dev/null | head",
-      },
-      {
-        command: "ss -lntup | head -n 30",
-        description:
-          "Sockets escutando.",
-        example: "ss -lntup | head -n 30",
-      },
-      {
-        command: "journalctl -u NetworkManager -u systemd-networkd -u networking --since '2 hours ago' --no-pager 2>/dev/null | tail -n 40",
-        description:
-          "Logs de stacks comuns.",
-        example: "journalctl -u NetworkManager -u systemd-networkd -u networking --since '2 hours ago' --no-pager 2>/dev/null | tail -n 40",
-      },
-      {
-        command: "man ip-route",
-        description:
-          "Referência de rotas.",
-        example: "man ip-route",
+        command: "{ echo \"=== $(date -Is) ===\"; ip -br link; ip -br addr; ip route; cat /etc/resolv.conf 2>/dev/null; } | tee ~/laudo-rede.txt",
+        description: "Salva laudo completo para ticket.",
+        example: "{ ip -br addr; ip route; } | tee ~/laudo-rede.txt",
       },
     ],
     tips: [
       {
-        type: "success",
-        title: "Ping IP antes de nome",
-        content:
-          "Separa roteamento de DNS.",
-      },
-      {
         type: "danger",
-        title: "firewall com SSH",
-        content:
-          "Tenha console cloud antes de deny all.",
-      },
-      {
-        type: "warning",
-        title: "Duas stacks",
-        content:
-          "NM + ifupdown no mesmo iface = caos.",
+        title: "SSH sem console",
+        content: "Não ifdown/restart cego da stack na interface que te conecta.",
       },
       {
         type: "info",
-        title: "Security group",
-        content:
-          "Fora do SO — checklist incompleto sem ele na cloud.",
+        title: "IP antes de nome",
+        content: "1.1.1.1 testa rota; deb.debian.org testa DNS.",
+      },
+      {
+        type: "warning",
+        title: "Nome de interface",
+        content: "eth0 no arquivo e enp0s3 no kernel = rede \"sumiu\".",
+      },
+      {
+        type: "success",
+        title: "Laudo em arquivo",
+        content: "tee ~/laudo-rede.txt evita retrabalho.",
       },
     ],
     practiceLabs: [
       {
-        title: "Mapa de rede em 2 minutos",
-        goal: "Salvar link, addr, route e resolvers em ~/net-snap.txt.",
+        title: "Diagnóstico completo sem mudar config",
+        goal: "Gerar laudo com link, addr, rota e DNS.",
         steps: [
-          "ip -br link/addr",
-          "ip route",
-          "resolv.conf/resolvectl",
-          "ping IP",
+          "Rode ip/ping/systemctl",
+          "Salve em ~/laudo-rede.txt",
+          "Classifique em uma frase: link? IP? rota? DNS?",
         ],
-        command: "{ echo '=== link ==='; ip -br link; echo; echo '=== addr ==='; ip -br addr; echo; echo '=== route ==='; ip route; echo; echo '=== dns ==='; cat /etc/resolv.conf 2>/dev/null; } | tee ~/net-snap.txt",
-        verify:
-          "Snapshot legível da camada de rede do host.",
+        command: "{ ip -br link; ip -br addr; ip route; ping -c1 -W2 1.1.1.1; } | tee ~/laudo-rede.txt",
+        verify: "Arquivo existe e você classifica a camada do problema.",
       },
     ],
     exercises: [
       {
         id: 1,
-        question: "Por que ping em 1.1.1.1 antes de debian.org?",
-        answer:
-          "Isola falha de rota/IP de falha de DNS.",
+        question: "Por que ping em 1.1.1.1 antes de nome?",
+        answer: "Isola L3/rota de falha de DNS.",
       },
       {
         id: 2,
-        question: "ip -br addr mostra o quê?",
-        answer:
-          "Endereços por iface em formato curto.",
+        question: "Link UP, sem default route — o que falta?",
+        answer: "Gateway/rota default (DHCP ou static incompleto).",
       },
       {
         id: 3,
-        question: "Sintoma típico de DNS quebrado com IP ok?",
-        answer:
-          "Ping IP funciona, nomes não.",
+        question: "Risco de reiniciar networking no SSH?",
+        answer: "Pode derrubar a sessão e te trancar fora.",
       },
       {
         id: 4,
-        question: "Onde ver default gateway?",
-        answer:
-          "ip route (default via ...).",
+        question: "Dois stacks DHCP — sintoma?",
+        answer: "IP/rota oscilando ou sumindo após boot.",
       },
       {
         id: 5,
-        question: "Risco de ufw enable remoto?",
-        answer:
-          "Cortar SSH se regra allow falta.",
+        question: "Onde ver erros da unit neste boot?",
+        answer: "journalctl -u <unit> -b",
       },
       {
         id: 6,
-        question: "Predictable interface names?",
-        answer:
-          "ens/enp em vez de eth0 clássico.",
-      },
-      {
-        id: 7,
-        question: "networkctl vs nmcli?",
-        answer:
-          "networkd vs NetworkManager — stacks diferentes.",
-      },
-      {
-        id: 8,
-        question: "ss -lntup ajuda no runbook como?",
-        answer:
-          "Ver se o serviço escuta e em qual endereço.",
+        question: "eth0 no arquivo e enp0s3 no ip link — o quê?",
+        answer: "Alinhar o nome na config da stack ativa.",
       },
     ],
     references: [
-      { title: "man ip", url: "https://manpages.debian.org/ip" },
-      { title: "Debian Wiki — NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
-      { title: "systemd-networkd", url: "https://wiki.debian.org/SystemdNetworkd" },
+      { title: "Debian Wiki NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
+      { title: "man ip-route", url: "https://manpages.debian.org/ip-route" },
     ],
   },
   {

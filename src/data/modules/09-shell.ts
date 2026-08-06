@@ -1006,307 +1006,270 @@ echo 'agora aperte Ctrl+R para ver o fzf em ação'`,
       },
     ],
   },
-  {
+    {
     id: "man-info",
-    title: "man, info e documentação local — resposta offline",
+    title: "man, info e documentação local — a resposta que já está na máquina",
     icon: "📖",
     category: "Shell e Produtividade",
-    description:
-      "Ache a resposta no próprio Debian: man, seções, apropos/whatis, info, /usr/share/doc e quando cada fonte ganha da busca na web.",
+    description: "Aprenda a achar a resposta no próprio Debian: seções do man, apropos/whatis, less, info, /usr/share/doc e quando a doc local ganha de qualquer post na web.",
+    level: "iniciante",
+    readMinutes: 16,
     objectives: [
-      "Abrir manuais com man e ir à seção certa (man 5, man 8)",
-      "Usar apropos/whatis e entender o papel do mandb",
-      "Navegar man com os atalhos do less",
-      "Distinguir man, info, --help e docs em /usr/share/doc",
-      "Exportar man para texto quando precisar colar num ticket",
-      "Saber quando a doc local é mais confiável que um post aleatório",
+      "Abrir o man certo e ir à seção correta (1, 5, 8…)",
+      "Usar apropos/whatis e entender o mandb",
+      "Navegar o pager (less) sem medo",
+      "Distinguir man, info, --help e docs empacotados",
+      "Exportar man para texto quando for colar num ticket",
+      "Desconfiar de receita de outra distro/versão",
     ],
     content: [
-      "Quando a rede cai ou o post do blog descreve outra distro, sobra o que está instalado na máquina. **Documentação local** no Debian não é luxo de bibliotecário: é o contrato do pacote com você. O eixo é o **man** (manual pages), organizado em **seções** numeradas: 1 comandos de usuário, 5 formatos de arquivo, 8 admin. Por isso `man crontab` e `man 5 crontab` não são a mesma página.",
-
-      "Três jargões. **Pager**: o man entrega o texto ao `less` (q sai, / busca, n próximo). **apropos** / **whatis**: buscam na base de short descriptions; se der *nothing appropriate*, muitas vezes o índice (**mandb**) está velho ou o pacote de manpages não veio. **info**: sistema GNU com nós e menus — denso, mas oficial para coreutils e gcc.",
-
-      "Caminho feliz: `man comando` → se ambíguo, `man -k palavra` ou `apropos` → confirme a seção com `whatis` → para config, force seção 5; para daemons, 8. Builtins do Bash não têm man completo às vezes: use `help comando` ou `man bash`. Pacotes trazem README e exemplos em `/usr/share/doc/PACOTE/`.",
-
-      "Armadilhas. Copiar flag de Ubuntu/Arch sem olhar a man da **sua** versão. Ignorar que `manpages-pt` / traduções podem estar defasadas — em dúvida, inglês da seção certa. Achar que `--help` substitui man: ajuda rápida, sem semântica de arquivos e sinais. Rodar `mandb` como root só quando fizer sentido (pós-instalação massiva).",
-
-      "Quando NÃO: perder uma hora decifrando info hermético se o handbook Debian já tem o runbook; ou o contrário — googlar 'como formatar disco' e pular o man do `cryptsetup` no meio de um LUKS real. Doc local brilha em flags, códigos de saída e formatos; cenário de arquitetura ainda pede handbook/wiki.",
-
-      "Ao terminar você acha a página certa sem chute, reconstrói o índice se a busca falhar, e sabe empilhar man + /usr/share/doc + help de builtin antes de colar comando de fórum.",
-
+      "Quando a rede cai, o blog descreve Ubuntu e você está no Debian, ou o ChatGPT inventa uma flag que não existe na sua versão, sobra o que já está instalado na máquina. Documentação local no Debian não é luxo de bibliotecário: é o contrato do pacote com você. O eixo é o man (manual pages). Cada página vive numa seção numerada de propósito: a seção 1 é comando de usuário, a 5 é formato de arquivo e configuração, a 8 é administração do sistema. Por isso man crontab e man 5 crontab não são a mesma página — e misturar as duas é o jeito mais rápido de configurar o cron errado com a maior confiança do mundo.",
+      "O man não é um site: ele entrega o texto a um pager, quase sempre o less. Isso importa porque a navegação é a do less: q sai, / busca para frente, n vai à próxima ocorrência, g vai ao início, G ao fim, h mostra ajuda. Se você trata o man como \"página web que rola com o mouse e pronto\", perde metade do valor. E se o terminal ficar \"preso\" depois do man, em 99% dos casos é só o pager esperando um q.",
+      "Três ferramentas irmãs resolvem o \"eu não sei o nome do comando\". whatis nome devolve uma linha de descrição se o nome existir. apropos palavra (ou man -k palavra) busca essa descrição por palavra-chave. A base por trás disso se chama mandb: índice gerado a partir das páginas instaladas. Se apropos responde nothing appropriate para algo que você tem certeza que existe, muitas vezes o índice está velho, o pacote de manpages não veio na imagem minimal, ou você está procurando o nome errado da seção.",
+      "Além do man existe o mundo GNU info (info coreutils, por exemplo): hipertexto com nós e menus, oficial para muita ferramenta GNU. Não é melhor nem pior que o man — é outro formato. Builtins do Bash frequentemente têm ajuda curta em help comando e a história completa em man bash. Pacotes ainda deixam README, exemplos e HTML em /usr/share/doc/NOME-DO-PACOTE/. O hábito profissional é empilhar: --help para flag rápida, man para semântica, /usr/share/doc para exemplo longo, wiki/handbook para arquitetura.",
+      "Armadilhas clássicas. Copiar flag de Arch/Ubuntu sem abrir o man da versão Debian que você tem na mão. Confiar cego em manpages traduzidas desatualizadas — em dúvida, a página em inglês da seção certa. Achar que --help substitui man: ajuda rápida não explica formato de arquivo, sinais, códigos de saída nem BUGS. Rodar mandb como root o tempo todo sem necessidade. E o pior: destruir disco com um comando cujo man você não leu a seção EXIT STATUS e a seção BUGS.",
+      "Quando a doc local brilha: flags, formatos, códigos de saída, comportamento da versão instalada. Quando ela não basta sozinha: desenho de sistema, política de release, runbook de incidente — aí entram Debian Wiki, Handbook e os capítulos deste curso. Ao terminar, você acha a página certa sem chute, reconstrói o índice se a busca falhar, e só então cola comando de fórum se a man da sua máquina concordar.",
     ],
     commands: [
       {
         command: "man man",
-        description:
-          "O manual do próprio man — seções e convenções.",
+        description: "O manual do próprio man: seções, convenções e como ler o resto da documentação.",
         example: "man man",
       },
       {
         command: "man 5 crontab",
-        description:
-          "Força a seção 5 (formato do arquivo), não o comando da seção 1/8.",
+        description: "Força a seção 5 (formato do arquivo), não o comando da seção 1/8.",
         example: "man 5 crontab",
       },
       {
         command: "whatis apt ss systemctl",
-        description:
-          "Uma linha de descrição para cada nome.",
+        description: "Uma linha de descrição para cada nome — confirma se o índice conhece o comando.",
         example: "whatis apt ss systemctl",
+        output: `apt (8)              - command-line interface
+ss (8)               - another utility to investigate sockets
+systemctl (1)        - Control the systemd system and service manager`,
       },
       {
         command: "apropos firewall",
-        description:
-          "Busca por palavra-chave nas short descriptions.",
-        example: "apropos firewall",
+        description: "Busca por palavra-chave nas short descriptions do mandb.",
+        example: "apropos firewall | head",
       },
       {
-        command: "man -k 'package manager'",
-        description:
-          "Sinônimo de apropos com a interface do man.",
-        example: "man -k 'package manager'",
+        command: "man -k \"package manager\"",
+        description: "Sinônimo de apropos com a interface do man.",
+        example: "man -k package | head",
       },
       {
         command: "sudo mandb",
-        description:
-          "Atualiza a base whatis/apropos (após instalar muitos pacotes).",
+        description: "Atualiza a base whatis/apropos depois de instalar muitos pacotes ou manpages.",
         example: "sudo mandb",
       },
       {
-        command: "man -P 'col -b' ls | head -n 40",
-        description:
-          "Extrai man sem formatação de terminal (útil para tickets).",
-        example: "man -P 'col -b' ls | head -n 40",
+        command: "man -P \"col -b\" ls | head -n 40",
+        description: "Extrai man sem formatação de terminal — útil para colar em ticket.",
+        example: "man -P \"col -b\" ls | head -n 20",
       },
       {
-        command: "info coreutils",
-        description:
-          "Entra no sistema info do GNU coreutils.",
+        command: "info coreutils | head -n 5 || echo \"info pode abrir pager interativo; use q para sair\"",
+        description: "Entra no sistema info do GNU coreutils (pager próprio).",
         example: "info coreutils",
       },
       {
         command: "ls /usr/share/doc/apt | head",
-        description:
-          "Docs e exemplos empacotados com o apt.",
+        description: "Docs e exemplos empacotados com o apt — além do man.",
         example: "ls /usr/share/doc/apt | head",
+        output: `changelog.gz
+copyright
+NEWS.Debian.gz
+README.Debian
+examples`,
       },
       {
         command: "help cd | head",
-        description:
-          "Ajuda de builtin do Bash (não é página man completa).",
+        description: "Ajuda de builtin do Bash — muitas vezes não há man completo do próprio builtin.",
         example: "help cd | head",
       },
       {
-        command: "dpkg -L netcat-openbsd 2>/dev/null | grep -E 'man|doc' | head",
-        description:
-          "Onde o pacote instalou man/doc.",
-        example: "dpkg -L netcat-openbsd 2>/dev/null | grep -E 'man|doc' | head",
+        command: "dpkg -L openssh-client 2>/dev/null | grep -E \"man|doc\" | head",
+        description: "Onde o pacote instalou man e documentação no disco.",
+        example: "dpkg -L openssh-client | grep man | head",
       },
       {
-        command: "man -a printf | head -n 5",
-        description:
-          "Lista/abre todas as seções disponíveis para o nome.",
-        example: "man -a printf | head -n 5",
+        command: "man -a printf | head -n 8",
+        description: "Lista/abre todas as seções disponíveis para o mesmo nome.",
+        example: "man -a printf | head",
       },
     ],
     tips: [
       {
         type: "info",
         title: "Seção errada, resposta errada",
-        content:
-          "crontab, passwd e printf existem em mais de uma seção.",
+        content: "crontab, passwd e printf existem em mais de uma seção. Confirme com whatis e man N nome.",
       },
       {
         type: "warning",
         title: "Tradução desatualizada",
-        content:
-          "Se o português discordar do comportamento, confira a página EN.",
+        content: "Se o português discordar do comportamento, confira a página EN da mesma seção.",
       },
       {
         type: "success",
         title: "Ticket com man colado",
-        content:
-          "man -P 'col -b' evita lixo de formatação.",
+        content: "man -P \"col -b\" evita lixo de formatação ao colar em chamado.",
       },
       {
         type: "danger",
         title: "Comando destrutivo sem man",
-        content:
-          "Leia EXIT STATUS e BUGS antes de dd/cryptsetup/lvremove.",
+        content: "Leia EXIT STATUS e BUGS antes de dd, cryptsetup, lvremove, mkfs.",
       },
     ],
     practiceLabs: [
       {
         title: "Mapa de documentação de um pacote",
-        goal: "Para o pacote openssh-client (ou similar), listar man, whatis e arquivos em /usr/share/doc.",
+        goal: "Para openssh-client (ou similar), listar man, whatis e arquivos em /usr/share/doc.",
         steps: [
           "whatis ssh scp sftp",
-          "man 1 ssh | head (só confirmar que abre)",
+          "Confirme que man 1 ssh abre",
           "ls /usr/share/doc/openssh-client",
-          "Anotar em ~/doc-map.txt as três fontes",
+          "Anote as três fontes em ~/doc-map.txt",
         ],
-        command: "{ echo '=== whatis ==='; whatis ssh scp 2>/dev/null; echo; echo '=== doc dir ==='; ls /usr/share/doc/openssh-client 2>/dev/null | head; } | tee ~/doc-map.txt",
-        verify:
-          "Você tem um arquivo com whatis + lista de docs e sabe onde olhar flags vs exemplos longos.",
+        command: "{ echo \"=== whatis ===\"; whatis ssh scp 2>/dev/null; echo; echo \"=== doc ===\"; ls /usr/share/doc/openssh-client 2>/dev/null | head; } | tee ~/doc-map.txt",
+        verify: "Você tem whatis + lista de docs e sabe onde olhar flags vs exemplos longos.",
       },
     ],
     exercises: [
       {
         id: 1,
         question: "Para que serve a seção 5 do man?",
-        answer:
-          "Descrever formatos de arquivo e convenções de config (ex.: crontab, sshd_config).",
+        answer: "Descrever formatos de arquivo e convenções de config (ex.: crontab, sshd_config).",
       },
       {
         id: 2,
         question: "Diferença entre whatis e apropos?",
-        answer:
-          "whatis descreve nomes exatos; apropos busca palavra-chave nas descriptions.",
+        answer: "whatis descreve nomes exatos; apropos busca palavra-chave nas descriptions.",
       },
       {
         id: 3,
         question: "nothing appropriate no apropos — causa comum?",
-        answer:
-          "Índice mandb desatualizado ou manpages do pacote não instaladas.",
+        answer: "Índice mandb desatualizado ou manpages do pacote não instaladas.",
       },
       {
         id: 4,
         question: "Como ver o man do formato de crontab e não do comando?",
-        answer:
-          "man 5 crontab",
+        answer: "man 5 crontab",
       },
       {
         id: 5,
         question: "Onde pacotes costumam deixar README/exemplos?",
-        answer:
-          "/usr/share/doc/NOME-DO-PACOTE/",
+        answer: "/usr/share/doc/NOME-DO-PACOTE/",
       },
       {
         id: 6,
         question: "Builtin cd não tem man útil — o que usar?",
-        answer:
-          "help cd (ou man bash).",
+        answer: "help cd (ou man bash).",
       },
       {
         id: 7,
         question: "Qual pager o man usa por padrão na prática?",
-        answer:
-          "less (navegação com /, q, etc.).",
+        answer: "less (navegação com /, q, etc.).",
       },
       {
         id: 8,
         question: "Quando preferir man à busca web?",
-        answer:
-          "Flags, seções e comportamento da versão instalada; menos risco de receita de outra distro.",
+        answer: "Flags, seções e comportamento da versão instalada; menos risco de receita de outra distro.",
       },
     ],
     references: [
       { title: "man man", url: "https://manpages.debian.org/man" },
-      { title: "Debian Reference — Manual pages", url: "https://www.debian.org/doc/manuals/debian-reference/" },
+      { title: "Debian Reference", url: "https://www.debian.org/doc/manuals/debian-reference/" },
       { title: "GNU info", url: "https://www.gnu.org/software/texinfo/manual/info/" },
       { title: "man apropos", url: "https://manpages.debian.org/apropos" },
     ],
   },
-  {
+    {
     id: "tmux",
     title: "tmux — sessões que sobrevivem ao SSH",
     icon: "🪟",
     category: "Shell e Produtividade",
-    description:
-      "Use tmux no Debian para não perder o trabalho quando o SSH cai: sessões, janelas, painéis, detach/attach e o mínimo de config que vale a pena.",
+    description: "Use tmux no Debian para não perder o trabalho quando o SSH cai: sessões, janelas, painéis, detach/attach e o mínimo de config que vale a pena.",
+    level: "intermediario",
+    readMinutes: 15,
     objectives: [
       "Explicar por que tmux existe (PTY persistente + multiplexação)",
-      "Criar, listar, detach e reattach de sessões",
-      "Dividir painéis e criar janelas com atalhos padrão",
-      "Nomear sessões para lab vs produção mental",
+      "Criar, listar, detach e reattach de sessões nomeadas",
+      "Dividir painéis e criar janelas com o prefix padrão",
       "Sobreviver a queda de SSH sem matar processos longos",
-      "Saber o limite: tmux não é backup nem orchestrator",
+      "Saber o limite: tmux não é backup nem systemd",
+      "Evitar sessão root com segredos no scrollback",
     ],
     content: [
-      "SSH caiu no meio de um `apt full-upgrade` ou de um compile de 40 minutos. Sem multiplexador, o processo recebe SIGHUP e você recomeça a vida. **tmux** mantém uma sessão no servidor: você **detach** (some da UI) e **attach** depois, do mesmo notebook ou de outro. É o cinto de segurança do admin remoto.",
-
-      "Jargões. **Sessão**: conjunto de janelas que persiste no host. **Janela**: como abas. **Painel**: split dentro da janela. **Prefix**: tecla líder (padrão Ctrl-b) antes dos atalhos. **screen** é o primo mais velho; no Debian atual tmux é o padrão mental da equipe.",
-
-      "Fluxo mínimo: `tmux new -s lab` → trabalhe → Ctrl-b d (detach) → `tmux attach -t lab`. Liste com `tmux ls`. Janelas: Ctrl-b c (cria), Ctrl-b n/p (próxima/anterior). Painéis: Ctrl-b % (vertical), Ctrl-b \" (horizontal), Ctrl-b setas para navegar. Copie o prefix se o terminal local engolir Ctrl-b.",
-
-      "Armadilhas. Rodar tmux **dentro** de tmux sem querer e se perder nos prefixes. Deixar sessão root com secrets na scrollback. Achar que detach = processo à prova de reboot (não: reboot mata sessão). Usar tmux como desculpa para não ter systemd unit em serviço real long-running.",
-
-      "Quando NÃO: serviço de produção que deveria ser unit systemd; CI que já isola job; desktop local onde um terminal com abas basta. Quando SIM: qualquer manutenção SSH, tail de log + editor, dois hosts mentais (sessão `prod-ro` vs `lab`).",
-
-      "Ao terminar você abre sessão nomeada, sobrevive a disconnect, navega janelas/painéis e não confunde tmux com supervisão de daemons.",
-
+      "SSH caiu no meio de um apt full-upgrade, de um compile de 40 minutos ou de um rsync enorme. Sem multiplexador, o processo recebe SIGHUP e você recomeça a vida — ou pior, fica no escuro sobre o que o apt estava fazendo. O tmux mantém uma sessão no servidor: você dá detach (some da interface local) e attach depois, do mesmo notebook ou de outro. É o cinto de segurança do admin remoto, não um brinquedo de status bar colorida.",
+      "Três palavras organizam a cabeça. Sessão: o conjunto que persiste no host enquanto a máquina não reinicia. Janela: como abas dentro da sessão. Painel: split dentro da janela (dois terminais lado a lado). O prefix é a tecla líder — padrão Ctrl-b — que você aperta antes dos atalhos. screen é o primo mais velho; no Debian atual o hábito da equipe costuma ser tmux.",
+      "Fluxo mínimo que você deve decorar: tmux new -s lab entra numa sessão chamada lab; trabalhe; Ctrl-b d faz detach; tmux ls lista; tmux attach -t lab volta. Janelas: Ctrl-b c cria, Ctrl-b n/p navega. Painéis: Ctrl-b % divide na vertical, Ctrl-b \" na horizontal, setas com prefix para mover o foco. Se o terminal local engolir Ctrl-b, mude o prefix no ~/.tmux.conf — mas primeiro aprenda o padrão para qualquer máquina emprestada.",
+      "O que o tmux NÃO é. Não sobrevive a reboot (a sessão morre com o host). Não substitui unit systemd de serviço de produção. Não é desculpa para deixar root logado com tokens no scrollback. E detach não é mágica: se você matou a sessão com kill-session, os processos dela morrem junto.",
+      "Armadilhas. Rodar tmux dentro de tmux e se perder nos prefixes. Nomear todas as sessões de 0 e 1 em vez de lab, upgrade, logs. Usar tmux como orquestrador de daemon em vez de escrever um service. Achar que copiar o conf monstro do Reddit é obrigatório no primeiro dia — não é; o default já salva a vida.",
+      "Quando SIM: qualquer manutenção SSH longa, upgrade, tail de log + editor, dois contextos mentais (sessão prod-ro vs lab). Quando NÃO: serviço que deveria ser unit; CI que já isola job; desktop local onde abas do terminal bastam. Ao terminar você abre sessão nomeada, sobrevive a disconnect e não confunde multiplexador com supervisão de daemons.",
     ],
     commands: [
       {
         command: "sudo apt install -y tmux",
-        description:
-          "Instala o multiplexador.",
+        description: "Instala o multiplexador no Debian.",
         example: "sudo apt install -y tmux",
       },
       {
         command: "tmux -V",
-        description:
-          "Confirma binário e versão.",
+        description: "Confirma binário e versão.",
         example: "tmux -V",
+        output: `tmux 3.4`,
       },
       {
         command: "tmux new -s lab",
-        description:
-          "Cria sessão chamada lab e entra nela.",
-        example: "tmux new -s lab",
+        description: "Cria a sessão lab e entra nela (interativo). Em scripts use -d para criar detached.",
+        example: "tmux new -s lab -d",
       },
       {
         command: "tmux ls",
-        description:
-          "Lista sessões ativas no host.",
+        description: "Lista sessões ativas no host.",
         example: "tmux ls",
+        output: `lab: 1 windows (created Thu Aug  6 18:00:00 2026)`,
       },
       {
         command: "tmux attach -t lab",
-        description:
-          "Reconecta na sessão lab.",
+        description: "Reconecta na sessão lab.",
         example: "tmux attach -t lab",
       },
       {
         command: "tmux detach",
-        description:
-          "Detach pela linha de comando (equivale a Ctrl-b d).",
+        description: "Detach pela linha de comando (equivale a Ctrl-b d).",
         example: "tmux detach",
       },
       {
         command: "tmux rename-session -t lab manutencao",
-        description:
-          "Renomeia sessão.",
+        description: "Renomeia sessão para algo que faça sentido no attach seguinte.",
         example: "tmux rename-session -t lab manutencao",
       },
       {
-        command: "tmux kill-session -t lab",
-        description:
-          "Encerra a sessão e os processos dela.",
-        example: "tmux kill-session -t lab",
-      },
-      {
         command: "tmux new-window -t lab -n logs",
-        description:
-          "Nova janela nomeada dentro da sessão (de fora).",
+        description: "Nova janela nomeada dentro da sessão (pode ser de fora).",
         example: "tmux new-window -t lab -n logs",
       },
       {
+        command: "tmux kill-session -t lab",
+        description: "Encerra a sessão e os processos dela — definitivo.",
+        example: "tmux kill-session -t lab",
+      },
+      {
         command: "man tmux",
-        description:
-          "Referência completa de atalhos e opções.",
+        description: "Referência completa de atalhos e opções.",
         example: "man tmux",
       },
       {
-        command: "printf '%s\n' 'set -g mouse on' >> ~/.tmux.conf",
-        description:
-          "Habilita mouse (opcional) na config do usuário.",
-        example: "printf '%s\n' 'set -g mouse on' >> ~/.tmux.conf",
+        command: "printf \"%s\n\" \"set -g mouse on\" >> ~/.tmux.conf",
+        description: "Habilita mouse (opcional) na config do usuário.",
+        example: "printf \"%s\n\" \"set -g mouse on\" >> ~/.tmux.conf",
       },
       {
         command: "tmux source-file ~/.tmux.conf",
-        description:
-          "Recarrega config sem sair da sessão.",
+        description: "Recarrega config sem matar a sessão.",
         example: "tmux source-file ~/.tmux.conf",
       },
     ],
@@ -1314,297 +1277,231 @@ echo 'agora aperte Ctrl+R para ver o fzf em ação'`,
       {
         type: "success",
         title: "Nomeie sessões",
-        content:
-          "lab, upgrade, logs — attach deixa de ser loteria.",
+        content: "lab, upgrade, logs — attach deixa de ser loteria.",
       },
       {
         type: "warning",
         title: "Reboot limpa tmux",
-        content:
-          "Persistência é entre SSHs, não entre boots.",
+        content: "Persistência é entre SSHs, não entre boots.",
       },
       {
         type: "info",
-        title: "Prefix padrão Ctrl-b",
-        content:
-          "Ctrl-b ? lista atalhos dentro da sessão.",
+        title: "Prefix Ctrl-b",
+        content: "Ctrl-b ? lista atalhos dentro da sessão.",
       },
       {
         type: "danger",
-        title: "kill-session é definitivo",
-        content:
-          "Mata processos que estavam na sessão.",
+        title: "kill-session",
+        content: "Mata processos que estavam na sessão. Não é detach.",
       },
     ],
     practiceLabs: [
       {
-        title: "Sobreviver ao disconnect simulado",
+        title: "Sobreviver ao disconnect",
         goal: "Criar sessão, rodar sleep longo, detach, reattach e ver o processo vivo.",
         steps: [
           "tmux new -s prova -d",
-          "tmux send-keys -t prova 'sleep 300' C-m",
-          "tmux ls",
-          "tmux attach -t prova (confira sleep) e detach",
+          "tmux send-keys -t prova \"sleep 300\" Enter",
+          "tmux ls e attach",
+          "detach e confirme que a sessão continua",
         ],
-        command: "tmux has-session -t prova 2>/dev/null || tmux new -s prova -d; tmux list-panes -t prova -F '#{pane_current_command}'",
-        verify:
-          "Sessão prova existe e você consegue attach/detach sem matar o trabalho.",
+        command: "tmux has-session -t prova 2>/dev/null || tmux new -s prova -d; tmux list-panes -t prova -F \"#{pane_current_command}\"",
+        verify: "Sessão prova existe e você consegue attach/detach sem matar o trabalho.",
       },
     ],
     exercises: [
       {
         id: 1,
         question: "Por que tmux ajuda quando o SSH cai?",
-        answer:
-          "A sessão e os processos ficam no servidor; só a UI local some.",
+        answer: "A sessão e os processos ficam no servidor; só a UI local some.",
       },
       {
         id: 2,
         question: "Atalho padrão de detach?",
-        answer:
-          "Ctrl-b depois d.",
+        answer: "Ctrl-b depois d.",
       },
       {
         id: 3,
         question: "Comando para listar sessões?",
-        answer:
-          "tmux ls (ou tmux list-sessions).",
+        answer: "tmux ls (ou tmux list-sessions).",
       },
       {
         id: 4,
         question: "Diferença sessão vs janela vs painel?",
-        answer:
-          "Sessão agrupa janelas; janela é aba; painel é split na janela.",
+        answer: "Sessão agrupa janelas; janela é aba; painel é split na janela.",
       },
       {
         id: 5,
         question: "tmux substitui systemd para um daemon?",
-        answer:
-          "Não — serviço de produção deve ser unit, não sessão interativa.",
+        answer: "Não — serviço de produção deve ser unit, não sessão interativa.",
       },
       {
         id: 6,
         question: "O que acontece com sessões após reboot?",
-        answer:
-          "Desaparecem; não há persistência além do uptime do host.",
+        answer: "Desaparecem; não há persistência além do uptime do host.",
       },
       {
         id: 7,
         question: "Como criar sessão nomeada deploy?",
-        answer:
-          "tmux new -s deploy",
+        answer: "tmux new -s deploy",
       },
       {
         id: 8,
         question: "Risco de sessão root com scrollback?",
-        answer:
-          "Segredos e saídas sensíveis ficam na memória/histórico da sessão.",
+        answer: "Segredos e saídas sensíveis ficam na memória/histórico da sessão.",
       },
     ],
     references: [
       { title: "man tmux", url: "https://manpages.debian.org/tmux" },
-      { title: "tmux wiki / getting started", url: "https://github.com/tmux/tmux/wiki" },
+      { title: "tmux wiki", url: "https://github.com/tmux/tmux/wiki" },
       { title: "Debian package tmux", url: "https://packages.debian.org/tmux" },
     ],
   },
-  {
+    {
     id: "git-admin",
-    title: "git no dia a dia do admin — dotfiles e diffs com cuidado",
+    title: "Git para o admin — config como código sem drama",
     icon: "🌿",
     category: "Shell e Produtividade",
-    description:
-      "Use git como ferramenta de admin: versionar dotfiles e configs, diff antes de reiniciar serviço, e não vazar segredo no repositório.",
+    description: "Git no dia a dia do Debian admin: versionar o que importa, diff antes de restart, commits com porquê e zero segredos no repositório.",
+    level: "intermediario",
+    readMinutes: 15,
     objectives: [
-      "Iniciar repo local para dotfiles ou /etc seletivo",
-      "Ler diff e log antes de aplicar mudança arriscada",
-      "Usar .gitignore para chaves, tokens e caches",
-      "Stash rápido quando a interrupção aparece",
-      "Clonar e puxar playbooks/dotfiles com menos fricção",
-      "Separar 'histórico útil' de 'commit que grava senha'",
+      "Iniciar repo só do que importa",
+      "Ler diff antes de systemctl restart",
+      "Commit pequeno com mensagem que explica o porquê",
+      "Nunca versionar chave privada ou shadow",
     ],
     content: [
-      "Admin sem histórico reescreve o mesmo `sshd_config` três vezes e não sabe o que mudou na sexta-feira. **git** não é só para dev de app: é máquina do tempo para **dotfiles**, snippets e, com disciplina, trechos de config. O valor está no **diff** legível e no commit pequeno com mensagem humana.",
-
-      "Jargões. **Working tree** vs **staging** vs **commit**. **.gitignore**: o que nunca deveria ser versionado (*.pem, .env, id_rsa). **Bare** / bare repo e ferramentas tipo etckeeper existem; neste capítulo o foco é o fluxo diário seguro, não virar o /etc inteiro num monorepo sem política.",
-
-      "Fluxo dotfiles: `~/dotfiles` com git init → copie ou linke `.bashrc`, `.tmux.conf` → commit → no host novo clone e link. Fluxo mudança de serviço: edite um arquivo de lab → `git diff` → teste → commit. Em emergência: `git stash` para estacionar trabalho sujo.",
-
-      "Armadilhas. Commit de chave privada ou export de env. `git add .` cego em home. Forçar push em repo compartilhado de infra sem acordo (aqui: **sem push** se a regra do projeto proíbe). Reescrever history depois de vazar secret sem rotacionar o secret.",
-
-      "Quando NÃO: achar que git substitui backup offsite; versionar banco; guardar dump com PII. Quando SIM: rastrear hardening iterativo, dotfiles, scripts de manutenção, anotações de runbook em markdown.",
-
-      "Ao terminar você monta um repo de dotfiles mínimo, ignora segredos, lê diff com intenção e não trata git push como passo automático em VPS compartilhada.",
-
+      "Admin que não versiona config vive de memória e de backup que ninguém testou. Git não substitui backup — mas um repositório consciente transforma \"quem mexeu no sshd_config?\" em git log. O erro clássico é git init / e commitar o universo (incluindo segredos). O acerto é escopo estreito: dir de playbook, subset de /etc com etckeeper, ou manifests.",
+      "Fluxo mental: edite → git diff → valide (sshd -t, nginx -t) → commit → apply/restart → observe. Mensagem não é \"fix\"; é \"sshd: disable password auth after key rollout\". Daqui a seis meses é o seu eu do futuro quem lê.",
+      "etckeeper no Debian amarra apt e /etc com commits em torno de instalações. Útil, mas não é desculpa para private key em bare repo inseguro. Chave, token, senha: fora do Git; use permissões e cofre.",
+      "Armadilhas: commit -a sem olhar; force push em repo de ops; confiar em Git como único DR; misturar segredo e doc no mesmo commit copiado para notebook.",
     ],
     commands: [
       {
         command: "sudo apt install -y git",
-        description:
-          "Cliente git no Debian.",
+        description: "Cliente Git no Debian.",
         example: "sudo apt install -y git",
       },
       {
         command: "git --version",
-        description:
-          "Confirma instalação.",
+        description: "Confirma instalação.",
         example: "git --version",
+        output: `git version 2.39.5`,
       },
       {
-        command: "git config --global user.name 'Wallyson Admin'",
-        description:
-          "Identidade de commits locais (ajuste o nome).",
-        example: "git config --global user.name 'Wallyson Admin'",
+        command: "git config --global user.name \"Admin Debian\"; git config --global user.email \"admin@example.com\"",
+        description: "Identidade mínima para commits locais.",
+        example: "git config --global user.email \"admin@example.com\"",
       },
       {
-        command: "git config --global user.email 'admin@example.invalid'",
-        description:
-          "E-mail de commit (pode ser local-only).",
-        example: "git config --global user.email 'admin@example.invalid'",
+        command: "mkdir -p ~/cfg && cd ~/cfg && git init",
+        description: "Repo pequeno — comece estreito.",
+        example: "mkdir -p ~/cfg && cd ~/cfg && git init",
       },
       {
-        command: "mkdir -p ~/dotfiles && cd ~/dotfiles && git init",
-        description:
-          "Repo para dotfiles.",
-        example: "mkdir -p ~/dotfiles && cd ~/dotfiles && git init",
+        command: "git status",
+        description: "O que mudou / untracked.",
+        example: "git status",
       },
       {
-        command: "printf '%s\n' '*.pem' '*.key' '.env' 'id_rsa*' '.ssh/' > ~/dotfiles/.gitignore",
-        description:
-          "Ignore padrões perigosos cedo.",
-        example: "printf '%s\n' '*.pem' '*.key' '.env' 'id_rsa*' '.ssh/' > ~/dotfiles/.gitignore",
+        command: "git diff",
+        description: "Diff do working tree — leia ANTES de restart.",
+        example: "git diff",
       },
       {
-        command: "cp ~/.bashrc ~/dotfiles/bashrc && cd ~/dotfiles && git add bashrc .gitignore && git status",
-        description:
-          "Primeiro arquivo rastreado + status.",
-        example: "cp ~/.bashrc ~/dotfiles/bashrc && cd ~/dotfiles && git add bashrc .gitignore && git status",
+        command: "git add -p",
+        description: "Adiciona hunks — commits cirúrgicos.",
+        example: "git add -p",
       },
       {
-        command: "cd ~/dotfiles && git commit -m 'chore: bashrc inicial'",
-        description:
-          "Commit local com mensagem clara.",
-        example: "cd ~/dotfiles && git commit -m 'chore: bashrc inicial'",
+        command: "git commit -m \"sshd: document AllowUsers for bastion\"",
+        description: "Commit com porquê, não só o quê.",
+        example: "git commit -m \"sshd: document AllowUsers for bastion\"",
       },
       {
-        command: "cd ~/dotfiles && git log --oneline -n 5",
-        description:
-          "Histórico curto.",
-        example: "cd ~/dotfiles && git log --oneline -n 5",
+        command: "git log --oneline -n 10",
+        description: "Histórico curto para auditoria.",
+        example: "git log --oneline -n 5",
+        output: `a1b2c3d sshd: document AllowUsers for bastion
+9f8e7d6 initial nginx snippet`,
       },
       {
-        command: "cd ~/dotfiles && echo '# tip' >> bashrc && git diff",
-        description:
-          "Ver mudança antes de commitar.",
-        example: "cd ~/dotfiles && echo '# tip' >> bashrc && git diff",
-      },
-      {
-        command: "cd ~/dotfiles && git stash push -m 'wip' && git stash list",
-        description:
-          "Estaciona trabalho sujo.",
-        example: "cd ~/dotfiles && git stash push -m 'wip' && git stash list",
-      },
-      {
-        command: "man git-diff",
-        description:
-          "Referência de diff (ferramenta diária do admin).",
-        example: "man git-diff",
+        command: "man git-status",
+        description: "Manual do subcomando.",
+        example: "man git-status",
       },
     ],
     tips: [
       {
         type: "danger",
-        title: "Segredo no git",
-        content:
-          "Assume vazado: rotacione chave/token, não só delete o arquivo no próximo commit.",
+        title: "Segredos",
+        content: "Nunca commite id_rsa, shadow, .env com token.",
       },
       {
         type: "warning",
-        title: "git add .",
-        content:
-          "Revise git status antes — home tem lixo e credenciais.",
-      },
-      {
-        type: "info",
-        title: "Mensagens",
-        content:
-          "chore/fix/docs no estilo do time batem com debian-book.",
+        title: "Escopo",
+        content: "Não faça git init em / sem política.",
       },
       {
         type: "success",
-        title: "Diff antes de restart",
-        content:
-          "O hábito salva mais que qualquer GUI.",
+        title: "diff antes de restart",
+        content: "git diff + nginx -t/sshd -t salvam incidentes.",
+      },
+      {
+        type: "info",
+        title: "etckeeper",
+        content: "Versiona /etc em torno do apt — avalie na equipe.",
       },
     ],
     practiceLabs: [
       {
-        title: "Dotfiles mínimos com ignore de segredo",
-        goal: "Repo ~/dotfiles com .gitignore e um arquivo de shell commitado.",
+        title: "Repo de snippet",
+        goal: "Versionar um arquivo de exemplo com commit limpo.",
         steps: [
-          "git init em ~/dotfiles",
-          "Criar .gitignore com *.pem e .env",
-          "Adicionar um arquivo dummy de alias",
-          "commit e git log -1",
+          "mkdir ~/cfg && git init",
+          "Crie snippet.conf",
+          "git add, commit com mensagem boa",
         ],
-        command: "test -d ~/dotfiles/.git && test -f ~/dotfiles/.gitignore && git -C ~/dotfiles log -1 --oneline",
-        verify:
-          "Há commit inicial e .gitignore bloqueando padrões óbvios de segredo.",
+        command: "mkdir -p ~/cfg && cd ~/cfg && git init && echo \"# lab\" > snippet.conf && git add snippet.conf && git commit -m \"lab: add snippet\"",
+        verify: "git log mostra commit com mensagem clara.",
       },
     ],
     exercises: [
       {
         id: 1,
-        question: "Para que serve .gitignore no repo de dotfiles?",
-        answer:
-          "Evitar versionar chaves, tokens, caches e lixo sensível.",
+        question: "Por que ler git diff antes de reiniciar serviço?",
+        answer: "Ver exatamente o que muda e evitar restart com erro óbvio.",
       },
       {
         id: 2,
-        question: "Por que git add . é perigoso em $HOME?",
-        answer:
-          "Pode incluir secrets e arquivos enormes sem revisão.",
+        question: "O que não deve ir para o Git?",
+        answer: "Chaves privadas, senhas, tokens, shadow.",
       },
       {
         id: 3,
-        question: "Comando para ver mudança não commitada?",
-        answer:
-          "git diff (e git status).",
+        question: "Mensagem \"fix\" basta?",
+        answer: "Não — explique o porquê para auditoria futura.",
       },
       {
         id: 4,
-        question: "git stash serve para quê?",
-        answer:
-          "Guardar temporariamente alterações locais sem commit.",
+        question: "Git substitui backup?",
+        answer: "Não. É histórico de texto/config, não DR completo.",
       },
       {
         id: 5,
-        question: "git substitui backup offsite?",
-        answer:
-          "Não — é histórico de texto, não estratégia 3-2-1.",
+        question: "Para que git add -p?",
+        answer: "Incluir só hunks relevantes no commit.",
       },
       {
         id: 6,
-        question: "O que fazer se commitou uma chave?",
-        answer:
-          "Rotacionar a chave e limpar history com processo consciente; não só apagar no commit seguinte.",
-      },
-      {
-        id: 7,
-        question: "Identidade git user.email é conta de login SSH?",
-        answer:
-          "Não — só metadado de commit.",
-      },
-      {
-        id: 8,
-        question: "Por que commits pequenos ajudam admin?",
-        answer:
-          "Diff legível, revert mais seguro, bisect mental mais fácil.",
+        question: "O que é etckeeper?",
+        answer: "Ferramenta que versiona /etc integrado ao apt.",
       },
     ],
     references: [
-      { title: "Git book", url: "https://git-scm.com/book/pt-br/v2" },
-      { title: "man gitignore", url: "https://manpages.debian.org/gitignore" },
-      { title: "Debian package git", url: "https://packages.debian.org/git" },
+      { title: "Pro Git book", url: "https://git-scm.com/book/en/v2" },
+      { title: "etckeeper", url: "https://etckeeper.branchable.com/" },
     ],
   },
   {

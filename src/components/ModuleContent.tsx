@@ -33,6 +33,16 @@ const tipTypeMap: Record<string, "info" | "warning" | "danger" | "success"> = {
   success: "success",
 };
 
+/** Monta sessão de terminal: comandos + saída indentada (sem prompt na saída). */
+function buildSession(exampleCode: string, output?: string): string {
+  if (!output || !output.trim()) return exampleCode;
+  const outLines = output
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => "  " + line);
+  return exampleCode + "\n\n" + outLines.join("\n");
+}
+
 export default function ModuleContent({
   module,
   moduleIndex,
@@ -55,7 +65,6 @@ export default function ModuleContent({
         difficulty={module.level ?? resolveLevel(module)}
         timeToRead={`${resolveReadMinutes(module)} min`}
       >
-        {/* Objectives */}
         {module.objectives && module.objectives.length > 0 && (
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 my-6">
             <div className="flex items-center gap-2 mb-3">
@@ -74,7 +83,6 @@ export default function ModuleContent({
           </div>
         )}
 
-        {/* Content paragraphs */}
         <section>
           <h2>
             <BookOpen className="w-5 h-5 text-primary" /> Conceitos
@@ -84,7 +92,6 @@ export default function ModuleContent({
           ))}
         </section>
 
-        {/* Tips */}
         {module.tips && module.tips.length > 0 && (
           <section>
             <h2>
@@ -102,7 +109,6 @@ export default function ModuleContent({
           </section>
         )}
 
-        {/* Commands */}
         {module.commands && module.commands.length > 0 && (
           <section>
             <h2>
@@ -110,21 +116,29 @@ export default function ModuleContent({
             </h2>
             {module.commands.map((cmd, i) => {
               const exampleCode =
-                cmd.example && cmd.example.trim().length > 0 ? cmd.example : cmd.command;
-              const codeWithOutput = cmd.output
-                ? `${exampleCode}\n# saída esperada:\n# ${cmd.output.split("\n").join("\n# ")}`
-                : exampleCode;
+                cmd.example && cmd.example.trim().length > 0
+                  ? cmd.example
+                  : cmd.command;
+              const session = buildSession(exampleCode, cmd.output);
               return (
                 <div key={i} className="mb-8">
-                  <h3 className="font-mono text-primary text-base mb-2 mt-6">
-                    $ {cmd.command}
-                  </h3>
-                  <p className="text-foreground/85 mb-3">{cmd.description}</p>
-                  <CodeBlock code={codeWithOutput} language="bash" />
+                  <p className="text-foreground/90 mb-3 mt-6 leading-relaxed">
+                    {cmd.description}
+                  </p>
+                  <CodeBlock
+                    code={session}
+                    language="bash"
+                    user="aluno"
+                    host="debian"
+                    cwd="~"
+                  />
                   {cmd.flags && cmd.flags.length > 0 && (
                     <ParamsTable
                       title="Flags / Opções"
-                      params={cmd.flags.map((f) => ({ flag: f.flag, desc: f.description }))}
+                      params={cmd.flags.map((f) => ({
+                        flag: f.flag,
+                        desc: f.description,
+                      }))}
                     />
                   )}
                 </div>
@@ -133,11 +147,11 @@ export default function ModuleContent({
           </section>
         )}
 
-        {/* Practice Labs */}
         {module.practiceLabs && module.practiceLabs.length > 0 && (
           <section>
             <h2>
-              <FlaskConical className="w-5 h-5 text-primary" /> Laboratórios Práticos
+              <FlaskConical className="w-5 h-5 text-primary" /> Laboratórios
+              Práticos
             </h2>
             {module.practiceLabs.map((lab, i) => (
               <div
@@ -163,7 +177,12 @@ export default function ModuleContent({
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mt-4 mb-1">
                       Comando
                     </p>
-                    <CodeBlock code={lab.command} language="bash" />
+                    <CodeBlock
+                      code={lab.command}
+                      language="bash"
+                      user="aluno"
+                      host="debian"
+                    />
                   </>
                 )}
                 {lab.expected && (
@@ -183,7 +202,6 @@ export default function ModuleContent({
           </section>
         )}
 
-        {/* Exercises */}
         {module.exercises && module.exercises.length > 0 && (
           <section>
             <h2>
@@ -222,7 +240,6 @@ export default function ModuleContent({
           </section>
         )}
 
-        {/* References */}
         {module.references && module.references.length > 0 && (
           <section>
             <h2>
@@ -244,7 +261,9 @@ export default function ModuleContent({
                     <span className="font-semibold text-foreground">{ref.title}</span>
                   )}
                   {ref.description && (
-                    <p className="text-sm text-muted-foreground m-0 mt-1">{ref.description}</p>
+                    <p className="text-sm text-muted-foreground m-0 mt-1">
+                      {ref.description}
+                    </p>
                   )}
                 </li>
               ))}
@@ -252,7 +271,6 @@ export default function ModuleContent({
           </section>
         )}
 
-        {/* Marcar como concluída */}
         <div className="mt-12">
           <button
             type="button"
@@ -277,7 +295,6 @@ export default function ModuleContent({
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex items-center justify-between gap-3 mt-6 pt-6 border-t border-border">
           <button
             type="button"

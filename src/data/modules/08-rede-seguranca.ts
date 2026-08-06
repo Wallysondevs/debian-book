@@ -1314,193 +1314,181 @@ gpg --verify teste.txt.sig teste.txt`,
       { title: "GnuPG Handbook", url: "https://www.gnupg.org/gph/en/manual.html" },
     ],
   },
-  {
+    {
     id: "stacks-rede",
     title: "NetworkManager vs ifupdown vs networkd — qual stack e quando",
     icon: "🔀",
     category: "Rede e Segurança",
-    description:
-      "Descubra qual gerenciador de rede o seu Debian usa (NetworkManager, ifupdown ou systemd-networkd) e quando migrar — sem misturar três configs e achar que 'a rede sumiu'.",
+    description: "Descubra qual gerenciador de rede o seu Debian usa de verdade, onde cada um guarda configuração, e como evitar dois stacks brigando pela mesma interface até a rede \"sumir\".",
+    level: "intermediario",
+    readMinutes: 18,
     objectives: [
-      "Identificar qual stack está ativa no host",
-      "Relacionar desktop (NM) vs servidor mínimo (ifupdown/networkd)",
-      "Saber onde cada um guarda config",
-      "Evitar dois gerenciadores brigando pela mesma interface",
-      "Ler estado com ip/nmcli/networkctl",
-      "Escolher stack com critério de operação",
+      "Identificar qual stack está ativa (NM, ifupdown ou networkd)",
+      "Saber onde cada um grava a configuração",
+      "Ler estado com ip, nmcli e networkctl sem chute",
+      "Evitar dois gerenciadores DHCP na mesma NIC",
+      "Escolher stack com critério de desktop vs servidor",
+      "Diagnosticar \"rede morta após upgrade\" começando pela stack",
     ],
     content: [
-      "No Debian a 'rede' não é um único programa: há famílias. **ifupdown** é o clássico `/etc/network/interfaces`. **NetworkManager** (NM) domina notebooks e desktops (Wi-Fi, VPN, hotspot). **systemd-networkd** é o caminho moderno e enxuto em muitos servidores/cloud. O caos começa quando dois deles tentam configurar a **mesma** interface.",
-
-      "Como descobrir o que manda: `systemctl is-active NetworkManager systemd-networkd networking` (nomes variam), `nmcli general` se NM existir, `networkctl` se networkd estiver no jogo, e se `/etc/network/interfaces` ainda é a fonte da verdade. Em cloud image recente, networkd + netplan (ou cloud-init) é comum; em Debian 'puro' de instalador, ainda se vê ifupdown ou NM conforme o tasksel.",
-
-      "Onde cada um mora. ifupdown: `/etc/network/interfaces` e `interfaces.d/`. NM: conexões em `/etc/NetworkManager/system-connections/` e `nmcli`/`nmtui`. networkd: `/etc/systemd/network/*.network`. Renderizadores tipo Netplan (mais Ubuntu, às vezes colado em imagens) geram um dos três por baixo — leia o que realmente aplica.",
-
-      "Jargões. **managed** no NM: interface sob controle dele. **renderer**. **DHCP vs static**. **Predictable names** (enp0s3). **unmanaged** no NM para deixar a NIC para outro stack. Brigar = NM sobe DHCP enquanto interfaces põe IP estático: sintoma 'às vezes pinga, às vezes não'.",
-
-      "Regra prática: desktop/Wi-Fi → NetworkManager. Servidor com poucas NICs estáticas → ifupdown ou networkd, **um só**. Container/VPS cloud → siga a imagem (não reescreva do zero no primeiro dia). Migrar exige: documentar IPs, desabilitar o antigo, habilitar o novo, ter console out-of-band.",
-
-      "Ao terminar você diz em uma frase qual stack está ativa, aponta o arquivo de config principal, e lista o que NÃO deve coexistir na mesma interface.",
-
+      "No Debian a \"rede\" não é um único programa com um único arquivo mágico. É uma família de gerenciadores que, em momentos diferentes da história da distro, foram a escolha padrão. Se você não sabe qual deles está mandando no seu host, qualquer tutorial da internet vira roleta: você edita /etc/network/interfaces enquanto o NetworkManager sobrescreve tudo no próximo boot, ou mexe no NetworkManager enquanto o systemd-networkd já tomou a interface. O sintoma clássico é exatamente o que assusta: \"a rede sumiu depois que eu só mudei uma linha\".",
+      "Pense em três porteiros possíveis na porta da sua máquina. O **ifupdown** é o porteiro clássico dos anos 2000: arquivo /etc/network/interfaces, serviço networking, linguagem simples de iface eth0 inet dhcp. O **NetworkManager** (NM) é o porteiro de notebook e desktop: Wi-Fi, VPN, hotspot, perfis por conexão, nmcli e nmtui. O **systemd-networkd** é o porteiro enxuto de servidor e cloud: arquivos .network em /etc/systemd/network/, pouca mágica, bom para automação. Os três resolvem o mesmo problema — \"como esta NIC ganha IP e rota\" — com filosofias diferentes.",
+      "Como descobrir quem manda, na ordem barata. Primeiro: ip -br link e ip -br addr (estado bruto, independente de gerenciador). Segundo: systemctl is-active NetworkManager systemd-networkd networking — veja o que está active. Terceiro: se NM existir, nmcli general e nmcli device status. Quarto: se networkd estiver no jogo, networkctl status. Quinto: leia /etc/network/interfaces só se o ifupdown ainda for a fonte da verdade. Em imagem cloud recente, networkd (às vezes com cloud-init gerando a config) é comum; em instalador Debian com task de desktop, NM costuma dominar; em servidor minimal clássico, ainda se vê ifupdown.",
+      "Onde cada um mora de verdade. ifupdown: /etc/network/interfaces e interfaces.d/. NetworkManager: conexões em /etc/NetworkManager/system-connections/ (arquivos keyfile) e overrides em conf.d. networkd: /etc/systemd/network/*.network e *.netdev. Netplan (mais Ubuntu, às vezes colado em imagens) não é o terceiro gerenciador: é um gerador que renderiza um dos três por baixo — se existir, leia o YAML e confira o renderer antes de editar o destino.",
+      "Jargões que valem ouro. **managed** no NM: a interface está sob controle dele. **unmanaged**: o NM deixa a NIC para outro stack (é assim que se evita briga). **renderer**: quem aplica a config no fim. **DHCP vs static**. **Predictable names** (enp0s3, ens18) no lugar de eth0. Quando dois stacks tentam DHCP na mesma interface, você ganha corrida de boot, IP sumindo, rota default oscilando — parece fantasma, é arquitetura.",
+      "Caminho feliz de operação. Em desktop: deixe o NM mandar; use nmtui/nmcli; não edite interfaces à mão. Em servidor cloud: networkd (ou o que a imagem já trouxe) + cloud-init; versionar os .network. Em lab de aprendizado: um stack só por máquina. Se precisar migrar, desabilite o antigo com systemctl disable --now, marque a NIC unmanaged no NM se for o caso, aplique a config nova, teste com ping a um IP (não a um nome) e só então confie no DNS.",
+      "Armadilhas. Editar três lugares \"por precaução\". Assumir eth0 eterno. Rodar apt full-upgrade e achar que a stack mudou sozinha quando na verdade o nome da interface ou o cloud-init reescreveu o arquivo. Fechar o SSH no meio de uma migração de rede sem console do provedor. Copiar netplan de Ubuntu em Debian puro sem verificar se o pacote existe.",
+      "Quando NÃO mexer: host de produção estável cuja stack você não entende ainda — primeiro só observe e documente. Quando SIM: lab, pós-upgrade com rede morta, consolidar uma imagem da equipe numa stack única. Ao terminar este capítulo você aponta com segurança qual gerenciador manda, onde editar, e como provar com ip/nmcli/networkctl sem rezar.",
     ],
     commands: [
       {
         command: "ip -br link; ip -br addr",
-        description:
-          "Estado bruto das interfaces e endereços — independente do gerenciador.",
+        description: "Estado bruto das interfaces e endereços — independente do gerenciador. Sempre comece aqui.",
         example: "ip -br link; ip -br addr",
+        output: `lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP>
+enp0s3           UP             08:00:27:a1:b2:c3 <BROADCAST,MULTICAST,UP,LOWER_UP>
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+enp0s3           UP             10.0.2.15/24 fe80::a00:27ff:fea1:b2c3/64`,
       },
       {
-        command: "systemctl is-active NetworkManager 2>/dev/null; systemctl is-active systemd-networkd 2>/dev/null; systemctl is-active networking 2>/dev/null",
-        description:
-          "Quem está active: NM, networkd e/ou serviço networking (ifupdown).",
+        command: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null; systemctl is-enabled NetworkManager systemd-networkd networking 2>/dev/null",
+        description: "Quem está active e enabled: NM, networkd e/ou serviço networking (ifupdown).",
         example: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
+        output: `inactive
+inactive
+active`,
       },
       {
-        command: "nmcli -t -f RUNNING,STATE g 2>/dev/null || echo 'nmcli ausente (sem NetworkManager-cli)'",
-        description:
-          "NM rodando? Estado geral.",
-        example: "nmcli general 2>/dev/null | head",
+        command: "nmcli -t -f RUNNING,STATE g 2>/dev/null || echo \"nmcli indisponivel\"",
+        description: "Se o NetworkManager estiver instalado, mostra se o daemon está running.",
+        example: "nmcli general 2>/dev/null | head || echo nmcli indisponivel",
       },
       {
-        command: "networkctl status 2>/dev/null | head -n 30 || echo 'networkctl indisponivel'",
-        description:
-          "Visão systemd-networkd das links e estado operacional.",
-        example: "networkctl 2>/dev/null | head",
+        command: "networkctl status 2>/dev/null | head -n 40 || echo \"networkctl indisponivel\"",
+        description: "Visão do systemd-networkd: links, estado operacional, se está managing.",
+        example: "networkctl 2>/dev/null || true",
       },
       {
-        command: "sed -n '1,80p' /etc/network/interfaces 2>/dev/null || echo 'sem interfaces classico'",
-        description:
-          "Config ifupdown se existir.",
-        example: "grep -vE '^#|^$' /etc/network/interfaces 2>/dev/null | head",
+        command: "ip route; ip -4 route show default",
+        description: "Rota default e tabela — prova se há gateway depois de identificar a stack.",
+        example: "ip route",
+        output: `default via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100`,
       },
       {
-        command: "ls /etc/systemd/network/ 2>/dev/null; ls /etc/NetworkManager/system-connections/ 2>/dev/null | head",
-        description:
-          "Arquivos de networkd e conexões NM.",
-        example: "ls -la /etc/systemd/network/ 2>/dev/null; ls /etc/NetworkManager/system-connections/ 2>/dev/null | head",
+        command: "ls /etc/network/interfaces /etc/NetworkManager/system-connections /etc/systemd/network 2>/dev/null | head -n 40",
+        description: "Mapa dos diretórios clássicos de cada stack — veja o que existe no disco.",
+        example: "ls /etc/network/interfaces /etc/systemd/network 2>/dev/null",
+      },
+      {
+        command: "sed -n \"1,80p\" /etc/network/interfaces 2>/dev/null || echo \"sem interfaces (ok se nao usa ifupdown)\"",
+        description: "Conteúdo do ifupdown, se ainda for a fonte da verdade.",
+        example: "sed -n \"1,40p\" /etc/network/interfaces 2>/dev/null",
       },
       {
         command: "man interfaces",
-        description:
-          "Sintaxe do ifupdown clássico.",
+        description: "Manual do formato ifupdown — ainda válido em muitos servidores Debian.",
         example: "man interfaces",
       },
       {
-        command: "man NetworkManager",
-        description:
-          "Visão geral do NM (quando instalado).",
-        example: "man NetworkManager 2>/dev/null | head",
+        command: "man nmcli",
+        description: "Referência do cliente NetworkManager.",
+        example: "man nmcli",
       },
       {
         command: "man systemd.network",
-        description:
-          "Formato dos arquivos .network do networkd.",
+        description: "Formato dos arquivos .network do networkd.",
         example: "man systemd.network",
       },
       {
-        command: "resolvectl status 2>/dev/null | head -n 25 || cat /etc/resolv.conf 2>/dev/null | head",
-        description:
-          "DNS costuma ser puxado pelo stack de rede — ponte para o próximo capítulo.",
-        example: "resolvectl status 2>/dev/null | head -n 20 || cat /etc/resolv.conf",
+        command: "ping -c 2 1.1.1.1; ping -c 2 deb.debian.org",
+        description: "Separe L3 (IP) de DNS (nome): se o primeiro passa e o segundo falha, a stack de IP está ok e o resolver não.",
+        example: "ping -c 2 1.1.1.1",
       },
     ],
     tips: [
       {
         type: "danger",
-        title: "Dois gerentes na mesma NIC",
-        content:
-          "NM + interfaces estático na mesma interface = corrida. Deixe um unmanaged ou desabilite um stack.",
+        title: "Dois DHCP na mesma NIC",
+        content: "NM + ifupdown/networkd ativos na mesma interface = corrida no boot e IP fantasma. Um stack por NIC.",
       },
       {
         type: "warning",
-        title: "Migrar sem console",
-        content:
-          "Em VPS, mude rede só com console web/serial e IP documentado.",
-      },
-      {
-        type: "success",
-        title: "ip -br primeiro",
-        content:
-          "Antes de culpar o gerenciador, veja se a link está UP e tem endereço.",
+        title: "SSH sem console",
+        content: "Nunca migre stack de rede em VPS só pelo SSH sem console do provedor. Um erro de rota te tranca fora.",
       },
       {
         type: "info",
-        title: "Cloud-init",
-        content:
-          "Em imagens cloud a config 'de verdade' pode ser regenerada no boot — edite o lugar certo.",
+        title: "Ping IP antes de nome",
+        content: "1.1.1.1 testa rota; deb.debian.org testa DNS. Não misture o diagnóstico.",
+      },
+      {
+        type: "success",
+        title: "Documente a stack",
+        content: "Uma linha no runbook: \"este host usa networkd + .network em /etc/systemd/network\". Salva horas.",
       },
     ],
     practiceLabs: [
       {
-        title: "Identifique a stack",
-        goal: "Uma frase: 'Este host usa X; config em Y; interfaces Z'.",
+        title: "Laudo da stack em 10 minutos",
+        goal: "Saber qual gerenciador manda e onde está a config, com evidência salva.",
         steps: [
-          "ip -br addr",
-          "is-active dos três serviços",
-          "Olhar interfaces, network/*.network e system-connections",
-          "Anotar em ~/stack-rede.txt",
+          "Rode ip -br link e ip -br addr",
+          "Rode systemctl is-active nos três serviços",
+          "Liste os diretórios de config que existem",
+          "Salve o laudo em ~/stack-rede.txt",
         ],
-        command: "{ echo '=== ip ==='; ip -br addr; echo; echo '=== services ==='; systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null; echo; echo '=== paths ==='; ls /etc/network/interfaces /etc/systemd/network 2>&1 | head; } | tee ~/stack-rede.txt",
-        verify:
-          "Você nomeia UM stack principal e o arquivo/diretório de config correspondente.",
+        command: "{ echo \"=== link ===\"; ip -br link; echo; echo \"=== addr ===\"; ip -br addr; echo; echo \"=== units ===\"; systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null; echo; echo \"=== dirs ===\"; ls /etc/network/interfaces /etc/NetworkManager/system-connections /etc/systemd/network 2>/dev/null; } | tee ~/stack-rede.txt",
+        verify: "O arquivo tem quatro blocos e você consegue dizer em uma frase qual stack manda.",
       },
     ],
     exercises: [
       {
         id: 1,
-        question: "Quais são as três stacks comuns no Debian?",
-        answer:
-          "ifupdown (/etc/network/interfaces), NetworkManager, e systemd-networkd.",
+        question: "Quais são as três stacks clássicas de rede no Debian?",
+        answer: "ifupdown (/etc/network/interfaces), NetworkManager e systemd-networkd.",
       },
       {
         id: 2,
-        question: "Qual costuma ser natural em laptop com Wi-Fi?",
-        answer:
-          "NetworkManager.",
+        question: "Por que ip -br addr vem antes de editar qualquer arquivo?",
+        answer: "Porque mostra o estado real da interface independente de qual gerenciador deveria estar no controle.",
       },
       {
         id: 3,
-        question: "Onde networkd guarda config?",
-        answer:
-          "/etc/systemd/network/*.network",
+        question: "O que acontece se NM e ifupdown gerenciam a mesma NIC?",
+        answer: "Corrida de configuração: DHCP duplicado, rota default oscilando, sintoma de \"rede sumiu\".",
       },
       {
         id: 4,
-        question: "Sintoma de dois gerenciadores na mesma NIC?",
-        answer:
-          "IP oscilando, rotas sumindo, ou config 'desfeita' após reboot.",
+        question: "Onde o networkd guarda config?",
+        answer: "/etc/systemd/network/*.network (e .netdev).",
       },
       {
         id: 5,
-        question: "Comando agnóstico para ver IPs?",
-        answer:
-          "ip addr ou ip -br addr",
+        question: "Ping em 1.1.1.1 funciona e em deb.debian.org não. O que isso indica?",
+        answer: "L3/rota ok; problema de DNS/resolver, não de \"cabo\" ou IP.",
       },
       {
         id: 6,
-        question: "Por que console importa ao migrar?",
-        answer:
-          "Se a rede cair, SSH morre; console out-of-band salva.",
+        question: "Netplan é um quarto gerenciador?",
+        answer: "Não — é um gerador/renderer que por baixo aciona NM ou networkd (mais comum no Ubuntu).",
       },
       {
         id: 7,
-        question: "nmcli serve para quê?",
-        answer:
-          "Administrar NetworkManager na linha de comando.",
+        question: "Como deixar o NM longe de uma interface de servidor?",
+        answer: "Marcar a interface como unmanaged no NetworkManager e deixar networkd/ifupdown cuidar dela.",
       },
       {
         id: 8,
-        question: "networkctl serve para quê?",
-        answer:
-          "Inspecionar links gerenciados pelo systemd-networkd.",
+        question: "Qual o risco de migrar stack só por SSH sem console?",
+        answer: "Um erro de configuração corta o acesso remoto e você fica trancado fora da máquina.",
       },
     ],
     references: [
-      { title: "Wiki — NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
+      { title: "Debian Wiki — NetworkConfiguration", url: "https://wiki.debian.org/NetworkConfiguration" },
       { title: "man interfaces", url: "https://manpages.debian.org/interfaces" },
       { title: "man systemd.network", url: "https://manpages.debian.org/systemd.network" },
-      { title: "NetworkManager docs", url: "https://networkmanager.dev/docs/" },
+      { title: "NetworkManager documentation", url: "https://networkmanager.dev/docs/" },
     ],
   },
   {
@@ -2458,191 +2446,134 @@ gpg --verify teste.txt.sig teste.txt`,
       { title: "AppArmor desktop guide", url: "https://gitlab.com/apparmor/apparmor/-/wikis/home" },
     ],
   },
-  {
+    {
     id: "fail2ban",
-    title: "fail2ban e defesa de SSH — jails, ban e whitelist",
-    icon: "🚫",
+    title: "fail2ban — banir brute force sem achar que é firewall mágico",
+    icon: "🛡️",
     category: "Rede e Segurança",
-    description:
-      "Instale e leia o fail2ban no Debian: jail do sshd, ban/unban, ignoreip e o hábito de não banir a si mesmo no IP do escritório.",
+    description: "O que o fail2ban faz de verdade: lê logs, casa regex, adiciona regras temporárias. Bom para SSH exposto; não substitui key-only nem firewall de borda.",
+    level: "intermediario",
+    readMinutes: 14,
     objectives: [
-      "Explicar o papel do fail2ban (log → filtro → ban)",
-      "Instalar e ver status dos jails",
-      "Inspecionar jail sshd",
-      "Banir/desbanir IP de lab com consciência",
-      "Configurar ignoreip para não se autoexcluir",
-      "Relacionar com UFW/firewalld sem duplicar caos",
+      "Explicar jail + filter + action",
+      "Ativar jail sshd em jail.d",
+      "Ler status e unban quando se auto-bloquear",
+      "Não confundir fail2ban com senha forte",
     ],
     content: [
-      "Bots batem em SSH o dia inteiro. **fail2ban** lê logs, conta falhas segundo um **filtro**, e manda o firewall **banir** o IP por um tempo (jail). Não substitui chave SSH, disable root login nem fail2ban ‘resolve senha fraca’ — é cinto além do cinto.",
-
-      "No Debian: pacote `fail2ban`, jails em `/etc/fail2ban/jail.conf` (não edite só ele) e overrides em `jail.local` ou `jail.d/*.local`. `fail2ban-client status` lista jails; `status sshd` mostra IPs banidos. Backend típico interage com iptables/nftables/ufw conforme config.",
-
-      "Armadilha clássica: você erra a senha do notebook 5 vezes no 4G e se bane sozinho. **ignoreip** com o IP fixo do escritório/VPN evita o drama. Outra: banear rede inteira de CGNAT compartilhado — ajuste findtime/maxretry com critério.",
-
-      "Jargões. **jail**. **filter**. **action**. **bantime**, **findtime**, **maxretry**. **whois**/geoblock não vêm no núcleo — plugins e cuidado ético. fail2ban não é IDS completo.",
-
-      "Ao terminar você instala, vê jail sshd, entende status, documenta ignoreip e sabe unban se prender a si mesmo (via console).",
-
+      "fail2ban não é IA de segurança. É um demônio teimoso: lê logs (auth.log/journal), aplica filtros (regex) e, no limiar de falhas, executa action — em geral bloquear o IP no nftables/iptables por alguns minutos. Reduz ruído de brute force em SSH exposto. Não corrige senha fraca, não substitui PasswordAuthentication no, não protege web sozinha sem filter.",
+      "No Debian as jails vêm em /etc/fail2ban/jail.conf — NÃO edite (upgrade sobrescreve). Use jail.local ou jail.d/*.local. Ative sshd, systemctl enable --now fail2ban, fail2ban-client status. Se se banir: console do provedor ou fail2ban-client set sshd unbanip SEU_IP.",
+      "Armadilhas: banear rede da empresa por NAT compartilhado; maxretry absurdo; achar bantime eterno; filters desatualizados após mudar path de log; confiar só nisso com senha root permitida. Combine chaves SSH + fail2ban + allowlist/VPN quando der.",
     ],
     commands: [
       {
         command: "sudo apt install -y fail2ban",
-        description:
-          "Instala o serviço e filtros padrão.",
+        description: "Instala o serviço.",
         example: "sudo apt install -y fail2ban",
       },
       {
-        command: "systemctl is-active fail2ban; sudo fail2ban-client status",
-        description:
-          "Serviço ativo e jails carregados.",
-        example: "sudo fail2ban-client status",
+        command: "printf \"%s\n\" \"[sshd]\" \"enabled = true\" | sudo tee /etc/fail2ban/jail.d/sshd.local",
+        description: "Ativa jail sshd de forma upgrade-safe.",
+        example: "printf \"%s\n\" \"[sshd]\" \"enabled = true\" | sudo tee /etc/fail2ban/jail.d/sshd.local",
       },
       {
-        command: "sudo fail2ban-client status sshd 2>/dev/null || sudo fail2ban-client status ssh 2>/dev/null || echo 'jail ssh com nome diferente — veja status'",
-        description:
-          "Detalhe do jail SSH: currently banned, total.",
+        command: "sudo systemctl enable --now fail2ban",
+        description: "Sobe e habilita no boot.",
+        example: "sudo systemctl enable --now fail2ban",
+      },
+      {
+        command: "sudo fail2ban-client status",
+        description: "Jails ativas.",
+        example: "sudo fail2ban-client status",
+        output: `Status
+|- Number of jail:	1
+\`- Jail list:	sshd`,
+      },
+      {
+        command: "sudo fail2ban-client status sshd",
+        description: "IPs banidos e contadores do jail sshd.",
         example: "sudo fail2ban-client status sshd",
       },
       {
-        command: "ls /etc/fail2ban/jail.d/ 2>/dev/null; ls /etc/fail2ban/*.conf | head",
-        description:
-          "Onde customizar sem lutar com o arquivo do pacote puro.",
-        example: "ls -la /etc/fail2ban/jail.d/",
-      },
-      {
-        command: "sudo fail2ban-client get sshd ignoreip 2>/dev/null || true",
-        description:
-          "IPs ignorados no jail (se jail existir).",
-        example: "sudo fail2ban-client get sshd ignoreip 2>/dev/null",
-      },
-      {
-        command: "printf '%s\n' '[DEFAULT]' 'ignoreip = 127.0.0.1/8 ::1' '# adicione seu IP fixo/VPN:' '# ignoreip = 127.0.0.1/8 ::1 203.0.113.10' '[sshd]' 'enabled = true'",
-        description:
-          "Esqueleto mental para /etc/fail2ban/jail.d/sshd.local — ajuste antes de copiar.",
-        example: "# sudo nano /etc/fail2ban/jail.d/sshd.local",
-      },
-      {
-        command: "sudo fail2ban-client set sshd unbanip 127.0.0.1 2>/dev/null || echo 'unbanip: use o IP real banido e o nome certo do jail'",
-        description:
-          "Forma de desbanir (lab). Em lockout real, use console do provedor.",
-        example: "sudo fail2ban-client set sshd unbanip 203.0.113.50",
-      },
-      {
-        command: "journalctl -u fail2ban -n 30 --no-pager",
-        description:
-          "Logs do serviço fail2ban.",
-        example: "journalctl -u fail2ban -n 30 --no-pager",
+        command: "sudo fail2ban-client set sshd unbanip 203.0.113.10",
+        description: "Remove ban de um IP (troque pelo seu).",
+        example: "sudo fail2ban-client set sshd unbanip 203.0.113.10",
       },
       {
         command: "man fail2ban",
-        description:
-          "Visão geral e apontadores.",
+        description: "Visão geral; veja também jail.conf(5).",
         example: "man fail2ban",
-      },
-      {
-        command: "man jail.conf",
-        description:
-          "Parâmetros de jail (bantime, backend, etc.).",
-        example: "man jail.conf",
       },
     ],
     tips: [
       {
-        type: "danger",
-        title: "Auto-ban sem console",
-        content:
-          "Tenha out-of-band antes de apertar maxretry em produção.",
-      },
-      {
-        type: "success",
-        title: "ignoreip do escritório/VPN",
-        content:
-          "Salva o admin de si mesmo.",
-      },
-      {
         type: "warning",
-        title: "fail2ban ≠ senha forte",
-        content:
-          "Continue com chaves SSH e root login desligado.",
+        title: "NAT corporativo",
+        content: "Um IP de saída compartilha o ban — ajuste maxretry/findtime.",
+      },
+      {
+        type: "danger",
+        title: "Só fail2ban + senha fraca",
+        content: "Continua inseguro. Prefira chaves e desative password auth.",
       },
       {
         type: "info",
-        title: "jail.local / jail.d",
-        content:
-          "Não edite só jail.conf do pacote se quiser upgrades limpos.",
+        title: "jail.local",
+        content: "Não edite jail.conf; use .local / jail.d.",
+      },
+      {
+        type: "success",
+        title: "Teste unban",
+        content: "Saiba desbanir antes de precisar em pânico.",
       },
     ],
     practiceLabs: [
       {
-        title: "Status do jail SSH",
-        goal: "fail2ban active e status do jail ssh visível.",
+        title: "Jail sshd de lab",
+        goal: "Instalar, ativar sshd jail e ver status.",
         steps: [
-          "apt install fail2ban se preciso",
-          "systemctl status",
-          "fail2ban-client status e status sshd",
-          "Planejar ignoreip",
-          "tee ~/fail2ban-lab.txt",
+          "apt install fail2ban",
+          "Crie jail.d/sshd.local",
+          "enable --now e status",
         ],
-        command: "{ echo '=== active ==='; systemctl is-active fail2ban; echo; echo '=== jails ==='; sudo fail2ban-client status 2>&1; } | tee ~/fail2ban-lab.txt",
-        verify:
-          "Você lista os jails e sabe o comando de unbanip.",
+        command: "sudo fail2ban-client status || echo \"instale e ative primeiro\"",
+        verify: "status lista sshd.",
       },
     ],
     exercises: [
       {
         id: 1,
-        question: "O que o fail2ban faz em resumo?",
-        answer:
-          "Monitora logs, detecta abusos por filtros e bane IPs via firewall por um tempo.",
+        question: "O que o fail2ban observa?",
+        answer: "Logs, via filtros regex, para disparar actions (ban).",
       },
       {
         id: 2,
-        question: "Comando para ver jails?",
-        answer:
-          "fail2ban-client status",
+        question: "Onde configurar sem perder no upgrade?",
+        answer: "jail.local ou /etc/fail2ban/jail.d/*.local",
       },
       {
         id: 3,
-        question: "Para que ignoreip?",
-        answer:
-          "IPs/CIDRs que nunca devem ser banidos (localhost, escritório, VPN).",
+        question: "Como ver IPs banidos no sshd?",
+        answer: "fail2ban-client status sshd",
       },
       {
         id: 4,
-        question: "Onde customizar jails no Debian?",
-        answer:
-          "/etc/fail2ban/jail.local ou jail.d/*.local",
+        question: "fail2ban substitui SSH key-only?",
+        answer: "Não — é camada extra contra brute force.",
       },
       {
         id: 5,
-        question: "Como desbanir um IP?",
-        answer:
-          "fail2ban-client set <jail> unbanip <ip>",
+        question: "Como desbanir seu IP?",
+        answer: "fail2ban-client set sshd unbanip IP",
       },
       {
         id: 6,
-        question: "fail2ban substitui chave SSH?",
-        answer:
-          "Não; é camada extra.",
-      },
-      {
-        id: 7,
-        question: "Risco de maxretry baixo demais?",
-        answer:
-          "Banir usuários legítimos e a si mesmo com facilidade.",
-      },
-      {
-        id: 8,
-        question: "Onde ver log do serviço?",
-        answer:
-          "journalctl -u fail2ban (e logs do próprio fail2ban conforme config).",
+        question: "Risco com muitos usuários no mesmo NAT?",
+        answer: "Um ban afeta todos que saem com o mesmo IP público.",
       },
     ],
     references: [
-      { title: "fail2ban wiki", url: "https://www.fail2ban.org/wiki/index.php/Main_Page" },
-      { title: "man fail2ban-client", url: "https://manpages.debian.org/fail2ban-client" },
-      { title: "Debian Wiki — fail2ban", url: "https://wiki.debian.org/fail2ban" },
+      { title: "fail2ban wiki", url: "https://github.com/fail2ban/fail2ban/wiki" },
       { title: "man jail.conf", url: "https://manpages.debian.org/jail.conf" },
     ],
   },
