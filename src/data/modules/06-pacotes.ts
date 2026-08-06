@@ -1466,4 +1466,619 @@ EOF`,
       },
     ],
   },
+  {
+    id: "unattended-upgrades",
+    title: "unattended-upgrades na prática — segurança sem clicar todo dia",
+    icon: "🔄",
+    category: "Pacotes",
+    description:
+      "Instale e configure atualizações automáticas de segurança no Debian: origins, listas negras, logs, e quando permitir reboot — sem transformar o servidor num cassino de upgrades.",
+    objectives: [
+      "Explicar o que o unattended-upgrades faz e o que ele NÃO faz",
+      "Instalar e habilitar o serviço no Debian estável",
+      "Ler e ajustar origins (security vs updates completos)",
+      "Usar blacklist de pacotes que não podem atualizar sozinhos",
+      "Achar logs e simular uma rodada sem aplicar no escuro",
+      "Decidir com critério se Automatic-Reboot faz sentido no seu host",
+    ],
+    content: [
+      "Servidor que só atualiza quando alguém lembra é servidor com CVE em produção. O pacote **unattended-upgrades** existe para aplicar, sozinho, o que o Debian classifica como atualização automática segura — em geral correções do repositório de **security** — sem você logar todo dia. Não é mágica: é um timer/serviço + arquivos de configuração em `/etc/apt/apt.conf.d/` que dizem de onde pode puxar e o que está proibido.",
+
+      "Três ideias que evitam decepção. Primeiro: por padrão bem configurado ele mira **segurança**, não 'instala o Plasma novo às 3h da manhã'. Segundo: atualizar pacote ≠ reiniciar kernel; se o kernel mudou, a correção só vale após **reboot** (manual ou Automatic-Reboot). Terceiro: pacotes com conffile interativo ou serviços delicados (banco, painel) às vezes merecem **blacklist** — automático demais em lugar errado vira outage automático.",
+
+      "A configuração principal costuma viver em `50unattended-upgrades` e o 'ligar a torneira' em `20auto-upgrades` (nomes podem variar com a versão). Em `Allowed-Origins` (ou o equivalente da sua versão) você lista origens confiáveis — tipicamente a linha de security da sua release. Em `Package-Blacklist` entram padrões de nome que nunca devem ser tocados sem humano. Logs vão para `/var/log/unattended-upgrades/` e o journal do serviço.",
+
+      "Jargões rápidos. **Origin** no mundo APT é a identidade do repositório (o que aparece em `apt-cache policy` como o=Debian, n=trixie, l=Debian-Security, etc.). **Dry-run** / debug imprime o que faria sem necessariamente aplicar do mesmo jeito que produção. **Automatic-Reboot** e **Automatic-Reboot-Time** definem se e quando a máquina pode reiniciar sozinha após upgrade que exige — útil em frota homogênea, perigoso em host único sem HA às 10h de segunda.",
+
+      "Fluxo saudável: instalar → conferir origins da **sua** codinome (trixie-security, bookworm-security…) → blacklist do que é sagrado → rodar uma vez em modo debug → olhar log → só então confiar no timer. Em VPS de cliente, documente no runbook: 'security automático sim; full-upgrade de release nunca é unattended'. Misturar unattended com fontes sid/testing é pedir para o robô quebrar o que o humano evitaria.",
+
+      "Quando NÃO usar (ou usar bem restrito): workstation com GPU proprietária sensível; host no meio de freeze de mudança grande; máquina sem console out-of-band se reboot automático estiver ligado; ambiente onde todo change precisa de janela CAB. Nesses casos, unattended só security + notificação, ou só `apt update` automático + humano aplica.",
+
+      "Ao terminar você deve instalar o pacote, apontar origins corretos, bloquear pelo menos um pacote de exemplo na blacklist, achar o log da última execução e explicar em uma frase a diferença entre 'atualizado' e 'rebootado com kernel novo'.",
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y unattended-upgrades apt-listchanges",
+        description:
+          "Instala o motor de upgrades automáticos e, opcionalmente, resumos de changelog (apt-listchanges).",
+        example: "sudo apt install -y unattended-upgrades",
+      },
+      {
+        command: "dpkg-reconfigure -plow unattended-upgrades",
+        description:
+          "Assistente debconf para ligar/desligar atualizações automáticas de forma guiada (útil na primeira vez).",
+        example: "sudo dpkg-reconfigure -plow unattended-upgrades",
+      },
+      {
+        command: "grep -RInE 'Unattended-Upgrade|APT::Periodic' /etc/apt/apt.conf.d/ 2>/dev/null | head -n 40",
+        description:
+          "Mostra onde a política está definida: auto download/upgrade e opções do unattended.",
+        example:
+          "grep -RInE 'Unattended-Upgrade|APT::Periodic' /etc/apt/apt.conf.d/ | head -n 40",
+      },
+      {
+        command: "sudo nano /etc/apt/apt.conf.d/50unattended-upgrades",
+        description:
+          "Edita origins, blacklist, e-mail, reboot. Sempre backup antes; confira codinome da sua release.",
+        example: "sudo cp -a /etc/apt/apt.conf.d/50unattended-upgrades{,.bak} && sudo nano /etc/apt/apt.conf.d/50unattended-upgrades",
+      },
+      {
+        command: "cat /etc/apt/apt.conf.d/20auto-upgrades 2>/dev/null || cat /etc/apt/apt.conf.d/10periodic 2>/dev/null",
+        description:
+          "Arquivo que costuma definir APT::Periodic::Update-Package-Lists e Unattended-Upgrade em 1 (ligado).",
+        example: "cat /etc/apt/apt.conf.d/20auto-upgrades",
+        output:
+          'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "1";',
+      },
+      {
+        command: "sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 50",
+        description:
+          "Simula/explica o que a ferramenta faria agora. Use antes de confiar no automático em produção.",
+        example: "sudo unattended-upgrade --dry-run --debug 2>&1 | tee /tmp/uu-dryrun.txt | tail -n 50",
+        flags: [
+          { flag: "--dry-run", description: "Não aplica mudanças (modo ensaio)" },
+          { flag: "--debug", description: "Saída verbosa para entender origins e decisões" },
+        ],
+      },
+      {
+        command: "sudo unattended-upgrade -v",
+        description:
+          "Executa uma passagem real (verbose). Prefira depois do dry-run e em janela controlada na primeira vez.",
+        example: "sudo unattended-upgrade -v",
+      },
+      {
+        command: "ls -la /var/log/unattended-upgrades/ 2>/dev/null; tail -n 30 /var/log/unattended-upgrades/unattended-upgrades.log 2>/dev/null",
+        description:
+          "Logs históricos: o que foi instalado, o que foi ignorado, erros de origem.",
+        example: "sudo tail -n 50 /var/log/unattended-upgrades/unattended-upgrades.log",
+      },
+      {
+        command: "systemctl status unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer --no-pager 2>/dev/null | head -n 40",
+        description:
+          "Confere se timers/serviço do ecossistema APT diário estão ativos (nomes podem variar levemente).",
+        example: "systemctl list-timers 'apt-*' --no-pager 2>/dev/null",
+      },
+      {
+        command: "apt-cache policy unattended-upgrades",
+        description:
+          "De onde veio o pacote e se a versão é a da sua stable — sanidade básica pós-install.",
+        example: "apt-cache policy unattended-upgrades",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Security sim, release upgrade não",
+        content:
+          "Unattended é para manutenção da stable atual. bookworm→trixie continua sendo checklist humano (capítulo upgrade-release).",
+      },
+      {
+        type: "warning",
+        title: "Kernel novo pede reboot",
+        content:
+          "Sem reboot, CVE de kernel 'corrigida no disco' ainda roda a versão velha na RAM. Monitore /var/run/reboot-required.",
+      },
+      {
+        type: "danger",
+        title: "Automatic-Reboot em horário de pico",
+        content:
+          "Se ligar reboot automático, defina horário e garanta console/HA. Host único de pagamento reiniciando às 11h é incidente, não 'boa prática'.",
+      },
+      {
+        type: "info",
+        title: "Blacklist com parcimônia",
+        content:
+          "Bloquear tudo anula o propósito. Bloqueie o que quebra com atualização surpresa (agente de backup, driver, app interno) e deixe security no resto.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Ligar security automático com ensaio",
+        goal: "Pacote instalado, auto-upgrades em 1, dry-run limpo, log legível.",
+        steps: [
+          "Instale unattended-upgrades",
+          "Confira 20auto-upgrades (Update e Unattended em 1)",
+          "Abra 50unattended-upgrades e valide origins da sua codinome",
+          "Adicione um pacote inofensivo de teste na blacklist (ou comente exemplo)",
+          "Rode unattended-upgrade --dry-run --debug e salve a saída",
+          "Leia o log em /var/log/unattended-upgrades/",
+        ],
+        command: `sudo apt install -y unattended-upgrades
+echo '--- auto ---'
+cat /etc/apt/apt.conf.d/20auto-upgrades 2>/dev/null || true
+echo '--- dry-run (trecho) ---'
+sudo unattended-upgrade --dry-run --debug 2>&1 | tail -n 40`,
+        verify:
+          "Dry-run menciona origins esperadas e não tenta puxar testing/sid. Arquivo de log existe. Você sabe onde desligar o automático se precisar.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O unattended-upgrades substitui o upgrade bookworm→trixie?",
+        answer:
+          "Não. Ele mantém a release atual (em geral security). Troca de codinome/release é processo manual com checklist.",
+      },
+      {
+        id: 2,
+        question: "Onde você costuma ligar o periódico APT::Periodic::Unattended-Upgrade?",
+        answer:
+          "Em /etc/apt/apt.conf.d/, tipicamente 20auto-upgrades (valor \"1\" para habilitar).",
+      },
+      {
+        id: 3,
+        question: "Para que serve Package-Blacklist?",
+        answer:
+          "Impede que certos pacotes sejam atualizados automaticamente — útil para software sensível a mudança sem janela.",
+      },
+      {
+        id: 4,
+        question: "Como ensaiar sem aplicar?",
+        answer:
+          "sudo unattended-upgrade --dry-run --debug e revisar a saída/logs.",
+      },
+      {
+        id: 5,
+        question: "Por que /var/run/reboot-required importa?",
+        answer:
+          "Indica que há atualização (ex.: kernel) que só vale após reiniciar. Sem reboot a correção pode não estar ativa.",
+      },
+      {
+        id: 6,
+        question: "Cite um risco de Automatic-Reboot=true.",
+        answer:
+          "Reinício em horário ruim, queda de serviço único, ou lockout se algo falhar no boot sem console alternativo.",
+      },
+      {
+        id: 7,
+        question: "Onde olhar histórico do que o unattended fez?",
+        answer:
+          "/var/log/unattended-upgrades/ (e journal do serviço/timers relacionados).",
+      },
+      {
+        id: 8,
+        question: "Qual origem costuma ser a mais importante habilitar?",
+        answer:
+          "A linha de security da sua stable/codinome (ex.: trixie-security / Debian-Security), não mirrors experimentais.",
+      },
+    ],
+    references: [
+      { title: "Wiki — UnattendedUpgrades", url: "https://wiki.debian.org/UnattendedUpgrades" },
+      { title: "man unattended-upgrade", url: "https://manpages.debian.org/unattended-upgrade" },
+      { title: "Debian Security", url: "https://www.debian.org/security/" },
+      { title: "APT Periodic (documentação Debian)", url: "https://wiki.debian.org/AptConf" },
+    ],
+  },
+  {
+    id: "empacotar-deb",
+    title: "Empacotando um .deb mínimo — do diretório ao apt install",
+    icon: "📦",
+    category: "Pacotes",
+    description:
+      "Monte um pacote .deb simples (equivs ou layout DEBIAN/), inspecione com dpkg-deb e instale/remova com dpkg/apt — para entender o que o ecossistema Debian faz por baixo.",
+    objectives: [
+      "Explicar o que um .deb contém em alto nível (control + dados)",
+      "Gerar um metapacote ou pacote mínimo com equivs ou dpkg-deb",
+      "Ler o arquivo control (Package, Version, Architecture, Depends)",
+      "Instalar e remover o pacote e ver o rastros no dpkg -l",
+      "Inspecionar conteúdo com dpkg-deb -c / -I sem instalar",
+      "Saber quando NÃO reinventar a roda (use pacote oficial)",
+    ],
+    content: [
+      "Um arquivo `.deb` não é um zip místico: é um ar com metadados e um filesystem empacotado. Por fora você faz `apt install ./meu.deb`; por dentro existem o script/control do mantenedor e os arquivos que vão para `/usr`, `/etc`, etc. Entender o mínimo de empacotamento te deixa de ler erro de dependência como hieróglifo e te permite distribuir um agente interno ou um metapacote 'pacotes da empresa' com elegância Debian.",
+
+      "Dois caminhos didáticos. **equivs** cria metapacotes (pacotes que quase só declaram Depends/Recommends) — ótimo para 'quero este conjunto instalável de uma vez'. **Layout manual** com pasta `DEBIAN/control` + árvore de arquivos e `dpkg-deb --build` ensina a anatomia real. Em ambos os casos o resultado é um `.deb` que o dpkg entende.",
+
+      "O arquivo **control** é a identidade: `Package` (nome), `Version`, `Section`, `Priority`, `Architecture` (`all` se não tiver binário de CPU, `amd64` se tiver), `Maintainer`, `Description`, e opcionalmente `Depends`. Sem Description decente o pacote é rude com o futuro você. Version segue esquema Debian (upstream-revision), mas para lab interno `1.0` basta.",
+
+      "Jargões. **Binary package** é o .deb instalável; **source package** é outra história (dsc + tarballs). **Essential/Priority** influenciam políticas do apt. **conffiles** marca configs que o dpkg preserva em upgrade. Você não precisa dominar a Policy inteira para um hello-world, mas precisa respeitar: não empacotar lixo em `/tmp`, não esmagar `/usr` de outros pacotes, não rodar curl|bash no postinst 'porque é mais fácil'.",
+
+      "Fluxo mental: desenhe o que o pacote entrega → escreva control → (se houver) coloque arquivos na árvore relativa à raiz → build → `dpkg-deb -I` e `-c` → instale em VM → `dpkg -L` / teste → `apt purge` limpa. Nunca pratique como root na VPS de produção da equipe: use home + VM.",
+
+      "Quando NÃO fazer .deb caseiro: se já existe no Debian/backports; se é app que atualiza sozinho todo dia (container pode ser melhor); se você ia só despejar binário sem versionar. Empacotar é contrato com o dpkg — versionamento e purge fazem parte do contrato.",
+
+      "Ao terminar você gera um .deb, inspeciona sem instalar, instala, prova que o arquivo/meta apareceu, e remove sem deixar sujeira óbvia.",
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y equivs dpkg-dev",
+        description:
+          "Ferramentas leves para metapacotes (equivs) e utilitários de empacotamento.",
+        example: "sudo apt install -y equivs dpkg-dev",
+      },
+      {
+        command: "equivs-control meu-meta",
+        description:
+          "Gera um esqueleto de control para metapacote editável.",
+        example: "cd /tmp && equivs-control curso-meta && sed -n '1,40p' curso-meta",
+      },
+      {
+        command: "equivs-build meu-meta",
+        description:
+          "Compila o metapacote .deb a partir do control preenchido (Package, Description, Depends…).",
+        example: "equivs-build curso-meta",
+      },
+      {
+        command: "mkdir -p /tmp/ola-deb/DEBIAN /tmp/ola-deb/usr/local/share/doc/ola-curso",
+        description:
+          "Layout mínimo para dpkg-deb: DEBIAN/ para metadados e o resto como raiz do filesystem instalado.",
+        example: "mkdir -p /tmp/ola-deb/DEBIAN /tmp/ola-deb/usr/local/share/doc/ola-curso",
+      },
+      {
+        command: "cat > /tmp/ola-deb/DEBIAN/control <<'EOF'\nPackage: ola-curso\nVersion: 1.0-1\nSection: misc\nPriority: optional\nArchitecture: all\nMaintainer: Curso Debian <curso@example.invalid>\nDescription: Pacote minimo de demonstracao do debian-book\n Exemplo didatico: so instala um arquivo de documentacao.\nEOF",
+        description:
+          "control mínimo válido. Architecture all = puro conteúdo independente de CPU.",
+        example: "cat /tmp/ola-deb/DEBIAN/control",
+      },
+      {
+        command: "echo 'Ola do pacote ola-curso' > /tmp/ola-deb/usr/local/share/doc/ola-curso/README",
+        description:
+          "Payload trivial para provar que o dpkg instala arquivos de verdade.",
+        example: "cat /tmp/ola-deb/usr/local/share/doc/ola-curso/README",
+      },
+      {
+        command: "dpkg-deb --build /tmp/ola-deb /tmp/ola-curso_1.0-1_all.deb",
+        description:
+          "Gera o .deb. O nome do arquivo costuma seguir nome_versão_arch.deb por convenção.",
+        example: "dpkg-deb --build /tmp/ola-deb /tmp/ola-curso_1.0-1_all.deb",
+        flags: [
+          { flag: "--build", description: "Empacota o diretório no formato deb" },
+          { flag: "-I", description: "Mostra o control de um .deb" },
+          { flag: "-c", description: "Lista os arquivos internos" },
+        ],
+      },
+      {
+        command: "dpkg-deb -I /tmp/ola-curso_1.0-1_all.deb && dpkg-deb -c /tmp/ola-curso_1.0-1_all.deb",
+        description:
+          "Inspeciona metadados e conteúdo **sem** instalar — hábito de segurança antes de dpkg -i em qualquer deb de terceiros.",
+        example: "dpkg-deb -I /tmp/ola-curso_1.0-1_all.deb; dpkg-deb -c /tmp/ola-curso_1.0-1_all.deb",
+      },
+      {
+        command: "sudo apt install -y /tmp/ola-curso_1.0-1_all.deb",
+        description:
+          "Instala resolvendo dependências via apt (melhor que dpkg -i puro se houver Depends).",
+        example: "sudo apt install -y /tmp/ola-curso_1.0-1_all.deb",
+      },
+      {
+        command: "dpkg -L ola-curso; dpkg -s ola-curso | sed -n '1,20p'",
+        description:
+          "Lista arquivos instalados e status do pacote no banco do dpkg.",
+        example: "dpkg -L ola-curso",
+      },
+      {
+        command: "sudo apt purge -y ola-curso",
+        description:
+          "Remove o pacote e configs marcadas; confira se o README sumiu.",
+        example: "sudo apt purge -y ola-curso && dpkg -l ola-curso",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "Inspecionar antes de instalar",
+        content:
+          "dpkg-deb -I/-c em todo .deb baixado da internet. Você verá scripts postinst e paths suspeitos antes do estrago.",
+      },
+      {
+        type: "warning",
+        title: "Não pratique na VPS compartilhada de produção",
+        content:
+          "Use /tmp e VM. Pacote mal feito pode sobrescrever path alheio se você inventar prefixos perigosos.",
+      },
+      {
+        type: "success",
+        title: "equivs para 'kit da empresa'",
+        content:
+          "Metapacote com Depends: curl, jq, htop, fail2ban é um onboarding de host em um apt install.",
+      },
+      {
+        type: "danger",
+        title: "postinst que baixa da web",
+        content:
+          "Evite. O pacote deve ser reproduzível e auditável; curl|bash no postinst é antítese do modelo Debian.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Hello .deb em 15 minutos",
+        goal: "Gerar, inspecionar, instalar, verificar arquivo, purgar.",
+        steps: [
+          "Crie a árvore /tmp/ola-deb com DEBIAN/control e um README",
+          "dpkg-deb --build",
+          "dpkg-deb -I e -c",
+          "apt install ./ola-curso_*.deb",
+          "dpkg -L ola-curso e cat no README",
+          "apt purge ola-curso",
+        ],
+        command: `# veja os comandos do capitulo em sequencia no /tmp
+ls -la /tmp/ola-curso_*.deb 2>/dev/null || echo "Construa o deb com o fluxo do capitulo"`,
+        verify:
+          "Antes do purge o README existe no path documentado; depois do purge dpkg -l não mostra ii ola-curso e o arquivo sumiu.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é, em uma frase, um arquivo .deb?",
+        answer:
+          "Um pacote binário Debian com metadados (control/scripts) e os arquivos a instalar no sistema.",
+      },
+      {
+        id: 2,
+        question: "Para que serve o diretório DEBIAN/ no staging?",
+        answer:
+          "Guarda metadados do pacote (control e opcionalmente scripts maintainer), não o conteúdo final em /DEBIAN no sistema.",
+      },
+      {
+        id: 3,
+        question: "Architecture: all significa o quê?",
+        answer:
+          "O pacote não contém binários específicos de CPU — serve em qualquer arch (docs, scripts, metapacotes).",
+      },
+      {
+        id: 4,
+        question: "Por que preferir apt install ./file.deb em vez de só dpkg -i?",
+        answer:
+          "Porque o apt resolve e baixa dependências; dpkg -i sozinho deixa o sistema em estado quebrado se faltar Depends.",
+      },
+      {
+        id: 5,
+        question: "Qual comando lista arquivos que um .deb instalaria sem instalar?",
+        answer: "dpkg-deb -c arquivo.deb",
+      },
+      {
+        id: 6,
+        question: "Qual a vantagem do equivs?",
+        answer:
+          "Criar metapacotes rapidamente para puxar um conjunto de Depends sem empacotar arquivos reais.",
+      },
+      {
+        id: 7,
+        question: "O que dpkg -L nome mostra?",
+        answer: "A lista de arquivos que o pacote instalado colocou no sistema.",
+      },
+      {
+        id: 8,
+        question: "Cite um motivo para não criar .deb caseiro.",
+        answer:
+          "Já existe pacote oficial/backport; ou o ciclo de update do app não combina com dpkg; ou você não vai versionar/manter purge direito.",
+      },
+    ],
+    references: [
+      { title: "Debian Policy Manual", url: "https://www.debian.org/doc/debian-policy/" },
+      { title: "man dpkg-deb", url: "https://manpages.debian.org/dpkg-deb" },
+      { title: "Wiki — Packing (intro)", url: "https://wiki.debian.org/Packaging" },
+      { title: "man equivs-build", url: "https://manpages.debian.org/equivs-build" },
+    ],
+  },
+  {
+    id: "apt-pinning-avancado",
+    title: "APT pinning avançado — policy, prioridades e hold",
+    icon: "📌",
+    category: "Pacotes",
+    description:
+      "Leia apt-cache policy como mapa de batalha, entenda prioridades numéricas, use pinning com cuidado e trave pacotes com hold — sem transformar o sistema num Frankenstein.",
+    objectives: [
+      "Ler apt-cache policy de um pacote e do sistema",
+      "Explicar o que significa prioridade 100/500/990 no dia a dia",
+      "Criar um pin pontual em /etc/apt/preferences.d/",
+      "Diferenciar pin de hold (apt-mark hold)",
+      "Diagnosticar 'por que instalou a versão X' com dados, não achismo",
+      "Evitar pinning de testing/sid em servidor estável",
+    ],
+    content: [
+      "Quando dois repositórios oferecem o mesmo pacote, o APT não joga cara ou coroa: ele usa **prioridades** e regras de pinning. O comando `apt-cache policy` é o raio-X: mostra versão instalada, candidata, e de qual release cada uma vem com o número de prioridade. Sem isso, 'o apt ficou louco' costuma ser 'eu adicionei um repo e não li a policy'.",
+
+      "Números que importam na prática. **100** em `/var/lib/dpkg/status` é a versão já instalada (a=now). **500** é o padrão típico de um release normal nos mirrors. **990** aparece com frequência em pinning que força uma origem. Quanto **maior** a prioridade, mais atraente a versão daquela origem — com regras extras para não subir para release 'pior' sem você pedir. Detalhe fino está no man, mas a intuição basta para não se perder.",
+
+      "**Pinning** declara em `/etc/apt/preferences` ou `preferences.d/*.pref` algo como: pacote P da release R ganha prioridade N. Serve para puxar **um** pacote de backports com consciência, ou segurar tudo de um vendor. **Hold** (`apt-mark hold`) é mais bruto: aquele pacote não atualiza até unhold, independentemente da policy elegante. Hold é freio de mão; pin é GPS.",
+
+      "Jargões. **Candidate** é a versão que o apt escolheria agora se você instalasse/atualizasse. **Package files** na policy global lista origens conhecidas. **Pin-Priority** é o número da regra. Errar o pin (Package: * com prioridade absurda para testing) é o caminho clássico para o stable virar hybrid confuso.",
+
+      "Fluxo de diagnóstico: `apt-cache policy nome` → veja candidate e tabela de versões → se a candidate é surpresa, `grep` em sources e preferences.d → corrija a fonte ou o pin, não force com `apt install pacote=versão` em loop eterno sem entender. Para backports, o idioma Debian costuma ser `apt install -t trixie-backports pacote` em vez de pin global permanente.",
+
+      "Quando NÃO pinar: para 'deixar o servidor 5% mais novo' misturando sid; para esconder um repo mal configurado; para evitar ler release notes. Prefira codinome limpo nas fontes, backports pontuais, e hold só com data de revisão marcada no calendário.",
+
+      "Ao terminar você lê policy de bash e de um pacote qualquer, explica a candidate, cria um arquivo de preferência de exemplo (e remove), e usa hold/unhold com consciência do risco em upgrades.",
+    ],
+    commands: [
+      {
+        command: "apt-cache policy",
+        description:
+          "Visão global das origens e prioridades. Primeiro mapa antes de preferences.",
+        example: "apt-cache policy | head -n 40",
+      },
+      {
+        command: "apt-cache policy bash",
+        description:
+          "Caso típico: instalada vs candidate vs tabela por repositório.",
+        example: "apt-cache policy bash",
+        output:
+          "bash:\n  Installed: 5.2.37-2\n  Candidate: 5.2.37-2\n  Version table:\n *** 5.2.37-2 500\n        500 http://deb.debian.org/debian trixie/main amd64 Packages\n        100 /var/lib/dpkg/status",
+      },
+      {
+        command: "apt-cache policy firefox-esr 2>/dev/null || apt-cache policy nginx",
+        description:
+          "Escolha um pacote com chance de aparecer em mais de uma origem (backports, etc.) e compare prioridades.",
+        example: "apt-cache policy nginx",
+      },
+      {
+        command: "ls -la /etc/apt/preferences /etc/apt/preferences.d/ 2>/dev/null",
+        description:
+          "Onde vivem pins permanentes. Prefira arquivos em preferences.d/ com nome falante.",
+        example: "ls -la /etc/apt/preferences.d/",
+      },
+      {
+        command: "cat > /tmp/exemplo-backports.pref <<'EOF'\nPackage: *\nPin: release a=stable-backports\nPin-Priority: 100\nEOF",
+        description:
+          "Exemplo didático: backports visível mas não preferido (100 < 500). NÃO copie para produção sem ler o man — é molde.",
+        example: "cat /tmp/exemplo-backports.pref",
+      },
+      {
+        command: "man apt_preferences",
+        description:
+          "Referência oficial de sintaxe Package/Pin/Pin-Priority e armadilhas.",
+        example: "man apt_preferences",
+      },
+      {
+        command: "sudo apt-mark hold openssh-server",
+        description:
+          "Exemplo de hold (cuidado em lab). Trava atualizações desse pacote até unhold — documente o motivo.",
+        example: "apt-mark showhold",
+        flags: [
+          { flag: "hold", description: "Impede upgrade do pacote" },
+          { flag: "unhold", description: "Libera de novo" },
+          { flag: "showhold", description: "Lista holds ativos" },
+        ],
+      },
+      {
+        command: "apt-mark showhold",
+        description:
+          "Sempre rode antes de full-upgrade de release: hold esquecido em libc/systemd é drama.",
+        example: "apt-mark showhold",
+      },
+      {
+        command: "sudo apt-mark unhold openssh-server",
+        description:
+          "Desfaz o exemplo de hold. Em produção, unhold só com intenção e janela.",
+        example: "sudo apt-mark unhold openssh-server",
+      },
+      {
+        command: "apt install -t trixie-backports --dry-run PACKAGE 2>/dev/null | tail -n 20 || echo 'ajuste PACKAGE e codinome backports da sua release'",
+        description:
+          "Caminho idiomático para um pacote de backports sem pin global: release target no comando.",
+        example: "apt install -t trixie-backports --dry-run curl 2>/dev/null | tail -n 15",
+      },
+      {
+        command: "apt-cache madison bash | head",
+        description:
+          "Lista versões conhecidas e de onde vêm, formato tabular — complemento da policy.",
+        example: "apt-cache madison bash | head",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "policy antes de preferences",
+        content:
+          "Se a candidate já está correta, você não precisa de pin. Pin é exceção documentada, não decoração.",
+      },
+      {
+        type: "warning",
+        title: "Package: * com prioridade alta",
+        content:
+          "Pin genérico forçando testing/sid inteiro é como abrir o portão do estábulo. Seja específico no Package e no Pin.",
+      },
+      {
+        type: "danger",
+        title: "Hold + upgrade de release",
+        content:
+          "Hold em cadeia base durante bookworm→trixie pode quebrar o full-upgrade. showhold faz parte do checklist.",
+      },
+      {
+        type: "success",
+        title: "Backports com -t",
+        content:
+          "Para um pacote só, apt install -t CODINOME-backports costuma ser mais limpo que pin eterno.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Raio-X de policy",
+        goal: "Explicar por escrito instalada, candidate e origem de dois pacotes.",
+        steps: [
+          "apt-cache policy | head -40",
+          "apt-cache policy bash",
+          "apt-cache policy de outro pacote do sistema",
+          "Liste preferences.d e holds",
+          "Escreva 5 linhas: candidate de cada um e se há pin/hold interferindo",
+        ],
+        command: `echo '=== policy head ==='
+apt-cache policy | head -n 30
+echo '=== bash ==='
+apt-cache policy bash
+echo '=== holds ==='
+apt-mark showhold
+echo '=== preferences ==='
+ls -la /etc/apt/preferences.d/ 2>/dev/null || true`,
+        verify:
+          "Você identifica o número de prioridade ao lado da candidate e aponta de qual suite ela veio. Se não há preferences, a candidate deve bater com a stable/codinome das fontes.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que apt-cache policy bash responde de essencial?",
+        answer:
+          "Versão instalada, versão candidata e a tabela de versões com prioridades e origens (repositórios).",
+      },
+      {
+        id: 2,
+        question: "Prioridade maior significa o quê?",
+        answer:
+          "Maior preferência do APT por aquela versão/origem na escolha da candidate (com as regras do man apt_preferences).",
+      },
+      {
+        id: 3,
+        question: "Diferença entre pin e hold?",
+        answer:
+          "Pin ajusta prioridades entre origens/versões; hold trava o pacote contra upgrades até unhold.",
+      },
+      {
+        id: 4,
+        question: "Onde criar um pin permanente?",
+        answer:
+          "/etc/apt/preferences ou, preferível, /etc/apt/preferences.d/arquivo.pref",
+      },
+      {
+        id: 5,
+        question: "Como puxar um pacote de backports sem pin global?",
+        answer: "apt install -t CODINOME-backports nome-do-pacote",
+      },
+      {
+        id: 6,
+        question: "Por que showhold entra no checklist de upgrade de release?",
+        answer:
+          "Porque pacotes segurados podem impedir a transição ou deixar o sistema pela metade.",
+      },
+      {
+        id: 7,
+        question: "O que é a candidate?",
+        answer:
+          "A versão que o APT escolheria instalar ou para a qual atualizaria na próxima operação, dado sources+pins agora.",
+      },
+      {
+        id: 8,
+        question: "Cite uma má prática de pinning.",
+        answer:
+          "Forçar Package: * de testing/sid com prioridade alta num host stable de produção.",
+      },
+    ],
+    references: [
+      { title: "man apt_preferences", url: "https://manpages.debian.org/apt_preferences" },
+      { title: "man apt-cache", url: "https://manpages.debian.org/apt-cache" },
+      { title: "Wiki — AptPreferences", url: "https://wiki.debian.org/AptPreferences" },
+      { title: "Wiki — AptConfiguration", url: "https://wiki.debian.org/AptConfiguration" },
+    ],
+  },
 ];
