@@ -1184,4 +1184,286 @@ flatpak override --user --show com.spotify.Client`,
       { title: "Wiki Debian — Flatpak", url: "https://wiki.debian.org/Flatpak" },
     ],
   },
+  {
+    id: "deb822-sources",
+    title: "Fontes DEB822 e debian.sources — o formato novo do APT",
+    icon: "📄",
+    category: "Pacotes",
+    description:
+      "Leia e escreva repositórios no formato DEB822 (.sources): Types, URIs, Suites, Components, Signed-By — o padrão moderno que convive com o sources.list de uma linha.",
+    objectives: [
+      "Diferenciar sources.list clássico de arquivos .sources (DEB822)",
+      "Ler um bloco DEB822 campo a campo sem chute",
+      "Mapear deb http://... suite component para Types/URIs/Suites/Components",
+      "Usar Signed-By com arquivo de chave (não apt-key)",
+      "Listar e validar fontes ativas após editar",
+      "Converter um repositório simples sem quebrar o apt update",
+    ],
+    content: [
+      "Durante anos o Debian descreveu repositórios numa linha só: `deb http://deb.debian.org/debian trixie main`. Funciona, é curta, e ainda aparece em metade da internet. O problema é que uma linha vira um nó cego quando você precisa de opções (arquitetura, signed-by, check-valid-until) e de vários componentes sem virar um espaguete ilegível. O formato **DEB822** — arquivos `*.sources` em `/etc/apt/sources.list.d/` — trata cada repositório como um **bloco de campos**, no mesmo espírito de um e-mail ou de um parágrafo RFC 822.",
+
+      "Pense assim: o `sources.list` clássico é um bilhete de padaria ('pão, leite, trixie, main'). O DEB822 é a nota fiscal itemizada: tipo de pacote, URI, suíte, componentes, quem assina. Os dois formatos **coexistem**. O APT lê `/etc/apt/sources.list`, tudo que está em `sources.list.d/*.list` e tudo em `sources.list.d/*.sources`. Não precisa apagar o mundo antigo no primeiro dia — precisa **entender os dois** e preferir DEB822 no que for novo.",
+
+      "Um bloco mínimo parece com isto mentalmente: `Types: deb` (binários; use também `deb-src` se quiser fontes), `URIs: http://deb.debian.org/debian` (de onde baixar), `Suites: trixie` (codinome ou suíte), `Components: main contrib non-free-firmware` (o que habilitar), `Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg` (qual chave confia neste URI). Campos de uma linha; blocos separados por linha em branco. Vários URIs ou suítes no mesmo campo separam-se por espaço.",
+
+      "Três jargões que travam leitura. **Suite** é o nome da linha temporal do repositório (`trixie`, `trixie-security`, `stable` — este último móvel, como já vimos). **Component** é a prateleira de licença/política (`main`, `contrib`, `non-free`, `non-free-firmware`). **Signed-By** amarra o repositório a um arquivo de chave específico — o substituto moderno e seguro do `apt-key` global. Se Signed-By apontar para arquivo inexistente, o `apt update` vai gritar; se faltar de vez em repo de terceiro, você está aceitando índice sem âncora clara de confiança.",
+
+      "A tabela mental de conversão salva pele: `deb` → `Types: deb`; URL → `URIs:`; primeiro token depois da URL → `Suites:`; o resto → `Components:`; opções entre colchetes no clássico (`[signed-by=/path arch=amd64]`) viram campos `Signed-By:` e `Architectures:`. Exemplo: `deb [signed-by=/usr/share/keyrings/exemplo.gpg] https://exemplo.tld stable main` vira um bloco com Types, URIs=https://exemplo.tld, Suites=stable, Components=main, Signed-By=/usr/share/keyrings/exemplo.gpg.",
+
+      "No Debian recente o instalador e imagens cloud costumam já nascer com algo como `debian.sources` (nome pode variar) em `sources.list.d`. Abra o arquivo com `less` antes de editar; faça backup com data; edite um campo de cada vez. Comentários em DEB822 usam `#` no início da linha. Linha em branco **fecha** o stanza — não misture dois repositórios no mesmo bloco sem querer.",
+
+      "Armadilhas clássicas: (1) deixar o **mesmo** mirror duplicado em `.list` e `.sources` — o APT convive, mas você se confunde na hora do grep; (2) escrever `Suite:` no singular errado — o campo correto é `Suites:`; (3) esquecer `trixie-security` ao migrar só o `trixie` principal; (4) usar `stable` no Suites em servidor que deveria piná-lo no codinome; (5) colar chave com `apt-key add` 'porque o blog de 2018 mandou'.",
+
+      "Validação não é opinião: depois de editar, `sudo apt update` tem que terminar sem NO_PUBKEY / not signed / 404. `apt-cache policy` mostra se os Package files vieram das suítes que você espera. `grep`/`sed` em massa no clássico não se aplica igual — no DEB822 você altera o campo `Suites:` com editor ou `sed` cirúrgico no arquivo certo. Em upgrade bookworm→trixie, **todos** os formatos precisam da troca de codinome: `.list` e `.sources`.",
+
+      "Ao terminar este capítulo você deve abrir um `.sources`, explicar cada linha para outra pessoa, converter um `deb` de uma linha para DEB822, e adicionar um repo de terceiro com chave em `/usr/share/keyrings` + Signed-By — sem tocar em apt-key. O capítulo de sources.list clássico continua válido; este é o complemento obrigatório para Debian 12/13 e para o que vem pela frente.",
+    ],
+    commands: [
+      {
+        command: "ls -la /etc/apt/sources.list /etc/apt/sources.list.d/",
+        description:
+          "Veja o que existe: sources.list legado, *.list e *.sources. O inventário vem antes de qualquer edição.",
+        example: "ls -la /etc/apt/sources.list /etc/apt/sources.list.d/",
+        output:
+          "-rw-r--r-- 1 root root  92 /etc/apt/sources.list\ndrwxr-xr-x 2 root root 4096 /etc/apt/sources.list.d\n/etc/apt/sources.list.d/debian.sources",
+      },
+      {
+        command: "cat /etc/apt/sources.list.d/debian.sources",
+        description:
+          "Lê o bloco DEB822 típico da instalação (nome do arquivo pode variar). Identifique Types, URIs, Suites, Components, Signed-By.",
+        example: "sed -n '1,40p' /etc/apt/sources.list.d/*.sources 2>/dev/null | head -n 40",
+        output:
+          "Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie trixie-updates\nComponents: main contrib non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://security.debian.org/debian-security\nSuites: trixie-security\nComponents: main contrib non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg",
+      },
+      {
+        command: "man sources.list",
+        description:
+          "Documentação oficial dos dois formatos (one-line e deb822). Busque a seção DEB822 dentro do manual.",
+        example: "man sources.list",
+      },
+      {
+        command: "grep -nE '^(Types|URIs|Suites|Components|Signed-By):' /etc/apt/sources.list.d/*.sources 2>/dev/null",
+        description:
+          "Atalho para listar só os campos-chave de todos os .sources — útil em auditoria rápida.",
+        example:
+          "grep -nE '^(Types|URIs|Suites|Components|Signed-By):' /etc/apt/sources.list.d/*.sources 2>/dev/null",
+      },
+      {
+        command: "grep -nE '^deb |^deb-src ' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null",
+        description:
+          "Inventário do formato clássico de uma linha, para comparar lado a lado com DEB822.",
+        example:
+          "grep -nE '^deb |^deb-src ' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null",
+      },
+      {
+        command: "dpkg -L debian-archive-keyring | grep gpg | head",
+        description:
+          "Mostra onde estão as chaves oficiais do arquivo Debian — candidatas naturais ao campo Signed-By dos mirrors oficiais.",
+        example: "dpkg -L debian-archive-keyring | grep -E 'gpg|pgp' | head",
+        output:
+          "/usr/share/keyrings/debian-archive-keyring.gpg\n/usr/share/keyrings/debian-archive-bookworm-stable.gpg",
+      },
+      {
+        command: "sudo cp -a /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak-$(date +%F)",
+        description:
+          "Backup versionado por data antes de editar. Hábito barato que evita 'apaguei o Suites e o update morreu'.",
+        example:
+          "sudo cp -a /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak-$(date +%F)",
+      },
+      {
+        command: "sudo nano /etc/apt/sources.list.d/debian.sources",
+        description:
+          "Edição interativa do bloco. Altere Suites com critério (codinome fixo) e mantenha security em stanza separado se já estiver assim.",
+        example: "sudo nano /etc/apt/sources.list.d/debian.sources",
+      },
+      {
+        command: "sudo apt update",
+        description:
+          "Única validação que importa depois de salvar: índices baixam e assinaturas fecham. Erro aqui = arquivo ou chave, não 'internet genérica'.",
+        example: "sudo apt update",
+      },
+      {
+        command: "apt-cache policy | head -n 35",
+        description:
+          "Confere se as entradas Package files refletem as suítes que você configurou no DEB822.",
+        example: "apt-cache policy | head -n 35",
+        output:
+          "Package files:\n 100 /var/lib/dpkg/status\n     release a=now\n 500 http://deb.debian.org/debian trixie/main amd64 Packages\n     release v=13.0,o=Debian,a=stable,n=trixie,l=Debian,c=main,b=amd64",
+      },
+      {
+        command: "cat >/tmp/exemplo-terceiro.sources <<'EOF'\nTypes: deb\nURIs: https://exemplo.invalid/debian\nSuites: stable\nComponents: main\nSigned-By: /usr/share/keyrings/exemplo.gpg\nEOF",
+        description:
+          "Modelo de arquivo DEB822 para terceiro (não instale o exemplo invalid). Use como molde: chave real em keyrings + Signed-By + copiar para sources.list.d só quando a URI existir.",
+        example:
+          "cat /tmp/exemplo-terceiro.sources",
+        output:
+          "Types: deb\nURIs: https://exemplo.invalid/debian\nSuites: stable\nComponents: main\nSigned-By: /usr/share/keyrings/exemplo.gpg",
+      },
+      {
+        command: "apt-get indextargets 2>/dev/null | head -n 20",
+        description:
+          "Visão interna do que o APT enxerga como alvos de índice (quando disponível) — útil para depurar fonte 'sumida'.",
+        example: "apt-get indextargets 2>/dev/null | head -n 20",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "Os dois formatos são válidos juntos",
+        content:
+          "APT soma sources.list + *.list + *.sources. Migrar tudo de uma vez é opcional; o que não é opcional é saber qual arquivo manda na suíte que você acha que está usando.",
+      },
+      {
+        type: "warning",
+        title: "Suites no plural",
+        content:
+          "O campo correto é Suites: (com s). Suite: errado é fonte clássica de bloco ignorado ou parse estranho. Confira a grafia duas vezes.",
+      },
+      {
+        type: "danger",
+        title: "Signed-By não é enfeite",
+        content:
+          "Repo de terceiro sem chave dedicada ou com apt-key global é modelo antigo e frágil. Gere/baixe a chave em /usr/share/keyrings e referencie no Signed-By.",
+      },
+      {
+        type: "success",
+        title: "Upgrade de release também é DEB822",
+        content:
+          "Ao ir de bookworm para trixie, troque Suites nos .sources com o mesmo rigor das linhas deb. grep -R bookworm /etc/apt é seu amigo.",
+      },
+      {
+        type: "info",
+        title: "security em stanza próprio",
+        content:
+          "É comum (e legível) ter um bloco para o mirror principal e outro para debian-security com Suites: trixie-security. Não misture URIs diferentes no mesmo stanza sem querer.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Auditoria DEB822 em 10 minutos",
+        goal: "Sair com um mapa escrito: quais arquivos .sources existem, quais Suites e se Signed-By aponta para arquivo real.",
+        steps: [
+          "Liste /etc/apt/sources.list.d",
+          "Mostre o conteúdo de cada *.sources",
+          "Para cada Signed-By, rode ls -l no caminho da chave",
+          "Rode apt update e anote se há aviso de assinatura",
+          "Salve a saída em ~/auditoria-apt-sources.txt",
+        ],
+        command: `{
+  echo "=== listagem ==="
+  ls -la /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null
+  echo
+  echo "=== conteudo .sources ==="
+  for f in /etc/apt/sources.list.d/*.sources; do
+    [ -f "$f" ] || continue
+    echo "---- $f ----"
+    cat "$f"
+    echo
+  done
+  echo "=== chaves referenciadas ==="
+  grep -h '^Signed-By:' /etc/apt/sources.list.d/*.sources 2>/dev/null | sort -u | while read -r _ path; do
+    ls -l "$path" 2>&1
+  done
+} | tee ~/auditoria-apt-sources.txt`,
+        expected: "Arquivo ~/auditoria-apt-sources.txt com stanzas e ls das chaves",
+        verify:
+          "Toda linha Signed-By deve apontar para arquivo existente. Suites devem usar codinome coerente com /etc/os-release (ou justificar LTS/oldstable). apt update sem erro de assinatura.",
+      },
+      {
+        title: "Conversão guiada (no papel ou em VM)",
+        goal: "Traduzir uma linha deb clássica para um bloco DEB822 correto.",
+        steps: [
+          "Pegue a linha: deb http://deb.debian.org/debian trixie main contrib non-free-firmware",
+          "Escreva o bloco Types/URIs/Suites/Components/Signed-By",
+          "Compare com o debian.sources real da máquina",
+          "Opcional em VM: crie /etc/apt/sources.list.d/lab.sources, apt update, depois remova",
+        ],
+        command: `echo "Classico:"
+echo "deb http://deb.debian.org/debian trixie main contrib non-free-firmware"
+echo
+echo "DEB822 equivalente (modelo):"
+cat <<'EOF'
+Types: deb
+URIs: http://deb.debian.org/debian
+Suites: trixie
+Components: main contrib non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF`,
+        verify:
+          "Seu bloco tem os cinco campos e a Suite é o codinome (não um componente). Components não inclui a URL. Signed-By é caminho de arquivo, não URL da chave.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Qual a diferença principal entre um arquivo .list e um .sources para o APT?",
+        answer:
+          ".list (e sources.list) usa o formato de uma linha (deb/deb-src ...). .sources usa DEB822: blocos com campos Types, URIs, Suites, Components, Signed-By, etc. O APT pode ler os dois ao mesmo tempo.",
+      },
+      {
+        id: 2,
+        question: "Converta mentalmente: deb http://deb.debian.org/debian trixie main — quais campos DEB822?",
+        answer:
+          "Types: deb; URIs: http://deb.debian.org/debian; Suites: trixie; Components: main; Signed-By: (caminho da chave do arquivo Debian, em geral debian-archive-keyring.gpg).",
+      },
+      {
+        id: 3,
+        question: "Para que serve o campo Signed-By?",
+        answer:
+          "Associa aquele repositório a um arquivo de chave GPG específico, limitando qual chave valida os índices daquele URI — substituto seguro do apt-key global.",
+      },
+      {
+        id: 4,
+        question: "Por que misturar o mesmo mirror em .list e .sources pode ser má ideia?",
+        answer:
+          "Porque o APT soma as entradas e você perde clareza sobre qual arquivo controla a suíte; facilita duplicata, conflito na hora de migrar codinome e debug mais difícil.",
+      },
+      {
+        id: 5,
+        question: "Qual o nome correto do campo da suíte no DEB822: Suite ou Suites?",
+        answer:
+          "Suites: (plural). É um erro comum escrever Suite: e estranhar o comportamento do APT.",
+      },
+      {
+        id: 6,
+        question: "Como você valida que a edição DEB822 funcionou?",
+        answer:
+          "sudo apt update sem erros de assinatura/404, e apt-cache policy mostrando as suítes esperadas nos Package files.",
+      },
+      {
+        id: 7,
+        question: "Onde costumam ficar as chaves oficiais referenciadas pelo Signed-By do Debian?",
+        answer:
+          "Em /usr/share/keyrings/, fornecidas pelo pacote debian-archive-keyring (arquivos .gpg).",
+      },
+      {
+        id: 8,
+        question: "No upgrade bookworm→trixie, o que fazer nos arquivos .sources?",
+        answer:
+          "Atualizar o campo Suites (e stanzas de security/updates) de bookworm para trixie em todos os .sources relevantes, com o mesmo cuidado das linhas deb clássicas; depois apt update e seguir o checklist de full-upgrade.",
+      },
+    ],
+    references: [
+      {
+        title: "man sources.list (one-line e DEB822)",
+        url: "https://manpages.debian.org/sources.list.5",
+      },
+      {
+        title: "Wiki Debian — SourcesList",
+        url: "https://wiki.debian.org/SourcesList",
+      },
+      {
+        title: "Debian Repository Format",
+        url: "https://wiki.debian.org/DebianRepository/Format",
+      },
+      {
+        title: "man apt-secure",
+        url: "https://manpages.debian.org/apt-secure.8",
+      },
+      {
+        title: "Wiki — SecureApt",
+        url: "https://wiki.debian.org/SecureApt",
+      },
+    ],
+  },
 ];
