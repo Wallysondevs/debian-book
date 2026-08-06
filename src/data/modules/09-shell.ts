@@ -1006,4 +1006,1007 @@ echo 'agora aperte Ctrl+R para ver o fzf em ação'`,
       },
     ],
   },
+  {
+    id: "man-info",
+    title: "man, info e documentação local — resposta offline",
+    icon: "📖",
+    category: "Shell e Produtividade",
+    description:
+      "Ache a resposta no próprio Debian: man, seções, apropos/whatis, info, /usr/share/doc e quando cada fonte ganha da busca na web.",
+    objectives: [
+      "Abrir manuais com man e ir à seção certa (man 5, man 8)",
+      "Usar apropos/whatis e entender o papel do mandb",
+      "Navegar man com os atalhos do less",
+      "Distinguir man, info, --help e docs em /usr/share/doc",
+      "Exportar man para texto quando precisar colar num ticket",
+      "Saber quando a doc local é mais confiável que um post aleatório",
+    ],
+    content: [
+      "Quando a rede cai ou o post do blog descreve outra distro, sobra o que está instalado na máquina. **Documentação local** no Debian não é luxo de bibliotecário: é o contrato do pacote com você. O eixo é o **man** (manual pages), organizado em **seções** numeradas: 1 comandos de usuário, 5 formatos de arquivo, 8 admin. Por isso `man crontab` e `man 5 crontab` não são a mesma página.",
+
+      "Três jargões. **Pager**: o man entrega o texto ao `less` (q sai, / busca, n próximo). **apropos** / **whatis**: buscam na base de short descriptions; se der *nothing appropriate*, muitas vezes o índice (**mandb**) está velho ou o pacote de manpages não veio. **info**: sistema GNU com nós e menus — denso, mas oficial para coreutils e gcc.",
+
+      "Caminho feliz: `man comando` → se ambíguo, `man -k palavra` ou `apropos` → confirme a seção com `whatis` → para config, force seção 5; para daemons, 8. Builtins do Bash não têm man completo às vezes: use `help comando` ou `man bash`. Pacotes trazem README e exemplos em `/usr/share/doc/PACOTE/`.",
+
+      "Armadilhas. Copiar flag de Ubuntu/Arch sem olhar a man da **sua** versão. Ignorar que `manpages-pt` / traduções podem estar defasadas — em dúvida, inglês da seção certa. Achar que `--help` substitui man: ajuda rápida, sem semântica de arquivos e sinais. Rodar `mandb` como root só quando fizer sentido (pós-instalação massiva).",
+
+      "Quando NÃO: perder uma hora decifrando info hermético se o handbook Debian já tem o runbook; ou o contrário — googlar 'como formatar disco' e pular o man do `cryptsetup` no meio de um LUKS real. Doc local brilha em flags, códigos de saída e formatos; cenário de arquitetura ainda pede handbook/wiki.",
+
+      "Ao terminar você acha a página certa sem chute, reconstrói o índice se a busca falhar, e sabe empilhar man + /usr/share/doc + help de builtin antes de colar comando de fórum.",
+
+    ],
+    commands: [
+      {
+        command: "man man",
+        description:
+          "O manual do próprio man — seções e convenções.",
+        example: "man man",
+      },
+      {
+        command: "man 5 crontab",
+        description:
+          "Força a seção 5 (formato do arquivo), não o comando da seção 1/8.",
+        example: "man 5 crontab",
+      },
+      {
+        command: "whatis apt ss systemctl",
+        description:
+          "Uma linha de descrição para cada nome.",
+        example: "whatis apt ss systemctl",
+      },
+      {
+        command: "apropos firewall",
+        description:
+          "Busca por palavra-chave nas short descriptions.",
+        example: "apropos firewall",
+      },
+      {
+        command: "man -k 'package manager'",
+        description:
+          "Sinônimo de apropos com a interface do man.",
+        example: "man -k 'package manager'",
+      },
+      {
+        command: "sudo mandb",
+        description:
+          "Atualiza a base whatis/apropos (após instalar muitos pacotes).",
+        example: "sudo mandb",
+      },
+      {
+        command: "man -P 'col -b' ls | head -n 40",
+        description:
+          "Extrai man sem formatação de terminal (útil para tickets).",
+        example: "man -P 'col -b' ls | head -n 40",
+      },
+      {
+        command: "info coreutils",
+        description:
+          "Entra no sistema info do GNU coreutils.",
+        example: "info coreutils",
+      },
+      {
+        command: "ls /usr/share/doc/apt | head",
+        description:
+          "Docs e exemplos empacotados com o apt.",
+        example: "ls /usr/share/doc/apt | head",
+      },
+      {
+        command: "help cd | head",
+        description:
+          "Ajuda de builtin do Bash (não é página man completa).",
+        example: "help cd | head",
+      },
+      {
+        command: "dpkg -L netcat-openbsd 2>/dev/null | grep -E 'man|doc' | head",
+        description:
+          "Onde o pacote instalou man/doc.",
+        example: "dpkg -L netcat-openbsd 2>/dev/null | grep -E 'man|doc' | head",
+      },
+      {
+        command: "man -a printf | head -n 5",
+        description:
+          "Lista/abre todas as seções disponíveis para o nome.",
+        example: "man -a printf | head -n 5",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "Seção errada, resposta errada",
+        content:
+          "crontab, passwd e printf existem em mais de uma seção.",
+      },
+      {
+        type: "warning",
+        title: "Tradução desatualizada",
+        content:
+          "Se o português discordar do comportamento, confira a página EN.",
+      },
+      {
+        type: "success",
+        title: "Ticket com man colado",
+        content:
+          "man -P 'col -b' evita lixo de formatação.",
+      },
+      {
+        type: "danger",
+        title: "Comando destrutivo sem man",
+        content:
+          "Leia EXIT STATUS e BUGS antes de dd/cryptsetup/lvremove.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Mapa de documentação de um pacote",
+        goal: "Para o pacote openssh-client (ou similar), listar man, whatis e arquivos em /usr/share/doc.",
+        steps: [
+          "whatis ssh scp sftp",
+          "man 1 ssh | head (só confirmar que abre)",
+          "ls /usr/share/doc/openssh-client",
+          "Anotar em ~/doc-map.txt as três fontes",
+        ],
+        command: "{ echo '=== whatis ==='; whatis ssh scp 2>/dev/null; echo; echo '=== doc dir ==='; ls /usr/share/doc/openssh-client 2>/dev/null | head; } | tee ~/doc-map.txt",
+        verify:
+          "Você tem um arquivo com whatis + lista de docs e sabe onde olhar flags vs exemplos longos.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Para que serve a seção 5 do man?",
+        answer:
+          "Descrever formatos de arquivo e convenções de config (ex.: crontab, sshd_config).",
+      },
+      {
+        id: 2,
+        question: "Diferença entre whatis e apropos?",
+        answer:
+          "whatis descreve nomes exatos; apropos busca palavra-chave nas descriptions.",
+      },
+      {
+        id: 3,
+        question: "nothing appropriate no apropos — causa comum?",
+        answer:
+          "Índice mandb desatualizado ou manpages do pacote não instaladas.",
+      },
+      {
+        id: 4,
+        question: "Como ver o man do formato de crontab e não do comando?",
+        answer:
+          "man 5 crontab",
+      },
+      {
+        id: 5,
+        question: "Onde pacotes costumam deixar README/exemplos?",
+        answer:
+          "/usr/share/doc/NOME-DO-PACOTE/",
+      },
+      {
+        id: 6,
+        question: "Builtin cd não tem man útil — o que usar?",
+        answer:
+          "help cd (ou man bash).",
+      },
+      {
+        id: 7,
+        question: "Qual pager o man usa por padrão na prática?",
+        answer:
+          "less (navegação com /, q, etc.).",
+      },
+      {
+        id: 8,
+        question: "Quando preferir man à busca web?",
+        answer:
+          "Flags, seções e comportamento da versão instalada; menos risco de receita de outra distro.",
+      },
+    ],
+    references: [
+      { title: "man man", url: "https://manpages.debian.org/man" },
+      { title: "Debian Reference — Manual pages", url: "https://www.debian.org/doc/manuals/debian-reference/" },
+      { title: "GNU info", url: "https://www.gnu.org/software/texinfo/manual/info/" },
+      { title: "man apropos", url: "https://manpages.debian.org/apropos" },
+    ],
+  },
+  {
+    id: "tmux",
+    title: "tmux — sessões que sobrevivem ao SSH",
+    icon: "🪟",
+    category: "Shell e Produtividade",
+    description:
+      "Use tmux no Debian para não perder o trabalho quando o SSH cai: sessões, janelas, painéis, detach/attach e o mínimo de config que vale a pena.",
+    objectives: [
+      "Explicar por que tmux existe (PTY persistente + multiplexação)",
+      "Criar, listar, detach e reattach de sessões",
+      "Dividir painéis e criar janelas com atalhos padrão",
+      "Nomear sessões para lab vs produção mental",
+      "Sobreviver a queda de SSH sem matar processos longos",
+      "Saber o limite: tmux não é backup nem orchestrator",
+    ],
+    content: [
+      "SSH caiu no meio de um `apt full-upgrade` ou de um compile de 40 minutos. Sem multiplexador, o processo recebe SIGHUP e você recomeça a vida. **tmux** mantém uma sessão no servidor: você **detach** (some da UI) e **attach** depois, do mesmo notebook ou de outro. É o cinto de segurança do admin remoto.",
+
+      "Jargões. **Sessão**: conjunto de janelas que persiste no host. **Janela**: como abas. **Painel**: split dentro da janela. **Prefix**: tecla líder (padrão Ctrl-b) antes dos atalhos. **screen** é o primo mais velho; no Debian atual tmux é o padrão mental da equipe.",
+
+      "Fluxo mínimo: `tmux new -s lab` → trabalhe → Ctrl-b d (detach) → `tmux attach -t lab`. Liste com `tmux ls`. Janelas: Ctrl-b c (cria), Ctrl-b n/p (próxima/anterior). Painéis: Ctrl-b % (vertical), Ctrl-b \" (horizontal), Ctrl-b setas para navegar. Copie o prefix se o terminal local engolir Ctrl-b.",
+
+      "Armadilhas. Rodar tmux **dentro** de tmux sem querer e se perder nos prefixes. Deixar sessão root com secrets na scrollback. Achar que detach = processo à prova de reboot (não: reboot mata sessão). Usar tmux como desculpa para não ter systemd unit em serviço real long-running.",
+
+      "Quando NÃO: serviço de produção que deveria ser unit systemd; CI que já isola job; desktop local onde um terminal com abas basta. Quando SIM: qualquer manutenção SSH, tail de log + editor, dois hosts mentais (sessão `prod-ro` vs `lab`).",
+
+      "Ao terminar você abre sessão nomeada, sobrevive a disconnect, navega janelas/painéis e não confunde tmux com supervisão de daemons.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y tmux",
+        description:
+          "Instala o multiplexador.",
+        example: "sudo apt install -y tmux",
+      },
+      {
+        command: "tmux -V",
+        description:
+          "Confirma binário e versão.",
+        example: "tmux -V",
+      },
+      {
+        command: "tmux new -s lab",
+        description:
+          "Cria sessão chamada lab e entra nela.",
+        example: "tmux new -s lab",
+      },
+      {
+        command: "tmux ls",
+        description:
+          "Lista sessões ativas no host.",
+        example: "tmux ls",
+      },
+      {
+        command: "tmux attach -t lab",
+        description:
+          "Reconecta na sessão lab.",
+        example: "tmux attach -t lab",
+      },
+      {
+        command: "tmux detach",
+        description:
+          "Detach pela linha de comando (equivale a Ctrl-b d).",
+        example: "tmux detach",
+      },
+      {
+        command: "tmux rename-session -t lab manutencao",
+        description:
+          "Renomeia sessão.",
+        example: "tmux rename-session -t lab manutencao",
+      },
+      {
+        command: "tmux kill-session -t lab",
+        description:
+          "Encerra a sessão e os processos dela.",
+        example: "tmux kill-session -t lab",
+      },
+      {
+        command: "tmux new-window -t lab -n logs",
+        description:
+          "Nova janela nomeada dentro da sessão (de fora).",
+        example: "tmux new-window -t lab -n logs",
+      },
+      {
+        command: "man tmux",
+        description:
+          "Referência completa de atalhos e opções.",
+        example: "man tmux",
+      },
+      {
+        command: "printf '%s\n' 'set -g mouse on' >> ~/.tmux.conf",
+        description:
+          "Habilita mouse (opcional) na config do usuário.",
+        example: "printf '%s\n' 'set -g mouse on' >> ~/.tmux.conf",
+      },
+      {
+        command: "tmux source-file ~/.tmux.conf",
+        description:
+          "Recarrega config sem sair da sessão.",
+        example: "tmux source-file ~/.tmux.conf",
+      },
+    ],
+    tips: [
+      {
+        type: "success",
+        title: "Nomeie sessões",
+        content:
+          "lab, upgrade, logs — attach deixa de ser loteria.",
+      },
+      {
+        type: "warning",
+        title: "Reboot limpa tmux",
+        content:
+          "Persistência é entre SSHs, não entre boots.",
+      },
+      {
+        type: "info",
+        title: "Prefix padrão Ctrl-b",
+        content:
+          "Ctrl-b ? lista atalhos dentro da sessão.",
+      },
+      {
+        type: "danger",
+        title: "kill-session é definitivo",
+        content:
+          "Mata processos que estavam na sessão.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Sobreviver ao disconnect simulado",
+        goal: "Criar sessão, rodar sleep longo, detach, reattach e ver o processo vivo.",
+        steps: [
+          "tmux new -s prova -d",
+          "tmux send-keys -t prova 'sleep 300' C-m",
+          "tmux ls",
+          "tmux attach -t prova (confira sleep) e detach",
+        ],
+        command: "tmux has-session -t prova 2>/dev/null || tmux new -s prova -d; tmux list-panes -t prova -F '#{pane_current_command}'",
+        verify:
+          "Sessão prova existe e você consegue attach/detach sem matar o trabalho.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Por que tmux ajuda quando o SSH cai?",
+        answer:
+          "A sessão e os processos ficam no servidor; só a UI local some.",
+      },
+      {
+        id: 2,
+        question: "Atalho padrão de detach?",
+        answer:
+          "Ctrl-b depois d.",
+      },
+      {
+        id: 3,
+        question: "Comando para listar sessões?",
+        answer:
+          "tmux ls (ou tmux list-sessions).",
+      },
+      {
+        id: 4,
+        question: "Diferença sessão vs janela vs painel?",
+        answer:
+          "Sessão agrupa janelas; janela é aba; painel é split na janela.",
+      },
+      {
+        id: 5,
+        question: "tmux substitui systemd para um daemon?",
+        answer:
+          "Não — serviço de produção deve ser unit, não sessão interativa.",
+      },
+      {
+        id: 6,
+        question: "O que acontece com sessões após reboot?",
+        answer:
+          "Desaparecem; não há persistência além do uptime do host.",
+      },
+      {
+        id: 7,
+        question: "Como criar sessão nomeada deploy?",
+        answer:
+          "tmux new -s deploy",
+      },
+      {
+        id: 8,
+        question: "Risco de sessão root com scrollback?",
+        answer:
+          "Segredos e saídas sensíveis ficam na memória/histórico da sessão.",
+      },
+    ],
+    references: [
+      { title: "man tmux", url: "https://manpages.debian.org/tmux" },
+      { title: "tmux wiki / getting started", url: "https://github.com/tmux/tmux/wiki" },
+      { title: "Debian package tmux", url: "https://packages.debian.org/tmux" },
+    ],
+  },
+  {
+    id: "git-admin",
+    title: "git no dia a dia do admin — dotfiles e diffs com cuidado",
+    icon: "🌿",
+    category: "Shell e Produtividade",
+    description:
+      "Use git como ferramenta de admin: versionar dotfiles e configs, diff antes de reiniciar serviço, e não vazar segredo no repositório.",
+    objectives: [
+      "Iniciar repo local para dotfiles ou /etc seletivo",
+      "Ler diff e log antes de aplicar mudança arriscada",
+      "Usar .gitignore para chaves, tokens e caches",
+      "Stash rápido quando a interrupção aparece",
+      "Clonar e puxar playbooks/dotfiles com menos fricção",
+      "Separar 'histórico útil' de 'commit que grava senha'",
+    ],
+    content: [
+      "Admin sem histórico reescreve o mesmo `sshd_config` três vezes e não sabe o que mudou na sexta-feira. **git** não é só para dev de app: é máquina do tempo para **dotfiles**, snippets e, com disciplina, trechos de config. O valor está no **diff** legível e no commit pequeno com mensagem humana.",
+
+      "Jargões. **Working tree** vs **staging** vs **commit**. **.gitignore**: o que nunca deveria ser versionado (*.pem, .env, id_rsa). **Bare** / bare repo e ferramentas tipo etckeeper existem; neste capítulo o foco é o fluxo diário seguro, não virar o /etc inteiro num monorepo sem política.",
+
+      "Fluxo dotfiles: `~/dotfiles` com git init → copie ou linke `.bashrc`, `.tmux.conf` → commit → no host novo clone e link. Fluxo mudança de serviço: edite um arquivo de lab → `git diff` → teste → commit. Em emergência: `git stash` para estacionar trabalho sujo.",
+
+      "Armadilhas. Commit de chave privada ou export de env. `git add .` cego em home. Forçar push em repo compartilhado de infra sem acordo (aqui: **sem push** se a regra do projeto proíbe). Reescrever history depois de vazar secret sem rotacionar o secret.",
+
+      "Quando NÃO: achar que git substitui backup offsite; versionar banco; guardar dump com PII. Quando SIM: rastrear hardening iterativo, dotfiles, scripts de manutenção, anotações de runbook em markdown.",
+
+      "Ao terminar você monta um repo de dotfiles mínimo, ignora segredos, lê diff com intenção e não trata git push como passo automático em VPS compartilhada.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y git",
+        description:
+          "Cliente git no Debian.",
+        example: "sudo apt install -y git",
+      },
+      {
+        command: "git --version",
+        description:
+          "Confirma instalação.",
+        example: "git --version",
+      },
+      {
+        command: "git config --global user.name 'Wallyson Admin'",
+        description:
+          "Identidade de commits locais (ajuste o nome).",
+        example: "git config --global user.name 'Wallyson Admin'",
+      },
+      {
+        command: "git config --global user.email 'admin@example.invalid'",
+        description:
+          "E-mail de commit (pode ser local-only).",
+        example: "git config --global user.email 'admin@example.invalid'",
+      },
+      {
+        command: "mkdir -p ~/dotfiles && cd ~/dotfiles && git init",
+        description:
+          "Repo para dotfiles.",
+        example: "mkdir -p ~/dotfiles && cd ~/dotfiles && git init",
+      },
+      {
+        command: "printf '%s\n' '*.pem' '*.key' '.env' 'id_rsa*' '.ssh/' > ~/dotfiles/.gitignore",
+        description:
+          "Ignore padrões perigosos cedo.",
+        example: "printf '%s\n' '*.pem' '*.key' '.env' 'id_rsa*' '.ssh/' > ~/dotfiles/.gitignore",
+      },
+      {
+        command: "cp ~/.bashrc ~/dotfiles/bashrc && cd ~/dotfiles && git add bashrc .gitignore && git status",
+        description:
+          "Primeiro arquivo rastreado + status.",
+        example: "cp ~/.bashrc ~/dotfiles/bashrc && cd ~/dotfiles && git add bashrc .gitignore && git status",
+      },
+      {
+        command: "cd ~/dotfiles && git commit -m 'chore: bashrc inicial'",
+        description:
+          "Commit local com mensagem clara.",
+        example: "cd ~/dotfiles && git commit -m 'chore: bashrc inicial'",
+      },
+      {
+        command: "cd ~/dotfiles && git log --oneline -n 5",
+        description:
+          "Histórico curto.",
+        example: "cd ~/dotfiles && git log --oneline -n 5",
+      },
+      {
+        command: "cd ~/dotfiles && echo '# tip' >> bashrc && git diff",
+        description:
+          "Ver mudança antes de commitar.",
+        example: "cd ~/dotfiles && echo '# tip' >> bashrc && git diff",
+      },
+      {
+        command: "cd ~/dotfiles && git stash push -m 'wip' && git stash list",
+        description:
+          "Estaciona trabalho sujo.",
+        example: "cd ~/dotfiles && git stash push -m 'wip' && git stash list",
+      },
+      {
+        command: "man git-diff",
+        description:
+          "Referência de diff (ferramenta diária do admin).",
+        example: "man git-diff",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Segredo no git",
+        content:
+          "Assume vazado: rotacione chave/token, não só delete o arquivo no próximo commit.",
+      },
+      {
+        type: "warning",
+        title: "git add .",
+        content:
+          "Revise git status antes — home tem lixo e credenciais.",
+      },
+      {
+        type: "info",
+        title: "Mensagens",
+        content:
+          "chore/fix/docs no estilo do time batem com debian-book.",
+      },
+      {
+        type: "success",
+        title: "Diff antes de restart",
+        content:
+          "O hábito salva mais que qualquer GUI.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Dotfiles mínimos com ignore de segredo",
+        goal: "Repo ~/dotfiles com .gitignore e um arquivo de shell commitado.",
+        steps: [
+          "git init em ~/dotfiles",
+          "Criar .gitignore com *.pem e .env",
+          "Adicionar um arquivo dummy de alias",
+          "commit e git log -1",
+        ],
+        command: "test -d ~/dotfiles/.git && test -f ~/dotfiles/.gitignore && git -C ~/dotfiles log -1 --oneline",
+        verify:
+          "Há commit inicial e .gitignore bloqueando padrões óbvios de segredo.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Para que serve .gitignore no repo de dotfiles?",
+        answer:
+          "Evitar versionar chaves, tokens, caches e lixo sensível.",
+      },
+      {
+        id: 2,
+        question: "Por que git add . é perigoso em $HOME?",
+        answer:
+          "Pode incluir secrets e arquivos enormes sem revisão.",
+      },
+      {
+        id: 3,
+        question: "Comando para ver mudança não commitada?",
+        answer:
+          "git diff (e git status).",
+      },
+      {
+        id: 4,
+        question: "git stash serve para quê?",
+        answer:
+          "Guardar temporariamente alterações locais sem commit.",
+      },
+      {
+        id: 5,
+        question: "git substitui backup offsite?",
+        answer:
+          "Não — é histórico de texto, não estratégia 3-2-1.",
+      },
+      {
+        id: 6,
+        question: "O que fazer se commitou uma chave?",
+        answer:
+          "Rotacionar a chave e limpar history com processo consciente; não só apagar no commit seguinte.",
+      },
+      {
+        id: 7,
+        question: "Identidade git user.email é conta de login SSH?",
+        answer:
+          "Não — só metadado de commit.",
+      },
+      {
+        id: 8,
+        question: "Por que commits pequenos ajudam admin?",
+        answer:
+          "Diff legível, revert mais seguro, bisect mental mais fácil.",
+      },
+    ],
+    references: [
+      { title: "Git book", url: "https://git-scm.com/book/pt-br/v2" },
+      { title: "man gitignore", url: "https://manpages.debian.org/gitignore" },
+      { title: "Debian package git", url: "https://packages.debian.org/git" },
+    ],
+  },
+  {
+    id: "python-venv",
+    title: "Python e venv no Debian — não quebrar o system Python",
+    icon: "🐍",
+    category: "Shell e Produtividade",
+    description:
+      "Isole dependências com venv/pip no Debian sem pip install solto no Python do sistema (e sem quebrar apt).",
+    objectives: [
+      "Explicar por que o Python do sistema é sagrado no Debian",
+      "Criar e ativar um venv por projeto",
+      "Instalar pacotes com pip só dentro do venv",
+      "Gerar e pin requirements.txt de forma honesta",
+      "Reconhecer PEP 668 / externally-managed-environment",
+      "Saber quando usar pacote apt python3-foo vs pip",
+    ],
+    content: [
+      "No Debian, **Python do sistema** alimenta partes do apt e ferramentas da distro. `sudo pip install` no global é atalho famoso para **quebradeira**. A resposta moderna é **venv**: um prefixo isolado com seu próprio `python` e `pip`, sem brigar com o dpkg.",
+
+      "Jargões. **venv**: ambiente virtual. **site-packages**: onde os módulos moram. **PEP 668**: marca o interpretador como *externally managed* — pip recusa instalar no system sem força bruta. **requirements.txt**: lista pinada de deps do app, não do SO.",
+
+      "Fluxo: `sudo apt install python3-venv python3-pip` → `python3 -m venv .venv` → `source .venv/bin/activate` → `pip install` → `pip freeze > requirements.txt`. Desative com `deactivate`. Em scripts, chame `.venv/bin/python` sem ativar.",
+
+      "Armadilhas. `--break-system-packages` por preguiça. Misturar sudo com venv do usuário (arquivos root no .venv). Achar que venv sobrevive a apagar a pasta do projeto. Usar pip para algo que o Debian já empacota estável (ex.: ferramentas de sistema) sem necessidade.",
+
+      "Quando NÃO: reescrever o mundo com pip se o pacote oficial `python3-...` resolve com segurança. Quando SIM: apps suas, CLIs experimentais, pins de versão que o stable não tem.",
+
+      "Ao terminar você cria venv limpo, instala sem tocar no system site-packages e explica PEP 668 sem xingar o Debian.",
+
+    ],
+    commands: [
+      {
+        command: "python3 --version",
+        description:
+          "Python do sistema.",
+        example: "python3 --version",
+      },
+      {
+        command: "sudo apt install -y python3-venv python3-pip python3-full",
+        description:
+          "Ferramentas para venv e pip.",
+        example: "sudo apt install -y python3-venv python3-pip python3-full",
+      },
+      {
+        command: "mkdir -p ~/lab-venv && cd ~/lab-venv && python3 -m venv .venv",
+        description:
+          "Cria ambiente .venv.",
+        example: "mkdir -p ~/lab-venv && cd ~/lab-venv && python3 -m venv .venv",
+      },
+      {
+        command: "source ~/lab-venv/.venv/bin/activate && which python && python -V",
+        description:
+          "Ativa e confere que o binário é o do venv.",
+        example: "source ~/lab-venv/.venv/bin/activate && which python && python -V",
+      },
+      {
+        command: "source ~/lab-venv/.venv/bin/activate && pip install -U pip wheel",
+        description:
+          "Atualiza pip dentro do venv.",
+        example: "source ~/lab-venv/.venv/bin/activate && pip install -U pip wheel",
+      },
+      {
+        command: "source ~/lab-venv/.venv/bin/activate && pip install requests && pip show requests | head",
+        description:
+          "Instala e inspeciona um pacote só no venv.",
+        example: "source ~/lab-venv/.venv/bin/activate && pip install requests && pip show requests | head",
+      },
+      {
+        command: "source ~/lab-venv/.venv/bin/activate && pip freeze > ~/lab-venv/requirements.txt && head ~/lab-venv/requirements.txt",
+        description:
+          "Congela deps.",
+        example: "source ~/lab-venv/.venv/bin/activate && pip freeze > ~/lab-venv/requirements.txt && head ~/lab-venv/requirements.txt",
+      },
+      {
+        command: "deactivate 2>/dev/null; ~/lab-venv/.venv/bin/python -c 'import sys; print(sys.prefix)'",
+        description:
+          "Usa o python do venv sem ativar.",
+        example: "deactivate 2>/dev/null; ~/lab-venv/.venv/bin/python -c 'import sys; print(sys.prefix)'",
+      },
+      {
+        command: "python3 -m pip install --user nada 2>&1 | head -n 5 || true",
+        description:
+          "Muitas releases mostram bloqueio externally-managed (PEP 668).",
+        example: "python3 -m pip install --user nada 2>&1 | head -n 5 || true",
+      },
+      {
+        command: "apt-cache search '^python3-' | head",
+        description:
+          "Alternativa: pacotes Python mantidos pelo Debian.",
+        example: "apt-cache search '^python3-' | head",
+      },
+      {
+        command: "man python3",
+        description:
+          "Página man do interpretador.",
+        example: "man python3",
+      },
+      {
+        command: "rm -rf ~/lab-venv/.venv && echo 'venv removido — projeto volta a precisar recriar'",
+        description:
+          "Destruir venv é seguro; não mexe no system Python.",
+        example: "rm -rf ~/lab-venv/.venv && echo 'venv removido — projeto volta a precisar recriar'",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "sudo pip install",
+        content:
+          "Clássico para conflitar com dpkg e quebrar ferramentas.",
+      },
+      {
+        type: "warning",
+        title: "break-system-packages",
+        content:
+          "Existe para recuperação, não para hábito.",
+      },
+      {
+        type: "success",
+        title: "Chame .venv/bin/python em cron",
+        content:
+          "Não dependa de activate em serviço.",
+      },
+      {
+        type: "info",
+        title: "apt vs pip",
+        content:
+          "Sistema → apt; app isolado → venv.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Venv com requirements",
+        goal: "Criar venv, instalar um pacote leve, freeze e reimportar checando prefix.",
+        steps: [
+          "python3 -m venv ~/lab-venv/.venv",
+          "pip install requests dentro do venv",
+          "pip freeze > requirements.txt",
+          "python -c 'import sys; print(sys.prefix)' deve mostrar .../.venv",
+        ],
+        command: "~/lab-venv/.venv/bin/python -c 'import sys,requests; print(sys.prefix); print(requests.__version__)'",
+        verify:
+          "Import funciona e sys.prefix aponta para o .venv, não para /usr.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Por que evitar pip no Python do sistema Debian?",
+        answer:
+          "Conflita com pacotes dpkg e pode quebrar ferramentas da distro.",
+      },
+      {
+        id: 2,
+        question: "Comando para criar venv em .venv?",
+        answer:
+          "python3 -m venv .venv",
+      },
+      {
+        id: 3,
+        question: "O que é PEP 668 na prática?",
+        answer:
+          "Marca o ambiente como gerido externamente; pip recusa install global.",
+      },
+      {
+        id: 4,
+        question: "Como instalar deps só no venv?",
+        answer:
+          "Ativar o venv ou chamar .venv/bin/pip install.",
+      },
+      {
+        id: 5,
+        question: "pip freeze serve para quê?",
+        answer:
+          "Listar versões instaladas para requirements.",
+      },
+      {
+        id: 6,
+        question: "Apagar a pasta .venv afeta /usr/bin/python3?",
+        answer:
+          "Não.",
+      },
+      {
+        id: 7,
+        question: "Quando preferir python3-foo do apt?",
+        answer:
+          "Ferramentas de sistema e libs estáveis mantidas pela distro.",
+      },
+      {
+        id: 8,
+        question: "Por que cron deve usar caminho do python do venv?",
+        answer:
+          "activate é para shell interativo; caminho absoluto evita ambiente errado.",
+      },
+    ],
+    references: [
+      { title: "venv — Python docs", url: "https://docs.python.org/3/library/venv.html" },
+      { title: "PEP 668", url: "https://peps.python.org/pep-0668/" },
+      { title: "Debian Wiki — Python", url: "https://wiki.debian.org/Python" },
+    ],
+  },
+  {
+    id: "cli-moderna",
+    title: "Ferramentas modernas de CLI — ripgrep, fd, bat, jq",
+    icon: "⚡",
+    category: "Shell e Produtividade",
+    description:
+      "Acelere o dia a dia no Debian com ripgrep, fd, bat e jq — pacotes da distro, fluxos reais e quando ainda usar grep/find/cat.",
+    objectives: [
+      "Buscar código e logs com ripgrep (rg)",
+      "Encontrar arquivos com fd filtrando por nome/extensão",
+      "Ler arquivos com bat (syntax + pager)",
+      "Cortar JSON com jq em pipelines",
+      "Instalar as quatro via apt quando disponíveis",
+      "Combinar as ferramentas sem abandonar o básico POSIX",
+    ],
+    content: [
+      "`grep -R` em árvore grande dói. A geração **rg/fd/bat/jq** não é frescura de Twitter: é menos tempo até a linha certa. No Debian estável elas vêm como pacotes (`ripgrep`, `fd-find`, `bat`, `jq`) — nomes de binário às vezes ganham prefixo (`fdfind`, `batcat`) por conflito de nome.",
+
+      "Jargões. **ripgrep**: busca recursiva rápida com ignore sensato (.gitignore). **fd**: find humanizado. **bat**: cat com destaque e números. **jq**: sed do JSON. Aprender o binário real (`rg`, `fdfind`, `batcat`) evita 'command not found' após apt install.",
+
+      "Fluxos: `rg -n TODO src/`, `fdfind -e conf /etc`, `batcat /etc/ssh/sshd_config`, `curl -s URL | jq '.path'`. Combine: `fdfind -e json | head | xargs batcat` com cuidado. jq brilha em saída de `docker inspect`, APIs e journal exportado.",
+
+      "Armadilhas. Scripts de produção que exigem rg em sistema mínimo sem declarar dependência — prefira POSIX em scripts portáteis. `jq` em JSON gigante sem filtro. Alias cat=batcat quebrando scripts que parseiam saída crua.",
+
+      "Quando NÃO: boot rescue mínimo sem esses pacotes; scripts que precisam rodar em any POSIX. Quando SIM: shell interativa de admin, forense leve de repo, API debugging.",
+
+      "Ao terminar você instala as quatro, conhece o nome Debian do binário e monta um pipeline de busca→arquivo→JSON sem drama.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y ripgrep fd-find bat jq",
+        description:
+          "Instala a suíte moderna (nomes de pacote Debian).",
+        example: "sudo apt install -y ripgrep fd-find bat jq",
+      },
+      {
+        command: "rg --version; jq --version",
+        description:
+          "Confirma rg e jq.",
+        example: "rg --version; jq --version",
+      },
+      {
+        command: "fdfind --version 2>/dev/null || fd --version",
+        description:
+          "No Debian o binário costuma ser fdfind.",
+        example: "fdfind --version 2>/dev/null || fd --version",
+      },
+      {
+        command: "batcat --version 2>/dev/null || bat --version",
+        description:
+          "No Debian o binário costuma ser batcat.",
+        example: "batcat --version 2>/dev/null || bat --version",
+      },
+      {
+        command: "rg -n \"PermitRootLogin\" /etc/ssh 2>/dev/null || true",
+        description:
+          "Busca rápida com número de linha.",
+        example: "rg -n \"PermitRootLogin\" /etc/ssh 2>/dev/null || true",
+      },
+      {
+        command: "fdfind -e conf ssh /etc 2>/dev/null | head",
+        description:
+          "Arquivos .conf sob /etc ligados a ssh.",
+        example: "fdfind -e conf ssh /etc 2>/dev/null | head",
+      },
+      {
+        command: "batcat -n /etc/hostname 2>/dev/null || bat -n /etc/hostname",
+        description:
+          "Leitura com numeração.",
+        example: "batcat -n /etc/hostname 2>/dev/null || bat -n /etc/hostname",
+      },
+      {
+        command: "printf '%s\n' '{\"ok\":true,\"n\":3}' | jq '.n'",
+        description:
+          "Extrai campo JSON.",
+        example: "printf '%s\n' '{\"ok\":true,\"n\":3}' | jq '.n'",
+      },
+      {
+        command: "printf '%s\n' '[{\"p\":22},{\"p\":80}]' | jq '.[].p'",
+        description:
+          "Itera array JSON.",
+        example: "printf '%s\n' '[{\"p\":22},{\"p\":80}]' | jq '.[].p'",
+      },
+      {
+        command: "rg --help | head -n 20",
+        description:
+          "Flags essenciais do rg.",
+        example: "rg --help | head -n 20",
+      },
+      {
+        command: "man jq",
+        description:
+          "Manual do jq.",
+        example: "man jq",
+      },
+      {
+        command: "dpkg -L ripgrep | grep bin",
+        description:
+          "Onde o pacote colocou o binário.",
+        example: "dpkg -L ripgrep | grep bin",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        title: "Nomes Debian",
+        content:
+          "fd-find → fdfind; bat → batcat; crie alias se quiser.",
+      },
+      {
+        type: "success",
+        title: "rg respeita .gitignore",
+        content:
+          "Menos ruído em repos.",
+      },
+      {
+        type: "warning",
+        title: "Scripts portáteis",
+        content:
+          "Prefira grep/find em scripts que saem da sua máquina.",
+      },
+      {
+        type: "danger",
+        title: "jq e dados sensíveis",
+        content:
+          "Não jogue secret em log só para 'ver o json bonito'.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Quatro ferramentas em um fluxo",
+        goal: "Instalar (se faltar), achar um arquivo, ler com bat, filtrar JSON de exemplo.",
+        steps: [
+          "apt install ripgrep fd-find bat jq",
+          "fdfind hostname /etc",
+          "batcat no arquivo achado",
+          "echo json | jq",
+        ],
+        command: "command -v rg; command -v jq; (command -v fdfind || command -v fd); (command -v batcat || command -v bat)",
+        verify:
+          "Os quatro binários resolvem no PATH (com nomes Debian ou curtos).",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Pacote Debian do ripgrep?",
+        answer:
+          "ripgrep (binário rg).",
+      },
+      {
+        id: 2,
+        question: "Por que fd vira fdfind?",
+        answer:
+          "Conflito de nome com outro pacote; Debian renomeia o binário.",
+      },
+      {
+        id: 3,
+        question: "jq serve para quê?",
+        answer:
+          "Filtrar e transformar JSON em pipeline.",
+      },
+      {
+        id: 4,
+        question: "Vantagem do rg sobre grep -R ingênuo?",
+        answer:
+          "Velocidade, defaults sensatos, integração com ignore.",
+      },
+      {
+        id: 5,
+        question: "bat/batcat vs cat em scripts?",
+        answer:
+          "cat é previsível para máquina; bat é para humanos.",
+      },
+      {
+        id: 6,
+        question: "Como extrair .version de um JSON?",
+        answer:
+          "jq '.version'",
+      },
+      {
+        id: 7,
+        question: "Quando não depender de rg?",
+        answer:
+          "Ambientes mínimos e scripts POSIX portáteis.",
+      },
+      {
+        id: 8,
+        question: "Como achar o path do binário instalado pelo apt?",
+        answer:
+          "dpkg -L pacote | grep bin (ou command -v).",
+      },
+    ],
+    references: [
+      { title: "ripgrep", url: "https://github.com/BurntSushi/ripgrep" },
+      { title: "fd", url: "https://github.com/sharkdp/fd" },
+      { title: "bat", url: "https://github.com/sharkdp/bat" },
+      { title: "jq manual", url: "https://jqlang.github.io/jq/manual/" },
+      { title: "Debian packages", url: "https://packages.debian.org/" },
+    ],
+  },
 ];
