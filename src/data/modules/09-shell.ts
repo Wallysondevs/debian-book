@@ -1357,25 +1357,25 @@ examples`,
     commands: [
       {
         command: "sudo apt install -y git",
-        description: "Cliente Git no Debian.",
+        description: "Instala o Git do repositório Debian. Para versionar configuração de servidor não é preciso nada além disso: o pacote traz o cliente completo e as páginas de manual.",
       },
       {
         command: "git --version",
-        description: "Confirma instalação.",
+        description: "Confirma qual versão ficou instalada. Importa porque `git switch` e `git restore`, mais seguros no dia a dia que o `checkout` para tudo, existem a partir da 2.23.",
         output: `git version 2.39.5`,
       },
       {
         command: "git config --global user.name \"Admin Debian\"; git config --global user.email \"admin@example.com\"",
-        description: "Identidade mínima para commits locais.",
+        description: "Grava quem assina os commits no `~/.gitconfig`. Sem isso o primeiro commit falha reclamando de identidade; em servidor compartilhado use um nome que identifique a máquina, não um apelido.",
         example: "git config --global user.email \"admin@example.com\"",
       },
       {
         command: "mkdir -p ~/cfg && cd ~/cfg && git init",
-        description: "Repo pequeno — comece estreito.",
+        description: "Cria um repositório só para os arquivos de configuração que você realmente edita. Começar estreito é proposital: versionar `/etc` inteiro de primeira arrasta permissão, segredo e lixo de pacote junto.",
       },
       {
         command: "git status",
-        description: "O que mudou / untracked.",
+        description: "Mostra o que mudou, o que já está preparado para commit e o que o Git ainda não conhece. É o comando que você roda antes e depois de cada ação até o resultado ficar previsível.",
       },
       {
         command: "git diff",
@@ -1383,7 +1383,7 @@ examples`,
       },
       {
         command: "git add -p",
-        description: "Adiciona hunks — commits cirúrgicos.",
+        description: "Percorre a mudança em pedaços e pergunta o que entra. É assim que você separa 'ajustei a porta do sshd' de 'mudei o timeout' em dois commits, para poder reverter um sem perder o outro.",
       },
       {
         command: "git commit -m \"sshd: document AllowUsers for bastion\"",
@@ -1391,14 +1391,14 @@ examples`,
       },
       {
         command: "git log --oneline -n 10",
-        description: "Histórico curto para auditoria.",
+        description: "Histórico em uma linha por commit. Numa auditoria é a primeira leitura: se as mensagens não explicam por que a mudança foi feita, o histórico não serve como registro.",
         example: "git log --oneline -n 5",
         output: `a1b2c3d sshd: document AllowUsers for bastion
 9f8e7d6 initial nginx snippet`,
       },
       {
         command: "man git-status",
-        description: "Manual do subcomando.",
+        description: "Manual do subcomando; o padrão vale para todos (`man git-commit`, `man git-log`). É onde estão os estados de arquivo e o significado das colunas do formato curto.",
       },
     ],
     tips: [

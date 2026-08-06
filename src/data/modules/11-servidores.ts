@@ -1666,27 +1666,27 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "cd ~/lab-compose && (docker compose version || docker-compose version || podman compose version) 2>/dev/null | head",
         description:
-          "Qual binário compose existe.",
+          "Descobre qual implementação existe na máquina: o plugin atual `docker compose`, o binário antigo `docker-compose` ou `podman compose`. Os três leem quase o mesmo arquivo, mas divergem em rede e em variável de ambiente.",
       },
       {
         command: "cd ~/lab-compose && (docker compose up -d || docker-compose up -d || podman-compose up -d)",
         description:
-          "Sobe a stack em background.",
+          "Sobe a stack lendo o arquivo compose do diretório atual. O `-d` devolve o terminal; sem ele você fica preso no log e derruba tudo com um Ctrl+C distraído.",
       },
       {
         command: "cd ~/lab-compose && (docker compose ps || docker-compose ps || podman-compose ps)",
         description:
-          "Status dos serviços.",
+          "Estado de cada serviço da stack, com as portas publicadas. Serviço em `restarting` aqui é o sinal para ir direto ao log dele antes de mexer em qualquer outra coisa.",
       },
       {
         command: "curl -sI http://127.0.0.1:8088 | head -n 5",
         description:
-          "HTTP no nginx publicado.",
+          "Bate no nginx publicado e mostra só os cabeçalhos. Testar por 127.0.0.1 confirma que a porta do host chegou ao container: se falhar aqui, o problema é o mapeamento de porta, não a aplicação.",
       },
       {
         command: "cd ~/lab-compose && (docker compose logs --tail 10 db || docker-compose logs --tail=10 db || podman-compose logs db) 2>/dev/null | tail",
         description:
-          "Logs do banco.",
+          "Últimas linhas do serviço de banco. Banco que sobe e cai em loop quase sempre grita aqui o motivo: volume sem permissão ou variável de senha ausente.",
       },
       {
         command: "cd ~/lab-compose && (docker compose down || docker-compose down || podman-compose down)",
@@ -1696,7 +1696,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "man docker-compose 2>/dev/null || man podman-compose 2>/dev/null || true",
         description:
-          "Manual se empacotado.",
+          "Abre o manual se o pacote instalou um. O plugin novo se documenta por `docker compose --help`, então não estranhe a ausência de página de manual.",
       },
       {
         command: "printf '%s\n' 'POSTGRES_PASSWORD=labonly' > ~/lab-compose/.env && printf '%s\n' '.env' >> ~/lab-compose/.gitignore",
@@ -1706,12 +1706,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "cd ~/lab-compose && (docker compose config || docker-compose config || true) 2>/dev/null | head -n 40",
         description:
-          "Renderiza config efetiva.",
+          "Renderiza o arquivo final, com variáveis substituídas e defaults preenchidos. Mostra o que o compose entendeu, em vez do que você acha que escreveu.",
       },
       {
         command: "ss -lnt | grep 8088 || true",
         description:
-          "Confirma porta publicada no host.",
+          "Confirma que a porta está escutando no host. Vazio aqui, com o container rodando, significa que você publicou a porta apenas dentro da rede do compose.",
       },
     ],
     tips: [
@@ -1844,12 +1844,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt install -y ansible",
         description:
-          "Control node com Ansible.",
+          "Instala o Ansible na máquina que vai controlar as outras. Não existe agente no lado gerenciado: tudo roda por SSH e Python, então este é o único host que precisa de instalação.",
       },
       {
         command: "ansible --version | head -n 5",
         description:
-          "Versão e config path.",
+          "Além da versão, mostra qual arquivo de configuração está em uso e de onde vêm os módulos. Comportamento inesperado quase sempre se explica por um `ansible.cfg` diferente do que você imaginava.",
       },
       {
         command: "mkdir -p ~/lab-ansible && printf '%s\n' '[local]' 'localhost ansible_connection=local' > ~/lab-ansible/inventory.ini",
@@ -1864,12 +1864,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "cd ~/lab-ansible && ansible-inventory -i inventory.ini --list | head",
         description:
-          "Valida inventário.",
+          "Lê seu inventário e devolve como o Ansible o interpretou. Se um host não aparece no grupo esperado, o erro está no inventário e não no playbook — economiza uma hora de depuração no lugar errado.",
       },
       {
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml --check",
         description:
-          "Dry-run / check mode.",
+          "Modo simulação: relata o que mudaria sem aplicar. Nem todo módulo suporta bem, mas para pacote e arquivo é a rede de segurança antes de rodar em produção.",
       },
       {
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml",
@@ -1879,17 +1879,17 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "cd ~/lab-ansible && ansible local -i inventory.ini -m ping",
         description:
-          "Ping module no grupo local.",
+          "O módulo `ping` não usa ICMP: ele testa a cadeia completa — conexão, login e Python do outro lado — e responde `pong`. É o teste de conectividade que realmente vale.",
       },
       {
         command: "ansible-doc apt | head -n 40",
         description:
-          "Documentação do module apt.",
+          "Documentação do módulo direto no terminal, com opções e exemplos. Consultar aqui evita o erro clássico de copiar sintaxe de versão antiga achada em blog.",
       },
       {
         command: "man ansible-playbook",
         description:
-          "Manual do runner.",
+          "Manual do executor: onde estão `--limit` para restringir hosts, `--tags`, `--diff` para ver a mudança linha a linha e `-K` para pedir a senha de sudo.",
       },
       {
         command: "cd ~/lab-ansible && ansible-playbook -i inventory.ini site.yml | tail -n 20",
@@ -2413,22 +2413,22 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "dpkg-reconfigure -plow postfix 2>/dev/null | head || true",
         description:
-          "Reconfiguração guiada se precisar.",
+          "Reabre o assistente do pacote com todas as perguntas (`-plow` inclui as de baixa prioridade). Serve para corrigir o tipo de instalação escolhido às pressas durante o apt.",
       },
       {
         command: "postconf -n | head -n 40",
         description:
-          "Config efetiva principal.",
+          "Lista somente o que foi alterado em relação ao padrão. É a leitura honesta da sua configuração: curta, sem as centenas de valores default do `main.cf`.",
       },
       {
         command: "postconf relayhost",
         description:
-          "Se há smarthost definido.",
+          "Diz se existe smarthost configurado. Vazio significa que a máquina tenta entregar direto na internet — caminho que quase sempre cai em spam ou apanha do bloqueio de porta 25 do provedor.",
       },
       {
         command: "mailq",
         description:
-          "Fila de mensagens pendentes.",
+          "Fila de saída. Mensagem acumulando aqui indica entrega falhando, e cada item traz o motivo do adiamento — é por esse motivo que você começa a investigar, não pelo tamanho da fila.",
         example: "mailq | tail -1",
       },
       {
@@ -2439,22 +2439,22 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo tail -n 30 /var/log/mail.log 2>/dev/null || sudo journalctl -u postfix -n 30 --no-pager",
         description:
-          "Logs de entrega.",
+          "Log de entrega, onde aparece o diálogo SMTP real: aceito, adiado ou recusado, com o código devolvido pelo servidor do outro lado. Esse código diz se o problema é seu ou do destino.",
       },
       {
         command: "sudo postfix check && echo OK",
         description:
-          "Sanidade da config.",
+          "Checa sintaxe e permissão de diretório antes de recarregar. O Postfix é exigente com as permissões de `/var/spool/postfix`, e este comando aponta o problema com nome e caminho.",
       },
       {
         command: "man postfix",
         description:
-          "Visão geral.",
+          "Visão geral do sistema e dos processos que o compõem. Os parâmetros de configuração em si estão em `man 5 postconf`.",
       },
       {
         command: "ss -lnt | grep -E ':25|:587' || true",
         description:
-          "Listeners SMTP locais.",
+          "Mostra se há listener SMTP e em qual endereço. Numa máquina que apenas envia, o esperado é escutar só em 127.0.0.1 — escutar em todas as interfaces sem necessidade é convite a abuso.",
       },
       {
         command: "host -t TXT debian.org | head",
@@ -2464,7 +2464,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo postqueue -p",
         description:
-          "Outra visão da fila.",
+          "Mesma fila do `mailq`, no comando moderno. Anda em par com `postqueue -f`, que força nova tentativa de entrega depois de você corrigir a causa.",
       },
     ],
     tips: [
@@ -2597,12 +2597,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt install -y nfs-kernel-server",
         description:
-          "Servidor NFS.",
+          "Instala o servidor NFS, que roda dentro do kernel. É a escolha natural entre máquinas Linux porque preserva permissão Unix e não exige camada de autenticação própria.",
       },
       {
         command: "sudo mkdir -p /srv/nfs-lab && sudo chown nobody:nogroup /srv/nfs-lab && echo lab > /srv/nfs-lab/README.txt",
         description:
-          "Dir de lab.",
+          "Cria o diretório a exportar e o entrega a `nobody:nogroup`, o usuário em que o NFS mapeia acesso anônimo por padrão. Sem esse cuidado o cliente escreve e depois ninguém entende de quem é o arquivo.",
       },
       {
         command: "echo '/srv/nfs-lab 127.0.0.1(rw,sync,no_subtree_check)' | sudo tee /etc/exports",
@@ -2612,27 +2612,27 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo exportfs -ra && sudo exportfs -v",
         description:
-          "Reexporta e lista.",
+          "Aplica o `/etc/exports` e lista o que ficou exportado com as opções efetivas. Confira aqui se `rw`, `sync` e `root_squash` são mesmo o que você pretendia — o default protege mais do que a maioria imagina.",
       },
       {
         command: "sudo apt install -y nfs-common && sudo mkdir -p /mnt/nfs-lab && sudo mount -t nfs 127.0.0.1:/srv/nfs-lab /mnt/nfs-lab && ls /mnt/nfs-lab && sudo umount /mnt/nfs-lab",
         description:
-          "Monta e desmonta localmente.",
+          "Monta a própria exportação para testar sem depender de outra máquina, lista o conteúdo e desmonta. Se falhar em local, não há o que testar em rede.",
       },
       {
         command: "sudo apt install -y samba smbclient",
         description:
-          "Samba + cliente de teste.",
+          "Instala o servidor SMB e o cliente de linha de comando para testá-lo. SMB é o caminho quando há Windows ou celular na rede: protocolo de compartilhamento com usuário próprio, separado do Unix.",
       },
       {
         command: "testparm -s 2>/dev/null | head -n 40 || true",
         description:
-          "Valida smb.conf.",
+          "Valida o `smb.conf` e imprime a configuração efetiva. O Samba ignora em silêncio seção com erro de digitação, então rodar isso é a única forma de ter certeza do que está valendo.",
       },
       {
         command: "sudo systemctl enable --now smbd nmbd 2>/dev/null || sudo systemctl enable --now smbd",
         description:
-          "Serviços SMB.",
+          "Sobe o serviço de arquivos (`smbd`) e o de nomes NetBIOS (`nmbd`), que só importa em rede legada. Com clientes modernos apenas, o `nmbd` pode ficar desligado e reduz superfície exposta.",
       },
       {
         command: "smbclient -L localhost -N 2>/dev/null | head || true",
@@ -2642,17 +2642,17 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "man exports",
         description:
-          "Sintaxe NFS exports.",
+          "Sintaxe do `/etc/exports`, onde estão as opções que definem segurança: `ro`, `rw`, `root_squash`, `all_squash` e a restrição por rede ou host.",
       },
       {
         command: "man smb.conf",
         description:
-          "Referência Samba.",
+          "Referência dos parâmetros do Samba. Comece por `security`, `valid users`, `browseable` e as opções de cada compartilhamento.",
       },
       {
         command: "ss -lnt | grep -E ':2049|:445|:139' || true",
         description:
-          "Portas NFS/SMB escutando.",
+          "Mostra as portas dos dois protocolos: 2049 do NFS, 445 do SMB e 139 do NetBIOS antigo. Nenhuma delas deve estar acessível pela internet.",
       },
     ],
     tips: [
@@ -2785,12 +2785,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt install -y wireguard wireguard-tools",
         description:
-          "Ferramentas WireGuard.",
+          "Instala as ferramentas de espaço de usuário. O módulo em si já vem no kernel do Debian desde o bullseye, então não há compilação nem DKMS envolvido.",
       },
       {
         command: "wg --version || true",
         description:
-          "Versão userspace tools.",
+          "Versão das ferramentas de usuário. Confirmação rápida de que o pacote está em ordem antes de gerar chave.",
       },
       {
         command: "umask 077; wg genkey | tee /tmp/wg-lab-priv | wg pubkey | tee /tmp/wg-lab-pub; echo 'chaves lab em /tmp (não use em prod)'",
@@ -2800,17 +2800,17 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo sh -c 'install -m 700 -d /etc/wireguard'",
         description:
-          "Dir de configs.",
+          "Cria o diretório de configuração com permissão 700. Isso é requisito de segurança, não capricho: a chave privada fica ali em texto puro.",
       },
       {
         command: "man wg",
         description:
-          "Comando de status/config live.",
+          "Manual da ferramenta de baixo nível: gerar chave, inspecionar peer, ver o último handshake e trocar `AllowedIPs` com a interface no ar.",
       },
       {
         command: "man wg-quick",
         description:
-          "Sobe/desce a partir de arquivo.",
+          "Manual do atalho que sobe e desce o túnel a partir de um arquivo, cuidando de rota e DNS. É o que a unit `wg-quick@wg0` usa no boot.",
       },
       {
         command: "printf '%s\n' '[Interface]' 'Address = 10.66.66.1/24' 'ListenPort = 51820' 'PrivateKey = COLE_PRIV' '# [Peer]' '# PublicKey = ...' '# AllowedIPs = 10.66.66.2/32' '# Endpoint = vps.example:51820' | sudo tee /etc/wireguard/wg0.conf.example",
@@ -2820,12 +2820,12 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo wg show",
         description:
-          "Interfaces e handshakes.",
+          "Estado real do túnel: peers, último handshake e bytes trocados. Sem handshake recente o problema é alcance ou chave; com handshake e sem tráfego, o problema é rota ou `AllowedIPs`.",
       },
       {
         command: "ip link show type wireguard 2>/dev/null || true",
         description:
-          "Ifaces WG no kernel.",
+          "Lista as interfaces WireGuard existentes no kernel. Interface ausente significa que o túnel não subiu — vá direto ao log da unit `wg-quick@wg0`.",
       },
       {
         command: "sudo sysctl net.ipv4.ip_forward",
@@ -2835,7 +2835,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo ss -lunp | grep 51820 || true",
         description:
-          "UDP listen do WG.",
+          "Confirma o socket UDP de escuta. WireGuard é UDP: firewall que libera somente TCP deixa o túnel em silêncio, sem mensagem de erro nenhuma.",
       },
       {
         command: "sudo wg-quick strip wg0 2>/dev/null | head || true",
@@ -2973,17 +2973,17 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo apt install -y postgresql postgresql-contrib",
         description:
-          "Servidor e contrib.",
+          "Instala o servidor e o pacote contrib, com extensões úteis como `pg_stat_statements`. O Debian já inicializa um cluster e sobe o serviço ao final da instalação.",
       },
       {
         command: "sudo systemctl enable --now postgresql",
         description:
-          "Sobe o cluster.",
+          "Garante o cluster no boot e agora. No Debian a unit `postgresql` é um agregador: quem realmente roda é a unit versionada, como `postgresql@16-main`, e é nela que você olha o log.",
       },
       {
         command: "sudo -u postgres psql -c 'SELECT version();'",
         description:
-          "Conecta via peer como postgres.",
+          "Primeira conexão usando autenticação peer: como você virou o usuário `postgres` do sistema, o banco aceita sem senha. Confirma que o cluster responde e em qual versão.",
       },
       {
         command: "sudo -u postgres psql -c \"CREATE USER app WITH PASSWORD 'labonly';\" 2>/dev/null || true",
@@ -2993,17 +2993,17 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo -u postgres psql -c 'CREATE DATABASE app OWNER app;' 2>/dev/null || true",
         description:
-          "Database de lab.",
+          "Cria a base do lab com dono próprio. Dar um owner dedicado, em vez de deixar tudo em `postgres`, é o que permite depois restringir permissão sem quebrar a aplicação.",
       },
       {
         command: "sudo -u postgres pg_dump app > /tmp/app-lab.sql && wc -l /tmp/app-lab.sql",
         description:
-          "Dump lógico.",
+          "Dump lógico em SQL, com contagem de linhas só para provar que saiu conteúdo. Arquivo com pouquíssimas linhas costuma ser base vazia ou erro de permissão engolido pelo redirecionamento.",
       },
       {
         command: "sudo -u postgres psql -c 'CREATE DATABASE app_restore;' 2>/dev/null || true; sudo -u postgres psql app_restore < /tmp/app-lab.sql",
         description:
-          "Restore em outra base.",
+          "Restaura o dump em uma base nova. Testar restore em base separada é a única forma de saber que o backup presta, e faz isso sem arriscar a original.",
       },
       {
         command: "sudo sed -n '1,80p' /etc/postgresql/*/main/pg_hba.conf 2>/dev/null | head -n 40",
@@ -3013,22 +3013,22 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       {
         command: "sudo ss -lntp | grep 5432 || true",
         description:
-          "Onde escuta.",
+          "Mostra onde o Postgres escuta. No Debian o padrão é apenas 127.0.0.1; abrir para a rede exige mexer em `listen_addresses` e em `pg_hba.conf`, nessa ordem, senão a conexão é recusada.",
       },
       {
         command: "man pg_dump",
         description:
-          "Opções de dump.",
+          "Opções que mudam o jogo: `-Fc` para formato comprimido restaurável com `pg_restore`, `-t` para uma tabela específica e `--schema-only` para levar só a estrutura.",
       },
       {
         command: "sudo -u postgres psql -c 'SELECT datname FROM pg_database;'",
         description:
-          "Lista databases.",
+          "Lista as bases do cluster. Serve para conferir se o restore criou o que devia e para achar base esquecida ocupando disco.",
       },
       {
         command: "sudo journalctl -u postgresql -n 20 --no-pager",
         description:
-          "Logs do serviço.",
+          "Log do serviço. Falha de subida aparece aqui apontando o log detalhado do cluster em `/var/log/postgresql`, que é onde está o erro de verdade.",
       },
     ],
     tips: [
