@@ -982,7 +982,7 @@ journalctl -t meu-backup -p warning --since '5 min ago'`,
       },
       {
         command: "sudo crontab -e",
-        description: "Edita crontab do root.",
+        description: "Abre o crontab do root no editor do sistema e valida a sintaxe ao salvar — por isso se edita com este comando, e nunca mexendo no arquivo de spool direto. Lembre que o cron roda com PATH mínimo: use caminho absoluto em tudo.",
       },
       {
         command: "sudo crontab -e -u USUARIO",
@@ -1267,7 +1267,7 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       },
       {
         command: "swapon --show",
-        description: "Lista dispositivos de swap ativos.",
+        description: "Lista a swap em uso, com tipo (partição ou arquivo), tamanho e quanto já está ocupado. Saída vazia numa VPS pequena explica muita morte súbita de processo: sem swap, o kernel chama o OOM killer em vez de empurrar página para o disco.",
         output: "NAME      TYPE      SIZE USED PRIO\n/swapfile file        2G   0B   -2",
       },
       {
@@ -1276,7 +1276,7 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       },
       {
         command: "sudo mkswap /swapfile",
-        description: "Formata o arquivo como swap.",
+        description: "Escreve a assinatura de swap no arquivo e devolve o UUID. Ele ainda não está em uso: passa a valer no `swapon` e só sobrevive ao reboot se você registrar no `/etc/fstab`.",
         example: "sudo chmod 600 /swapfile && sudo mkswap /swapfile",
       },
       {
@@ -1294,7 +1294,7 @@ systemd-analyze calendar --iterations=5 'Mon..Fri 09:00'`,
       },
       {
         command: "cat /proc/cpuinfo",
-        description: "Informações detalhadas sobre cada CPU/core.",
+        description: "Um bloco por núcleo lógico, com modelo, frequência atual e as flags do processador. É aqui que você confirma suporte a virtualização (`vmx` na Intel, `svm` na AMD) antes de tentar subir KVM.",
         example: "cat /proc/cpuinfo | grep 'model name' | uniq",
       },
       {
@@ -1732,7 +1732,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "lsmod | head",
         description:
-          "Módulos atualmente carregados e uso.",
+          "Lista os módulos carregados; a última coluna diz quem depende de quem. Módulo com contador de uso maior que zero não sai com `rmmod`, e essa dependência é justamente a pista de qual serviço está segurando o hardware.",
         example: "lsmod | head -n 20",
       },
       {
@@ -1951,7 +1951,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "man udev",
         description:
-          "Sintaxe de regras e matches.",
+          "Sintaxe das regras, onde mora a pegadinha: `==` compara e `=` atribui. Também explica a ordem alfabética dos arquivos em `/etc/udev/rules.d` e os campos de match — `SUBSYSTEM`, `KERNEL`, `ATTRS` — que você descobre com `udevadm info`.",
       },
       {
         command: "man udevadm",
@@ -2137,7 +2137,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "man timedatectl",
         description:
-          "Referência de set-time, set-timezone, set-ntp.",
+          "Referência dos subcomandos: `set-timezone`, `set-ntp` para ligar ou desligar a sincronização e `set-time`, que só funciona com o NTP desligado — detalhe que responde a quase todo 'não consigo mudar a hora'.",
       },
       {
         command: "man systemd-timesyncd",
@@ -2283,7 +2283,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "ls /lib/systemd/system/*.service 2>/dev/null | wc -l; ls /etc/systemd/system/*.service 2>/dev/null | head",
         description:
-          "Pacotes vs overrides locais.",
+          "Compara quantas units vieram de pacote com as que existem em `/etc/systemd/system`. O segundo diretório tem precedência: é onde ficam os seus overrides e o primeiro lugar a olhar quando a unit não se comporta como a documentação diz.",
         example: "ls /etc/systemd/system/*.service 2>/dev/null | head",
       },
       {
@@ -2323,7 +2323,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "systemctl show lab-hello.service -p Type -p ExecStart -p FragmentPath --no-pager",
         description:
-          "Propriedades resolvidas da unit.",
+          "Mostra o valor final das propriedades, já com defaults e drop-ins aplicados. O `FragmentPath` revela qual arquivo o systemd está lendo de verdade — a prova definitiva de que você editou o arquivo certo.",
         example: "systemctl show lab-hello.service -p Type -p ExecStart -p FragmentPath",
       },
       {
@@ -2511,12 +2511,12 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "journalctl -u lab-tick.service -n 10 --no-pager",
         description:
-          "Logs das execuções.",
+          "Log das execuções que o timer disparou. Timer ativo sem nenhuma linha aqui costuma significar que o serviço falhou antes de começar, e o motivo aparece nessas mesmas linhas.",
       },
       {
         command: "sudo systemctl disable --now lab-tick.timer; sudo rm -f /etc/systemd/system/lab-tick.{service,timer}; sudo systemctl daemon-reload",
         description:
-          "Limpeza completa do lab.",
+          "Desliga o timer, remove os dois arquivos e recarrega o systemd. A ordem importa: apagar antes de desabilitar deixa link órfão em `timers.target`, e o systemd passa a reclamar disso em todo `daemon-reload`.",
         example: "systemctl list-timers lab-tick.timer --no-pager || true",
       },
     ],
@@ -2652,13 +2652,13 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "systemctl get-default",
         description:
-          "Target padrão do sistema.",
+          "Diz para qual target a máquina sobe no boot. Em servidor o esperado é `multi-user.target`; `graphical.target` numa VPS significa carregar ambiente gráfico e gastar RAM que ninguém vai usar.",
         output: "multi-user.target",
       },
       {
         command: "systemctl list-units --type=target --no-pager | head -n 30",
         description:
-          "Targets carregados/ativos no momento.",
+          "Lista os targets ativos agora. Serve para ler o boot como camadas — `basic`, `network`, `multi-user` — e decidir em que degrau dessa escada a sua unit deve se pendurar.",
       },
       {
         command: "systemctl list-dependencies multi-user.target --no-pager | head -n 40",
@@ -2695,12 +2695,12 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "man systemd.special",
         description:
-          "Documenta multi-user, graphical, network-online, etc.",
+          "Catálogo dos targets e units especiais: o que `multi-user`, `graphical` e `rescue` significam, e por que `network-online.target` só existe de fato se alguma unit o requisitar explicitamente.",
       },
       {
         command: "man systemd.unit",
         description:
-          "Semântica de After/Wants/Requires/BindsTo/Conflicts.",
+          "Semântica das dependências, onde quase todo mundo erra: `Wants` é desejo e não falha junto, `Requires` arrasta a falha, `After` apenas ordena sem criar dependência e `BindsTo` amarra o ciclo de vida das duas units.",
       },
     ],
     tips: [
@@ -2862,7 +2862,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "journalctl --since '1 hour ago' --until now -p warning..alert --no-pager | tail -n 30",
         description:
-          "Janela de tempo + prioridade.",
+          "Cruza janela de tempo com faixa de prioridade — o filtro que transforma o journal em ferramenta de investigação. Ler tudo desde o boot é ruído; ler de `warning` para cima na última hora é diagnóstico.",
         example: "journalctl --since today -p err --no-pager | tail -n 20",
       },
       {
@@ -2874,7 +2874,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "man journald.conf",
         description:
-          "Storage=, SystemMaxUse=, Compress=, ForwardToSyslog=.",
+          "Referência das opções que decidem se o log sobrevive ao reboot (`Storage=persistent`), quanto disco ele pode ocupar (`SystemMaxUse=`) e se também vai para o syslog, duplicando escrita.",
       },
       {
         command: "sudo journalctl --vacuum-size=200M",
@@ -3214,17 +3214,17 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "journalctl -b -0 -p err..alert --no-pager | tail -n 50",
         description:
-          "Erros do boot atual.",
+          "Erros do boot atual, só de `err` para cima. Primeira leitura do runbook — e leia de cima para baixo: você quer o primeiro erro na ordem cronológica, porque o resto costuma ser consequência dele.",
       },
       {
         command: "journalctl -b -1 -p err..alert --no-pager | tail -n 50",
         description:
-          "Erros do boot anterior.",
+          "A mesma leitura no boot anterior, que é o que interessa depois de uma queda: mostra o que a máquina disse antes de morrer. Só existe se o journal estiver persistente.",
       },
       {
         command: "lsblk -f",
         description:
-          "Fs types, UUIDs, LUKS.",
+          "Árvore de discos com sistema de arquivos, UUID, rótulo e ponto de montagem. Comparar o UUID daqui com o do `fstab` resolve a falha de boot mais comum: disco que trocou de nome e `fstab` apontando para um device que não existe mais.",
       },
       {
         command: "findmnt /",
@@ -3234,12 +3234,12 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "cat /etc/fstab",
         description:
-          "Fontes de mount no boot.",
+          "Mostra o que o sistema tenta montar no boot. Linha errada sem a opção `nofail` trava a subida esperando um dispositivo — em servidor remoto isso significa máquina inacessível até alguém abrir o console.",
       },
       {
         command: "systemctl list-units --failed --no-pager",
         description:
-          "Units que impedem boot limpo.",
+          "Lista o que falhou nesta subida. Cada unit daqui merece um `systemctl status` para separar quem é causa de quem é vítima de uma dependência que não subiu.",
       },
       {
         command: "sudo systemd-analyze blame 2>/dev/null | head -n 20 || true",
@@ -3264,7 +3264,7 @@ ps -p $PID -o pid,ppid,user,stat,vsz,rss,cmd`,
       {
         command: "dmesg -T 2>/dev/null | tail -n 30 || true",
         description:
-          "Mensagens recentes do kernel.",
+          "Mensagens do kernel com data legível (`-T`). É a camada abaixo do systemd: erro de disco, firmware faltando e OOM killer aparecem aqui antes de qualquer serviço perceber.",
       },
     ],
     tips: [
@@ -3397,7 +3397,7 @@ enp0s3           UP             10.0.2.15/24`,
       },
       {
         command: "ip route; ip -4 route show default",
-        description: "Passo 3: existe gateway default?",
+        description: "Passo 3 do runbook: existe rota default? Sem gateway a máquina conversa com a própria rede e com mais nada — sintoma que se confunde facilmente com falha de DNS.",
         example: "ip route",
         output: `default via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100
 10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15`,
@@ -3419,14 +3419,14 @@ enp0s3           UP             10.0.2.15/24`,
       },
       {
         command: "systemctl is-active NetworkManager systemd-networkd networking 2>/dev/null",
-        description: "Quem manda na rede agora.",
+        description: "Descobre qual serviço administra a rede nesta máquina. Importa porque configurar `/etc/network/interfaces` enquanto o NetworkManager comanda (ou o contrário) é editar um arquivo que ninguém lê.",
         output: `inactive
 inactive
 active`,
       },
       {
         command: "cat /etc/resolv.conf; resolvectl status 2>/dev/null | head -n 20",
-        description: "Resolver atual.",
+        description: "Mostra qual resolvedor o sistema usa. Se o `resolv.conf` apontar para 127.0.0.53, quem responde é o stub do systemd-resolved e o servidor de verdade aparece só no `resolvectl status`.",
         example: "cat /etc/resolv.conf",
       },
       {
@@ -3436,7 +3436,7 @@ active`,
       },
       {
         command: "{ echo \"=== $(date -Is) ===\"; ip -br link; ip -br addr; ip route; cat /etc/resolv.conf 2>/dev/null; } | tee ~/laudo-rede.txt",
-        description: "Salva laudo completo para ticket.",
+        description: "Junta interfaces, endereços, rotas e resolvedor num arquivo com data. O `tee` mostra na tela e grava ao mesmo tempo: é o anexo que faz o suporte parar de pedir print de tela.",
         example: "{ ip -br addr; ip route; } | tee ~/laudo-rede.txt",
       },
     ],
@@ -3550,7 +3550,7 @@ active`,
       {
         command: "sudo mkdir -p /etc/systemd/journald.conf.d && printf '%s\n' '[Journal]' 'SystemMaxUse=200M' 'MaxRetentionSec=14day' | sudo tee /etc/systemd/journald.conf.d/size.conf",
         description:
-          "Teto de disco e retenção.",
+          "Cria um drop-in com teto de disco e prazo de retenção para o journal. Escrever em `journald.conf.d`, em vez de editar o `journald.conf`, mantém seu ajuste vivo depois de atualização do pacote.",
       },
       {
         command: "sudo systemctl restart systemd-journald",
@@ -3570,7 +3570,7 @@ active`,
       {
         command: "mkdir -p ~/bin && printf '%s\n' '#!/bin/bash' 'set -euo pipefail' 'systemctl --failed --quiet' 'echo OK $(date -Is)' > ~/bin/health-check.sh && chmod +x ~/bin/health-check.sh",
         description:
-          "Healthcheck mínimo local.",
+          "Monta o healthcheck mínimo: `set -euo pipefail` faz o script morrer no primeiro erro e `systemctl --failed --quiet` devolve código diferente de zero quando há unit quebrada. Isso basta para o systemd marcar falha.",
       },
       {
         command: "~/bin/health-check.sh || echo 'falhou — investigue failed units'",
@@ -3580,12 +3580,12 @@ active`,
       {
         command: "mkdir -p ~/.config/systemd/user && printf '%s\n' '[Unit]' 'Description=Health check leve' '' '[Service]' 'Type=oneshot' 'ExecStart=%h/bin/health-check.sh' > ~/.config/systemd/user/health-check.service",
         description:
-          "Unit oneshot do usuário.",
+          "Unit de usuário do tipo `oneshot`: roda, termina e não fica ocupando memória. Em `~/.config/systemd/user` ela dispensa root, mas só roda enquanto houver sessão — em servidor, ligue `loginctl enable-linger`.",
       },
       {
         command: "printf '%s\n' '[Unit]' 'Description=Timer health check leve' '' '[Timer]' 'OnBootSec=2min' 'OnUnitActiveSec=5min' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > ~/.config/systemd/user/health-check.timer",
         description:
-          "Timer a cada 5 min.",
+          "Timer que dispara 2 minutos após o boot e a cada 5 minutos depois. O `Persistent=true` faz o systemd executar a janela perdida enquanto a máquina estava desligada, em vez de simplesmente pular.",
       },
       {
         command: "systemctl --user daemon-reload && systemctl --user enable --now health-check.timer && systemctl --user list-timers | head",
