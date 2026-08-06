@@ -788,4 +788,974 @@ rsync -avzP --delete /home/wallyson/ /mnt/espelho/wallyson/`,
       { title: "Wiki Debian — Backup", url: "https://wiki.debian.org/BackupAndRecovery" },
     ],
   },
+  {
+    id: "lvm-basico",
+    title: "LVM do zero — PV, VG, LV e crescimento sem drama",
+    icon: "📚",
+    category: "Discos e Armazenamento",
+    description:
+      "Monte volume lógico no Debian: physical volume, volume group, logical volume, estender e snapshot simples — o jeito flexível de fatiar disco.",
+    objectives: [
+      "Nomear PV, VG e LV e o papel de cada um",
+      "Criar um LV a partir de um disco ou partição de laboratório",
+      "Formatar, montar e colocar no fstab com cuidado",
+      "Estender um LV e o filesystem online quando suportado",
+      "Criar e remover um snapshot LVM simples",
+      "Saber quando LVM ajuda e quando é overkill",
+    ],
+    content: [
+      "Partição fixa é gaveta de tamanho único: encheu, sofre. **LVM** (Logical Volume Manager) é a estante com prateleiras móveis: você junta discos/partições num **volume group** e tira **logical volumes** do tamanho que precisa, podendo crescer depois. Em servidor Debian isso é pão com manteiga — root em LVM no instalador é comum por exatamente esse motivo.",
+
+      "Três camadas, de baixo para cima. **PV** (physical volume): o tijolo — disco ou partição marcada para LVM (`pvcreate`). **VG** (volume group): o saco de tijolos com nome (`vgcreate`). **LV** (logical volume): a fatia que vira filesystem (`lvcreate`). O sistema monta o path em `/dev/VG/LV` ou `/dev/mapper/VG-LV`, não o `/dev/sdb1` cru.",
+
+      "Jargões que aparecem no `lvs`/`vgs`. **PE** (physical extent) é o bloco de alocação dentro do VG. **LE** é a contagem no LV. **thin pool** é avançado (não é o primeiro lab). **Snapshot** LVM congela um ponto no tempo do LV copy-on-write — ótimo para backup consistente curto, péssimo como backup eterno sem espaço livre no VG.",
+
+      "Fluxo mental seguro: só pratique em disco **extra** ou arquivo-loop/VM — nunca no disco raiz da VPS compartilhada da equipe. Crie PV → VG → LV → `mkfs` → monte em `/mnt/lab` → teste escrita → (opcional) estenda → desmonte. Documente nomes de VG/LV; `vg-ubuntu` misturado com Debian é confusão gratuita.",
+
+      "Estender: se há espaço livre no VG, `lvextend` no LV e depois crescer o filesystem (`resize2fs` no ext4, `xfs_growfs` no XFS). Encolher é outra guerra (backup primeiro, quase sempre offline). Snapshot: precisa de espaço livre; delete quando acabar o uso ou o COW engole o VG.",
+
+      "Quando NÃO usar LVM: pen drive único jogado fora amanhã; firmware esquisito; você não vai monitorar espaço do VG. Quando SIM: servidor que vai ganhar disco depois, vários LV (dados, logs, VMs), snapshots pontuais antes de migração.",
+
+      "Ao terminar você explica PV/VG/LV, lista com pvs/vgs/lvs, cria e remove um LV de lab, e estende com filesystem coerente — sem tocar no disco de boot da produção alheia.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y lvm2",
+        description:
+          "Ferramentas LVM no Debian (pv/vg/lvcreate, lvs, etc.).",
+        example: "sudo apt install -y lvm2",
+      },
+      {
+        command: "sudo pvs; sudo vgs; sudo lvs",
+        description:
+          "Retrato rápido: physical volumes, volume groups e logical volumes existentes.",
+        example: "sudo pvs && sudo vgs && sudo lvs",
+        output: "  PV         VG     Fmt  Attr PSize  PFree\n  /dev/sdb1  vgdata lvm2 a--  <20.00g 5.00g",
+      },
+      {
+        command: "sudo pvcreate /dev/sdX1",
+        description:
+          "Marca a partição/disco como PV. Troque sdX1 por dispositivo de LAB (nunca o disco raiz da VPS da equipe).",
+        example: "# SO EM LAB: sudo pvcreate /dev/sdb1",
+      },
+      {
+        command: "sudo vgcreate vgdata /dev/sdX1",
+        description:
+          "Cria o volume group vgdata usando o PV.",
+        example: "sudo vgcreate vgdata /dev/sdb1",
+      },
+      {
+        command: "sudo lvcreate -n lvwww -L 5G vgdata",
+        description:
+          "Cria LV de 5G chamado lvwww no VG. Use -l 100%FREE para consumir o livre.",
+        example: "sudo lvcreate -n lvwww -L 5G vgdata",
+        flags: [
+          { flag: "-n", description: "nome do LV" },
+          { flag: "-L", description: "tamanho absoluto" },
+          { flag: "-l", description: "tamanho em extents ou %FREE" },
+        ],
+      },
+      {
+        command: "sudo mkfs.ext4 /dev/vgdata/lvwww",
+        description:
+          "Cria filesystem no LV. O path /dev/mapper/vgdata-lvwww é equivalente.",
+        example: "sudo mkfs.ext4 /dev/vgdata/lvwww",
+      },
+      {
+        command: "sudo mkdir -p /mnt/lvwww && sudo mount /dev/vgdata/lvwww /mnt/lvwww && df -h /mnt/lvwww",
+        description:
+          "Montagem de teste e verificação de tamanho.",
+        example: "sudo mount /dev/vgdata/lvwww /mnt/lvwww && df -h /mnt/lvwww",
+      },
+      {
+        command: "sudo lvextend -L +2G /dev/vgdata/lvwww && sudo resize2fs /dev/vgdata/lvwww",
+        description:
+          "Cresce o LV em 2G e depois o ext4. Ordem: LV primeiro, filesystem depois.",
+        example: "sudo lvextend -L +2G /dev/vgdata/lvwww && sudo resize2fs /dev/vgdata/lvwww",
+      },
+      {
+        command: "sudo lvcreate -s -n lvwww-snap -L 1G /dev/vgdata/lvwww",
+        description:
+          "Snapshot de 1G do LV (precisa de espaço). Remova com lvremove após o uso.",
+        example: "sudo lvcreate -s -n lvwww-snap -L 1G /dev/vgdata/lvwww",
+      },
+      {
+        command: "sudo lvremove -y /dev/vgdata/lvwww-snap",
+        description:
+          "Apaga snapshot. Confirme o nome duas vezes antes de remove em produção.",
+        example: "sudo lvs",
+      },
+      {
+        command: "sudo vgdisplay vgdata | egrep 'VG Size|Free'",
+        description:
+          "Espaço total e livre no VG — o que limita novos LV e snapshots.",
+        example: "sudo vgdisplay vgdata | egrep 'VG Size|Free'",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Nunca no disco da VPS compartilhada",
+        content:
+          "PV/VG/LV em disco errado apaga dados da equipe. Só VM, USB de lab ou arquivo-loop dedicado.",
+      },
+      {
+        type: "warning",
+        title: "Snapshot come espaço COW",
+        content:
+          "Snapshot cheio corrompe o ponto de recuperação. Monitore e lvremove quando acabar.",
+      },
+      {
+        type: "success",
+        title: "Crescer é fácil; encolher é projeto",
+        content:
+          "Planeje LV com folga e cresça com dados; shrink só com backup e janela.",
+      },
+      {
+        type: "info",
+        title: "Nomes estáveis no fstab",
+        content:
+          "Use UUID do filesystem do LV no fstab, não só /dev/sdX.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "LV de laboratório (VM)",
+        goal: "Criar VG/LV, montar, escrever arquivo, estender e ver df maior.",
+        steps: [
+          "Em VM com disco extra, instale lvm2",
+          "pvcreate + vgcreate + lvcreate",
+          "mkfs.ext4 + mount em /mnt/lab-lvm",
+          "echo teste > /mnt/lab-lvm/ok.txt",
+          "lvextend + resize2fs e confira df",
+          "Desmonte; opcional lvremove ao final do lab",
+        ],
+        command: "sudo pvs; sudo vgs; sudo lvs; df -h | grep -E 'Filesystem|lab-lvm|vgdata' || true",
+        verify:
+          "lvs mostra o LV; df no mount point reflete o tamanho pós-extend; arquivo ok.txt sobrevive ao resize a quente do ext4.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é PV, VG e LV?",
+        answer:
+          "PV=disco/partição no LVM; VG=pool nomeado de PVs; LV=volume lógico fatiado do VG onde fica o filesystem.",
+      },
+      {
+        id: 2,
+        question: "Qual a ordem para crescer um LV ext4?",
+        answer:
+          "Garantir espaço livre no VG; lvextend no LV; resize2fs no filesystem.",
+      },
+      {
+        id: 3,
+        question: "Para que serve snapshot LVM?",
+        answer:
+          "Ponto no tempo copy-on-write para backup/teste curto; exige espaço livre e não substitui backup off-box.",
+      },
+      {
+        id: 4,
+        question: "Como listar LVs?",
+        answer:
+          "sudo lvs (e lvdisplay para detalhe).",
+      },
+      {
+        id: 5,
+        question: "Path típico de um LV?",
+        answer:
+          "/dev/NomeVG/NomeLV ou /dev/mapper/NomeVG-NomeLV.",
+      },
+      {
+        id: 6,
+        question: "Risco de lvremove errado?",
+        answer:
+          "Perda imediata dos dados daquele LV se não houver snapshot/backup.",
+      },
+      {
+        id: 7,
+        question: "Por que não usar só /dev/sdb1 no fstab de um LV?",
+        hint: "Pense em renomeação de disco.",
+        answer:
+          "Nomes de disco mudam; UUID do FS no LV é estável entre boots.",
+      },
+      {
+        id: 8,
+        question: "Quando LVM é overkill?",
+        answer:
+          "Mídia descartável, lab de uma hora sem necessidade de crescer, ou administrador que não vai monitorar o VG.",
+      },
+    ],
+    references: [
+      { title: "man lvm", url: "https://manpages.debian.org/lvm" },
+      { title: "Wiki — LVM", url: "https://wiki.debian.org/LVM" },
+      { title: "man lvextend", url: "https://manpages.debian.org/lvextend" },
+      { title: "man pvcreate", url: "https://manpages.debian.org/pvcreate" },
+    ],
+  },
+  {
+    id: "btrfs-debian",
+    title: "Btrfs no Debian — subvolumes e snapshots leves",
+    icon: "🌲",
+    category: "Discos e Armazenamento",
+    description:
+      "Use Btrfs no Debian com subvolumes, snapshot e espaço: o filesystem que versiona diretórios quando você respeita os limites.",
+    objectives: [
+      "Criar filesystem Btrfs e montar com opções conscientes",
+      "Criar subvolumes para separar dados",
+      "Tirar e listar snapshots",
+      "Ver uso com filesystem show / fi df",
+      "Entender send/receive só em alto nível",
+      "Saber quando preferir ext4/XFS em vez de Btrfs",
+    ],
+    content: [
+      "**Btrfs** é filesystem com superpoderes de volume: subvolumes (árvores quase independentes), snapshots baratos na criação, checksums de dados. No Debian entra como opção moderna para dados e, em alguns setups, root — mas não é obrigatório para ser 'pro'. É ferramenta: brilha em snapshots de `/var/www` ou homes; castiga se você ignora espaço e scrub.",
+
+      "**Subvolume** não é partição: é diretório de primeira classe dentro do mesmo FS. Você monta o default ou um subvolume específico com `-o subvol=...`. **Snapshot** Btrfs é subvolume somente-leitura (ou gravável) apontando para o mesmo estado — ideal antes de `apt full-upgrade` arriscado em lab, desde que o disco tenha folga.",
+
+      "Jargões. **scrub** relê e confere checksums. **balance** reorganiza chunks (manutenção). **send/receive** manda snapshot para outro disco/máquina (backup incremental sofisticado). **RAID Btrfs** existe, mas RAID5/6 no Btrfs tem histórico polêmico — em produção muita gente prefere mdadm+ext4/XFS ou ZFS dedicado para isso.",
+
+      "No Debian: `btrfs-progs` traz as ferramentas. Crie FS com `mkfs.btrfs`, monte, `btrfs subvolume create`, snapshot com `btrfs subvolume snapshot`. Monitore com `btrfs filesystem df` e `btrfs fi show`. Não encha o disco a 99%: snapshots e COW precisam de ar.",
+
+      "Quando NÃO usar: você quer o filesystem mais chato e previsível possível em banco monólito sem equipe para scrub; mídia USB de instalação; você ia usar RAID5 Btrfs porque leu um post de 2014. Quando SIM: muitos snapshots de diretórios de app, lab de rollback, um disco de dados com política clara de retenção de snaps.",
+
+      "Ao terminar você formata (em lab), cria subvolume, tira snapshot, lista e remove snap, e explica a diferença entre snapshot e backup off-site.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y btrfs-progs",
+        description:
+          "Userland Btrfs no Debian.",
+        example: "sudo apt install -y btrfs-progs",
+      },
+      {
+        command: "sudo mkfs.btrfs -L dados /dev/sdX1",
+        description:
+          "Cria Btrfs no dispositivo de LAB com label dados.",
+        example: "# LAB: sudo mkfs.btrfs -L dados /dev/sdb1",
+      },
+      {
+        command: "sudo mount /dev/sdX1 /mnt/btrfs && findmnt /mnt/btrfs",
+        description:
+          "Monta e confirma o filesystem.",
+        example: "sudo mount /dev/sdb1 /mnt/btrfs && findmnt /mnt/btrfs",
+      },
+      {
+        command: "sudo btrfs subvolume create /mnt/btrfs/@www",
+        description:
+          "Cria subvolume @www (convenção de nome com @ é só hábito, não mágica).",
+        example: "sudo btrfs subvolume create /mnt/btrfs/@www",
+      },
+      {
+        command: "sudo btrfs subvolume list /mnt/btrfs",
+        description:
+          "Lista subvolumes e IDs.",
+        example: "sudo btrfs subvolume list /mnt/btrfs",
+      },
+      {
+        command: "sudo btrfs subvolume snapshot -r /mnt/btrfs/@www /mnt/btrfs/@www-snap-$(date +%F)",
+        description:
+          "Snapshot somente-leitura (-r) com data no nome.",
+        example: "sudo btrfs subvolume snapshot -r /mnt/btrfs/@www /mnt/btrfs/@www-snap-lab",
+      },
+      {
+        command: "sudo btrfs filesystem df /mnt/btrfs",
+        description:
+          "Uso interno (data/metadata). Complementa o df clássico.",
+        example: "sudo btrfs filesystem df /mnt/btrfs",
+      },
+      {
+        command: "sudo btrfs filesystem show",
+        description:
+          "Visão dos filesystems Btrfs e dispositivos.",
+        example: "sudo btrfs filesystem show",
+      },
+      {
+        command: "sudo btrfs subvolume delete /mnt/btrfs/@www-snap-lab",
+        description:
+          "Remove snapshot/subvolume. Cuidado com o path.",
+        example: "sudo btrfs subvolume list /mnt/btrfs",
+      },
+      {
+        command: "man btrfs",
+        description:
+          "Índice das subferramentas (subvolume, filesystem, device, scrub…).",
+        example: "man btrfs",
+      },
+    ],
+    tips: [
+      {
+        type: "warning",
+        title: "Disco cheio + snapshots",
+        content:
+          "COW precisa de espaço. Sem folga, o FS fica read-only ou piora. Monitore.",
+      },
+      {
+        type: "info",
+        title: "Snapshot ≠ backup off-site",
+        content:
+          "Snapshot no mesmo disco morre com o disco. Copie para fora (send, borg, rsync).",
+      },
+      {
+        type: "danger",
+        title: "RAID5/6 Btrfs",
+        content:
+          "Conheça o estado atual da feature antes de confiar dados de produção nela.",
+      },
+      {
+        type: "success",
+        title: "Subvol para app",
+        content:
+          "Separar @www e @logs facilita snapshot e restore seletivo.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Subvolume + snapshot em lab",
+        goal: "Ter um subvolume com arquivo, um snap read-only e listagem limpa.",
+        steps: [
+          "mkfs.btrfs em disco de lab e mount",
+          "subvolume create @lab",
+          "criar arquivo dentro (via mount do subvol ou path)",
+          "snapshot -r",
+          "list e filesystem df",
+          "delete do snap ao final",
+        ],
+        command: "command -v btrfs && echo 'btrfs-progs ok' || echo 'instale btrfs-progs'",
+        verify:
+          "subvolume list mostra @lab e o snap; arquivo original intacto; delete remove só o snap.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "O que é subvolume no Btrfs?",
+        answer:
+          "Árvore de diretórios de primeira classe dentro do mesmo filesystem, montável e snapshotável separadamente.",
+      },
+      {
+        id: 2,
+        question: "Para que serve snapshot -r?",
+        answer:
+          "Cria snapshot somente-leitura do subvolume/path no mesmo FS.",
+      },
+      {
+        id: 3,
+        question: "snapshot substitui backup off-site?",
+        answer:
+          "Não. É recuperação rápida local; falha de disco leva os dois.",
+      },
+      {
+        id: 4,
+        question: "Qual pacote Debian traz as tools?",
+        answer:
+          "btrfs-progs.",
+      },
+      {
+        id: 5,
+        question: "Como listar subvolumes?",
+        answer:
+          "btrfs subvolume list <mountpoint>.",
+      },
+      {
+        id: 6,
+        question: "O que btrfs filesystem df mostra?",
+        answer:
+          "Alocação interna de data/metadata além do df tradicional.",
+      },
+      {
+        id: 7,
+        question: "Risco de encher o disco com snaps?",
+        answer:
+          "Espaço COW esgota, writes falham, sistema pode degradar.",
+      },
+      {
+        id: 8,
+        question: "Quando preferir ext4?",
+        answer:
+          "Simplicidade máxima, menos features, operação bem conhecida pela equipe.",
+      },
+    ],
+    references: [
+      { title: "man btrfs", url: "https://manpages.debian.org/btrfs" },
+      { title: "Wiki — btrfs", url: "https://wiki.debian.org/Btrfs" },
+      { title: "btrfs Wiki (kernel.org)", url: "https://btrfs.readthedocs.io/" },
+      { title: "man mkfs.btrfs", url: "https://manpages.debian.org/mkfs.btrfs" },
+    ],
+  },
+  {
+    id: "mdadm-raid",
+    title: "RAID com mdadm — RAID1 caseiro e troca de disco",
+    icon: "🪞",
+    category: "Discos e Armazenamento",
+    description:
+      "Monte array software com mdadm no Debian: foco em RAID1, monitoramento e mentalidade de disco falho — não em 'RAID é backup'.",
+    objectives: [
+      "Explicar RAID1 vs ideia errada de backup",
+      "Criar um array RAID1 de lab com mdadm",
+      "Olhar /proc/mdstat e mdadm --detail",
+      "Simular falha e rebuild mental/prática em lab",
+      "Persistir config em mdadm.conf",
+      "Monitorar e documentar spare/disco novo",
+    ],
+    content: [
+      "**RAID** junta discos para tolerar falha ou ganhar desempenho. **mdadm** é o RAID software do Linux no Debian. RAID1 espelha: dois discos com os mesmos dados (a grosso modo). Se um morre, o sistema segue no outro — **até o segundo morrer**. RAID não é backup: delete acidental, ransomware e incendio levam o array inteiro.",
+
+      "Camadas: discos → array `/dev/md0` → filesystem em cima (ext4/XFS) ou LVM em cima do md. Ordem de desastre importa: saiba o que está embaixo do quê. Em VPS cloud 'RAID' muitas vezes já é problema do hypervisor; este capítulo é para metal/lab com dois discos reais ou virtuais.",
+
+      "Jargões. **degraded**: array no ar com membro faltando. **rebuild/resync**: copiando para disco novo. **spare**: disco à espera. **bitmap**: acelera resync. **mdadm.conf**: para o array montar no boot com os UUIDs certos.",
+
+      "Fluxo lab: dois discos vazios → mdadm --create nível 1 → mkfs no /dev/mdX → mount → mdstat verde. Falha: marcar disco faulty, remover, colocar novo, add, esperar rebuild. Produção: e-mail/monitoring em EVENT, teste de restore de backup **fora** do array.",
+
+      "Quando NÃO: um disco só; achar que RAID1 dispensa borg/restic; RAID5 com discos enormes sem planejar tempo de rebuild (URRE). Quando SIM: dois SSDs de sistema em torre, NAS caseiro bem monitorado, lab para aprender degraded.",
+
+      "Ao terminar você cria (em lab) um md RAID1, lê detail/mdstat, explica degraded e por que ainda precisa de backup off-array.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y mdadm",
+        description:
+          "Instala mdadm; o postinst pode perguntar sobre arrays — em lab responda com consciência.",
+        example: "sudo apt install -y mdadm",
+      },
+      {
+        command: "cat /proc/mdstat",
+        description:
+          "Visão rápida dos arrays e resync.",
+        example: "cat /proc/mdstat",
+        output: "Personalities : [raid1]\nmd0 : active raid1 sdb[0] sdc[1]\n      10465280 blocks super 1.2 [2/2] [UU]",
+      },
+      {
+        command: "sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdX1 /dev/sdY1",
+        description:
+          "Cria RAID1 com dois dispositivos de LAB. DESTRUTIVO para esses dispositivos.",
+        example: "# LAB ONLY",
+      },
+      {
+        command: "sudo mdadm --detail /dev/md0",
+        description:
+          "Estado, UUID, membros, degraded ou não.",
+        example: "sudo mdadm --detail /dev/md0",
+      },
+      {
+        command: "sudo mkfs.ext4 /dev/md0 && sudo mount /dev/md0 /mnt/raid",
+        description:
+          "Filesystem em cima do array, não nos discos individuais.",
+        example: "sudo mkfs.ext4 /dev/md0",
+      },
+      {
+        command: "sudo mdadm --fail /dev/md0 /dev/sdY1",
+        description:
+          "Simula falha do membro (lab). Array fica degraded.",
+        example: "cat /proc/mdstat",
+      },
+      {
+        command: "sudo mdadm --remove /dev/md0 /dev/sdY1",
+        description:
+          "Remove o membro failed antes de inserir substituto.",
+        example: "sudo mdadm --detail /dev/md0",
+      },
+      {
+        command: "sudo mdadm --add /dev/md0 /dev/sdZ1",
+        description:
+          "Adiciona disco novo/spare e inicia rebuild.",
+        example: "watch -n2 cat /proc/mdstat",
+      },
+      {
+        command: "sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf",
+        description:
+          "Persiste descrição do array para o initramfs/boot achar o md.",
+        example: "sudo update-initramfs -u  # apos mudar mdadm.conf em root-on-md",
+      },
+      {
+        command: "sudo mdadm --examine /dev/sdX1",
+        description:
+          "Metadados md no disco membro — útil em recuperação.",
+        example: "sudo mdadm --examine /dev/sdb1",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "RAID não é backup",
+        content:
+          "Delete e malware se espalham nos espelhos. Backup off-box continua obrigatório.",
+      },
+      {
+        type: "warning",
+        title: "Rebuild em disco grande",
+        content:
+          "Horas/dias degradado. Monitore temperatura e evite stress extra.",
+      },
+      {
+        type: "info",
+        title: "[UU] no mdstat",
+        content:
+          "Dois membros up em RAID1. [_U] ou [U_] = degraded.",
+      },
+      {
+        type: "success",
+        title: "Teste o e-mail de evento",
+        content:
+          "mdadm --monitor em produção só vale se alerta chegar em humano.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "RAID1 em VM com dois discos",
+        goal: "md0 ativo [UU], FS montado, detail limpo.",
+        steps: [
+          "Anexar dois discos virtuais vazios",
+          "mdadm --create level 1",
+          "mkfs + mount + arquivo teste",
+          "mdadm --detail e mdstat",
+          "Opcional: fail/remove/add e observar rebuild",
+        ],
+        command: "cat /proc/mdstat 2>/dev/null; ls /dev/md* 2>/dev/null || echo 'sem array (ok se ainda nao criou)'",
+        verify:
+          "detail mostra raid1 com 2/2; arquivo no mount sobrevive a remount; voce sabe ler degraded.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "RAID1 salva de rm -rf acidental?",
+        answer:
+          "Não. O delete é espelhado. Backup versionado off-array salva.",
+      },
+      {
+        id: 2,
+        question: "O que é array degraded?",
+        answer:
+          "Funcionando com membro faltando/failed; sem redundância até rebuild.",
+      },
+      {
+        id: 3,
+        question: "Ferramenta Debian para RAID software?",
+        answer:
+          "mdadm.",
+      },
+      {
+        id: 4,
+        question: "Onde ver resync rapidamente?",
+        answer:
+          "/proc/mdstat.",
+      },
+      {
+        id: 5,
+        question: "Por que filesystem no /dev/md0 e não no sdb1?",
+        answer:
+          "Porque o arranjo lógico é o md; escrever num membro fura o modelo.",
+      },
+      {
+        id: 6,
+        question: "Para que mdadm.conf?",
+        answer:
+          "Persistir assemble no boot com UUID/membros corretos.",
+      },
+      {
+        id: 7,
+        question: "Ordem ao trocar disco failed?",
+        answer:
+          "fail (se preciso) → remove → physically replace → add → await rebuild.",
+      },
+      {
+        id: 8,
+        question: "RAID substitui unattended-upgrades?",
+        answer:
+          "Não tem relação: um é disco, outro é patch de software.",
+      },
+    ],
+    references: [
+      { title: "man mdadm", url: "https://manpages.debian.org/mdadm" },
+      { title: "Wiki — SoftwareRAID", url: "https://wiki.debian.org/SoftwareRAID" },
+      { title: "Wiki — mdadm", url: "https://wiki.debian.org/mdadm" },
+      { title: "/proc/mdstat docs", url: "https://raid.wiki.kernel.org/" },
+    ],
+  },
+  {
+    id: "fstab-uuid",
+    title: "fstab, UUID e montagem persistente — o mapa do boot",
+    icon: "🗺️",
+    category: "Discos e Armazenamento",
+    description:
+      "Domine /etc/fstab: UUID/LABEL, opções de mount, nofail/x-systemd e como não brickar o boot com uma vírgula.",
+    objectives: [
+      "Ler uma linha de fstab campo a campo",
+      "Descobrir UUID e LABEL dos filesystems",
+      "Preferir UUID a /dev/sdX no fstab",
+      "Testar com findmnt e mount -a",
+      "Usar nofail/x-systemd.device-timeout em montagens opcionais",
+      "Recuperar de fstab que quebra boot (ideia de rescue)",
+    ],
+    content: [
+      "`/etc/fstab` é a lista do que o sistema deve montar no boot (e o que `mount -a` tenta). Cada linha: dispositivo, ponto de montagem, tipo, opções, dump, pass. Errar aqui é o jeito clássico de máquina não subir até emergency mode — por isso se edita com ritual: backup, UUID certo, teste, só então reboot.",
+
+      "**UUID** identifica o filesystem por identidade, não pela porta SATA em que o cabo estava. `/dev/sdb1` hoje pode ser `sdc1` amanhã; o UUID permanece após reclonar com cuidado. `blkid` e `lsblk -f` são seus olhos. **LABEL** é nome humano; UUID é o cinto de segurança.",
+
+      "Campos: (1) source — UUID=... ou /dev/... (2) mountpoint — /home, /mnt/dados, none para swap (3) type — ext4, xfs, btrfs, swap, vfat (4) options — defaults, noatime, nofail... (5) dump — legado 0 (6) pass — ordem fsck (1 root, 2 outros, 0 desliga).",
+
+      "Opções que salvam pele. **nofail**: se o disco USB não estiver, boot segue. **x-systemd.device-timeout=** evita espera eterna. **noauto**: só monta manual ou por automount. **ro** read-only. Para bind mounts, type é none e option bind. Swap usa none no mountpoint e type swap.",
+
+      "Ritual seguro: `sudo cp -a /etc/fstab /etc/fstab.bak-DATA` → edite → `sudo findmnt --verify` (quando disponível) → `sudo mount -a` → `findmnt` confere → reboot só se estiver limpo. Se brickar: GRUB rescue/live, montar root, corrigir fstab, remount.",
+
+      "Ao terminar você reescreve uma linha de dados com UUID, testa com mount -a, e explica por que sdX no fstab de servidor é pedanteria perigosa.",
+
+    ],
+    commands: [
+      {
+        command: "cat /etc/fstab",
+        description:
+          "Mapa atual de montagens persistentes. Leia antes de qualquer edição.",
+        example: "cat /etc/fstab",
+      },
+      {
+        command: "lsblk -f",
+        description:
+          "Árvore de block devices com FSTYPE, LABEL, UUID, mountpoints.",
+        example: "lsblk -f",
+      },
+      {
+        command: "sudo blkid",
+        description:
+          "UUID/LABEL por dispositivo — fonte para linhas fstab.",
+        example: "sudo blkid",
+      },
+      {
+        command: "findmnt",
+        description:
+          "O que está montado de verdade agora (pode divergir do fstab até mount -a).",
+        example: "findmnt -t ext4,xfs,btrfs",
+      },
+      {
+        command: "findmnt --verify",
+        description:
+          "Checagem do fstab (util-linux recente). Corrija avisos antes do reboot.",
+        example: "findmnt --verify 2>&1 | head -n 40",
+      },
+      {
+        command: "sudo cp -a /etc/fstab /etc/fstab.bak-$(date +%F)",
+        description:
+          "Backup datado — não negociável.",
+        example: "sudo cp -a /etc/fstab /etc/fstab.bak-$(date +%F)",
+      },
+      {
+        command: "echo 'UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /mnt/dados ext4 defaults,nofail 0 2'",
+        description:
+          "Modelo de linha de dados com UUID e nofail. Substitua o UUID real do blkid.",
+        example: "# cole no fstab so apos conferir UUID",
+      },
+      {
+        command: "sudo mount -a && findmnt /mnt/dados",
+        description:
+          "Aplica fstab sem reboot. Erro aqui é presente; no boot seria drama.",
+        example: "sudo mount -a",
+      },
+      {
+        command: "systemctl daemon-reload",
+        description:
+          "Após mudar fstab, systemd regenera unidades .mount em sistemas modernos.",
+        example: "sudo systemctl daemon-reload",
+      },
+      {
+        command: "man fstab",
+        description:
+          "Referência dos seis campos e opções comuns.",
+        example: "man fstab",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "fstab errado = boot parado",
+        content:
+          "Sempre backup + mount -a antes de reboot. Tenha console/rescue.",
+      },
+      {
+        type: "success",
+        title: "UUID > /dev/sdX",
+        content:
+          "Estabilidade entre boots e troca de cabo/controladora.",
+      },
+      {
+        type: "info",
+        title: "nofail em disco externo",
+        content:
+          "Montagens opcionais não devem prender o multi-user.target.",
+      },
+      {
+        type: "warning",
+        title: "pass e fsck",
+        content:
+          "Root costuma pass=1; dados 2; pseudo-FS e binds 0.",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "Linha UUID segura",
+        goal: "Adicionar montagem de lab com UUID, validar mount -a, remover se for só teste.",
+        steps: [
+          "lsblk -f e blkid no FS de lab",
+          "backup fstab",
+          "adicionar linha UUID=... defaults,nofail",
+          "daemon-reload se aplicável; mount -a",
+          "findmnt no ponto",
+          "reverter se for ambiente compartilhado de lab temporário",
+        ],
+        command: "lsblk -f; echo '---'; tail -n 5 /etc/fstab",
+        verify:
+          "findmnt mostra o target; mount -a exit 0; reboot so depois disso.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "Quais os 6 campos do fstab?",
+        answer:
+          "device, mountpoint, type, options, dump, pass.",
+      },
+      {
+        id: 2,
+        question: "Por que UUID?",
+        answer:
+          "Identifica o FS de forma estável; nomes /dev/sdX mudam.",
+      },
+      {
+        id: 3,
+        question: "Como descobrir UUID?",
+        answer:
+          "lsblk -f ou blkid.",
+      },
+      {
+        id: 4,
+        question: "Para que mount -a?",
+        answer:
+          "Montar tudo do fstab agora e capturar erro antes do reboot.",
+      },
+      {
+        id: 5,
+        question: "O que nofail faz?",
+        answer:
+          "Não falha o boot se aquele volume não existir/montar.",
+      },
+      {
+        id: 6,
+        question: "pass=0 significa?",
+        answer:
+          "fsck não checa esse FS na ordem de boot via fstab.",
+      },
+      {
+        id: 7,
+        question: "Primeiro passo antes de editar fstab?",
+        answer:
+          "Backup do arquivo (e saber UUID certo).",
+      },
+      {
+        id: 8,
+        question: "fstab serve para bind?",
+        answer:
+          "Sim: type none e option bind (e paths absolutos).",
+      },
+    ],
+    references: [
+      { title: "man fstab", url: "https://manpages.debian.org/fstab" },
+      { title: "man blkid", url: "https://manpages.debian.org/blkid" },
+      { title: "man findmnt", url: "https://manpages.debian.org/findmnt" },
+      { title: "Wiki — fstab", url: "https://wiki.debian.org/fstab" },
+    ],
+  },
+  {
+    id: "luks-disco",
+    title: "Criptografia de disco com LUKS — fechar o volume, não só a pasta",
+    icon: "🔐",
+    category: "Discos e Armazenamento",
+    description:
+      "Entenda LUKS/cryptsetup no Debian: criar volume criptografado, abrir, formatar, montar e fechar — com foco em lab e em não perder a passphrase.",
+    objectives: [
+      "Explicar LUKS vs criptografar só arquivo zip",
+      "Instalar cryptsetup e criar um container/disco de lab",
+      "Abrir (luksOpen) e fechar (luksClose) o mapeamento",
+      "Colocar filesystem dentro do volume aberto",
+      "Listar status com dmsetup/lsblk",
+      "Internalizar: perder passphrase = perder dados",
+    ],
+    content: [
+      "**LUKS** (Linux Unified Key Setup) é o padrão de disco criptografado no Linux. Você não 'esconde pasta com senha do zip': o bloco inteiro vira confuso sem a chave. Por cima do device LUKS aberto (`/dev/mapper/nome`) você põe ext4, XFS, LVM… O instalador Debian pode criptografar root assim; aqui o foco é **volume de dados de lab** e o modelo mental.",
+
+      "Fluxo: disco ou arquivo-loop → `cryptsetup luksFormat` (APAGA/ocupa o device) → `luksOpen` vira mapper → `mkfs` no mapper → mount → uso → umount → `luksClose`. Sem close limpo em pendrive, o próximo host pode reclamar; sem backup da header/passphrase, um esqueça e pronto.",
+
+      "Jargões. **passphrase** desbloqueia a keyslot. **keyfile** é chave em arquivo (automação; proteja o keyfile). **header** LUKS no início do device — backup de header existe para recuperação avançada. **dm-crypt** é o motor no kernel; cryptsetup é a ferramenta.",
+
+      "Cuidados: luksFormat é destrutivo; use disco vazio de lab. Passphrase forte e guardada fora da máquina. SSD e secure erase têm nuances. Em VPS, 'disco cifrado' sem proteger o host da hypervisor é camada extra, não milagre contra provedor malicioso com acesso à RAM/live system destrancado.",
+
+      "Boot com root cifrado pede passphrase no initramfs ou TPM/rede — assunto de setup avançado. Não pratique luksFormat no disco de boot da VPS da equipe. Arquivo-loop (`truncate` + losetup) basta para aprender os comandos.",
+
+      "Ao terminar você formata LUKS em lab, abre, monta com arquivo teste, fecha, e reabre com a mesma passphrase — e respeita o aviso de perda total sem chave.",
+
+    ],
+    commands: [
+      {
+        command: "sudo apt install -y cryptsetup",
+        description:
+          "Ferramenta userspace para LUKS/dm-crypt.",
+        example: "sudo apt install -y cryptsetup",
+      },
+      {
+        command: "truncate -s 512M /tmp/luks-lab.img",
+        description:
+          "Arquivo-imagem de 512M para lab sem disco físico extra.",
+        example: "truncate -s 512M /tmp/luks-lab.img",
+      },
+      {
+        command: "sudo cryptsetup luksFormat /tmp/luks-lab.img",
+        description:
+          "Cria header LUKS no arquivo/device. Pede confirmação YES e passphrase. DESTRUTIVO no alvo.",
+        example: "sudo cryptsetup luksFormat /tmp/luks-lab.img",
+      },
+      {
+        command: "sudo cryptsetup luksOpen /tmp/luks-lab.img luksLab",
+        description:
+          "Abre o volume como /dev/mapper/luksLab após passphrase.",
+        example: "sudo cryptsetup luksOpen /tmp/luks-lab.img luksLab",
+      },
+      {
+        command: "sudo mkfs.ext4 /dev/mapper/luksLab",
+        description:
+          "Filesystem dentro do volume já destrancado.",
+        example: "sudo mkfs.ext4 /dev/mapper/luksLab",
+      },
+      {
+        command: "sudo mkdir -p /mnt/luks-lab && sudo mount /dev/mapper/luksLab /mnt/luks-lab",
+        description:
+          "Monta para uso. Escreva e leia arquivos de teste.",
+        example: "echo ok | sudo tee /mnt/luks-lab/teste.txt",
+      },
+      {
+        command: "lsblk -f | grep -E 'NAME|luks|crypt|luks-lab' || lsblk -f",
+        description:
+          "Veja o tipo crypto_LUKS e o mapper montado.",
+        example: "lsblk -f",
+      },
+      {
+        command: "sudo umount /mnt/luks-lab && sudo cryptsetup luksClose luksLab",
+        description:
+          "Desmonta e fecha o mapeamento — volume volta a ficar inacessível.",
+        example: "sudo cryptsetup status luksLab || echo 'fechado'",
+      },
+      {
+        command: "sudo cryptsetup luksDump /tmp/luks-lab.img | head -n 30",
+        description:
+          "Metadados LUKS (cipher, keyslots) sem revelar a passphrase.",
+        example: "sudo cryptsetup luksDump /tmp/luks-lab.img | head -n 30",
+      },
+      {
+        command: "man cryptsetup",
+        description:
+          "Referência luksFormat, open/close, addKey, header backup.",
+        example: "man cryptsetup",
+      },
+    ],
+    tips: [
+      {
+        type: "danger",
+        title: "Passphrase perdida = dados perdidos",
+        content:
+          "Não há 'esqueci minha senha' oficial. Backup da chave/header é responsabilidade sua.",
+      },
+      {
+        type: "warning",
+        title: "luksFormat apaga o alvo",
+        content:
+          "Confirme o path duas vezes. Em lab use arquivo-loop.",
+      },
+      {
+        type: "info",
+        title: "Fechar depois de usar",
+        content:
+          "umount + luksClose em mídia removível.",
+      },
+      {
+        type: "success",
+        title: "Camadas",
+        content:
+          "LUKS embaixo, ext4 em cima, fstab com UUID do FS de dentro do mapper (e crypttab para automação).",
+      },
+    ],
+    practiceLabs: [
+      {
+        title: "LUKS em arquivo-loop",
+        goal: "Ciclo format → open → mkfs → mount → arquivo → umount → close → open de novo.",
+        steps: [
+          "truncate 512M",
+          "luksFormat",
+          "luksOpen",
+          "mkfs.ext4 + mount + echo teste",
+          "umount + luksClose",
+          "luksOpen de novo e ler o teste",
+        ],
+        command: "command -v cryptsetup && ls -la /tmp/luks-lab.img 2>/dev/null || echo 'crie a imagem no lab'",
+        verify:
+          "Após reabrir, o arquivo teste.txt ainda está legível; apos luksClose o mapper some.",
+      },
+    ],
+    exercises: [
+      {
+        id: 1,
+        question: "LUKS cifra o quê?",
+        answer:
+          "O dispositivo de bloco (disco/partição/arquivo-loop), não só um arquivo zip solto.",
+      },
+      {
+        id: 2,
+        question: "O que luksOpen faz?",
+        answer:
+          "Cria /dev/mapper/NOME destrancado para mkfs/mount.",
+      },
+      {
+        id: 3,
+        question: "Por que luksFormat é perigoso?",
+        answer:
+          "Inicializa LUKS no alvo e inviabiliza dados anteriores ali.",
+      },
+      {
+        id: 4,
+        question: "Ordem para desligar com segurança?",
+        answer:
+          "umount do FS e depois cryptsetup luksClose.",
+      },
+      {
+        id: 5,
+        question: "Pacote Debian principal?",
+        answer:
+          "cryptsetup.",
+      },
+      {
+        id: 6,
+        question: "LUKS sozinho protege contra provedor com acesso à RAM da VM ligada?",
+        answer:
+          "Não de forma mágica: volume aberto em host comprometido está acessível.",
+      },
+      {
+        id: 7,
+        question: "Onde fica o device aberto?",
+        answer:
+          "/dev/mapper/<nome> (dm-crypt).",
+      },
+      {
+        id: 8,
+        question: "Por que lab em arquivo-loop?",
+        answer:
+          "Aprende os comandos sem arriscar disco real da equipe.",
+      },
+    ],
+    references: [
+      { title: "man cryptsetup", url: "https://manpages.debian.org/cryptsetup" },
+      { title: "Wiki — FullDiskEncryption", url: "https://wiki.debian.org/FullDiskEncryption" },
+      { title: "Wiki — Cryptsetup", url: "https://wiki.debian.org/Cryptsetup" },
+      { title: "cryptsetup FAQ", url: "https://gitlab.com/cryptsetup/cryptsetup" },
+    ],
+  },
 ];
