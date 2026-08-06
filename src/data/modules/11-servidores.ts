@@ -3154,7 +3154,7 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
 
       "Quando NÃO: produção regulada sem time — capstone é treino. Quando SIM: lab final, side project, template da equipe.",
 
-      "Ao terminar você tem uma VPS contável: acesso, patch, borda, app, backup e notas — e sabe pedir review ao Jack antes de push/prod se a regra do projeto exigir.",
+      "Ao terminar você tem uma VPS contável: acesso, patch, borda, app, backup e notas — e, mais importante, consegue provar cada um desses itens com um comando. É esse conjunto de evidências que você leva para uma revisão antes de mexer em produção.",
 
     ],
     commands: [
@@ -3241,9 +3241,9 @@ sudo timedatectl set-timezone America/Sao_Paulo`,
       },
       {
         type: "danger",
-        title: "Push/prod sem ok",
+        title: "Mudança em produção sem revisão",
         content:
-          "Neste projeto: só com aprovação do Jack.",
+          "Combine antes quem revisa, qual a janela de mudança e como desfazer. Sem plano de volta, a alteração não deveria sair do seu lab.",
       },
     ],
     practiceLabs: [
