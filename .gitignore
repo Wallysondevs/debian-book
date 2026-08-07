@@ -1,12 +1,12 @@
 node_modules/
-dist/
 .env
 *.local
 
 # Replit
 .replit-artifact/
 
-pnpm-lock.yaml
+# Build output
+dist-root/
 
 # backups dos scripts de patch
 *.bak-*
