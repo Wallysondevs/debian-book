@@ -7,7 +7,7 @@ import { Clock4, Terminal, CheckCircle2, Circle, ArrowLeft, ArrowRight } from "l
 import { lessonAt, TOTAL_LESSONS, useProgress } from "@/lib/course";
 
 interface PageContainerProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   difficulty?: "iniciante" | "intermediario" | "avancado";
   timeToRead?: string;

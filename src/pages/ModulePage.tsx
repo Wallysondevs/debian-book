@@ -62,8 +62,7 @@ function CommandCard({ cmd }: { cmd: Command }) {
 
 function TipCard({ tip }: { tip: Tip }) {
   return (
-    <AlertBox variant={tip.type === "danger" ? "destructive" : tip.type === "warning" ? "warning" : tip.type === "success" ? "success" : "info"}>
-      <strong>{tip.title || "Dica"}</strong>
+    <AlertBox type={tip.type === "danger" ? "danger" : tip.type === "warning" ? "warning" : tip.type === "success" ? "success" : "info"} title={tip.title || "Dica"}>
       <p className="m-0 mt-1">{tip.content}</p>
     </AlertBox>
   );
