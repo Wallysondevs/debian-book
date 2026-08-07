@@ -1,12 +1,11 @@
 node_modules/
+dist/
+dist-root/
 .env
 *.local
 
 # Replit
 .replit-artifact/
-
-# Build output
-dist-root/
 
 # backups dos scripts de patch
 *.bak-*
