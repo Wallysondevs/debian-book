@@ -1,28 +1,25 @@
 import type { Module, ModuleLevel } from "@/types/module";
 
+export type Nivel = ModuleLevel;
+
 /** Heurística de nível por id/categoria quando o módulo ainda não declara `level`. */
 const BY_ID: Record<string, ModuleLevel> = {
-  // fundamentos
   "linux-gnu": "iniciante",
   "projeto-debian": "iniciante",
   "repositorios-debian": "iniciante",
   "ciclo-release": "intermediario",
   "upgrade-release": "avancado",
-  // instalação
   instalacao: "iniciante",
   "pos-instalacao": "iniciante",
   "ambiente-grafico": "iniciante",
-  // terminal
   "terminal-basico": "iniciante",
   navegacao: "iniciante",
   arquivos: "iniciante",
   "editor-texto": "iniciante",
   "visualizar-buscar": "iniciante",
-  // permissões
   permissoes: "intermediario",
   usuarios: "intermediario",
   sudo: "intermediario",
-  // pacotes
   apt: "iniciante",
   dpkg: "intermediario",
   "sources-list": "intermediario",
@@ -31,7 +28,6 @@ const BY_ID: Record<string, ModuleLevel> = {
   "unattended-upgrades": "intermediario",
   "empacotar-deb": "avancado",
   "apt-pinning-avancado": "avancado",
-  // sistema
   processos: "iniciante",
   systemd: "intermediario",
   "logs-journalctl": "intermediario",
@@ -49,7 +45,6 @@ const BY_ID: Record<string, ModuleLevel> = {
   "runbook-boot": "avancado",
   "runbook-rede": "intermediario",
   "obs-leve": "intermediario",
-  // rede/segurança
   rede: "iniciante",
   "firewall-ufw": "intermediario",
   "ssh-conexao": "intermediario",
@@ -64,7 +59,6 @@ const BY_ID: Record<string, ModuleLevel> = {
   "pam-senhas": "avancado",
   "acl-capabilities": "avancado",
   "auditoria-leve": "intermediario",
-  // shell
   "pipes-redirecionamento": "iniciante",
   "shell-scripting": "intermediario",
   "atalhos-produtividade": "iniciante",
@@ -73,7 +67,6 @@ const BY_ID: Record<string, ModuleLevel> = {
   "git-admin": "intermediario",
   "python-venv": "intermediario",
   "cli-moderna": "iniciante",
-  // discos
   "discos-particoes": "intermediario",
   backup: "intermediario",
   "lvm-basico": "avancado",
@@ -81,7 +74,6 @@ const BY_ID: Record<string, ModuleLevel> = {
   "mdadm-raid": "avancado",
   "fstab-uuid": "intermediario",
   "luks-disco": "avancado",
-  // servidores
   "servidor-web": "intermediario",
   "servidor-banco-dados": "intermediario",
   "docker-debian": "intermediario",
@@ -97,17 +89,12 @@ const BY_ID: Record<string, ModuleLevel> = {
   wireguard: "avancado",
   "postgres-operacao": "avancado",
   "capstone-vps": "avancado",
-  // glossário
   glossario: "iniciante",
 };
 
-/** Palavras por minuto para leitura tecnica atenta em portugues. */
 const WORDS_PER_MINUTE = 180;
-/** Parar, ler o comando e conferir a saida. */
 const MIN_PER_COMMAND = 0.4;
-/** Fazer o laboratorio de verdade, nao so ler. */
 const MIN_PER_LAB = 3;
-/** Pensar o exercicio antes de abrir a resposta. */
 const MIN_PER_EXERCISE = 0.3;
 
 function countWords(...texts: Array<string | undefined>): number {
@@ -123,70 +110,54 @@ export function resolveLevel(m: Pick<Module, "id" | "level" | "category">): Modu
   if (m.level) return m.level;
   if (BY_ID[m.id]) return BY_ID[m.id];
   const cat = m.category.toLowerCase();
-  if (cat.includes("fundament") || cat.includes("terminal") || cat.includes("shell")) {
-    return "iniciante";
-  }
-  if (cat.includes("servidor") || cat.includes("segurança") || cat.includes("seguranca")) {
-    return "avancado";
-  }
+  if (cat.includes("fundament") || cat.includes("terminal") || cat.includes("shell")) return "iniciante";
+  if (cat.includes("servidor") || cat.includes("segurança") || cat.includes("seguranca")) return "avancado";
   return "intermediario";
 }
 
-/**
- * Estimativa a partir do conteudo real do capitulo.
- *
- * A versao anterior somava um valor fixo por nivel com a quantidade de
- * comandos, sem olhar o texto: um capitulo de 152 palavras anunciava os mesmos
- * "16-20 min" de um capitulo de 1315 palavras. Agora conta as palavras que o
- * aluno le de fato e soma o custo de praticar comandos, labs e exercicios.
- */
 export function resolveReadMinutes(m: Module): number {
   if (typeof m.readMinutes === "number" && m.readMinutes > 0) return m.readMinutes;
-
   let words = countWords(...(m.content ?? []), ...(m.objectives ?? []));
-  for (const tip of m.tips ?? []) {
-    words += countWords(tip.title, tip.content);
-  }
-  for (const cmd of m.commands ?? []) {
-    words += countWords(cmd.description);
-  }
-  for (const lab of m.practiceLabs ?? []) {
-    words += countWords(lab.title, lab.goal, ...(lab.steps ?? []));
-  }
-  for (const ex of m.exercises ?? []) {
-    words += countWords(ex.question, ex.hint, ex.answer);
-  }
-
-  const minutes =
-    words / WORDS_PER_MINUTE +
-    (m.commands?.length ?? 0) * MIN_PER_COMMAND +
-    (m.practiceLabs?.length ?? 0) * MIN_PER_LAB +
-    (m.exercises?.length ?? 0) * MIN_PER_EXERCISE;
-
+  for (const tip of m.tips ?? []) words += countWords(tip.title, tip.content);
+  for (const cmd of m.commands ?? []) words += countWords(cmd.description);
+  for (const lab of m.practiceLabs ?? []) words += countWords(lab.title, lab.goal, ...(lab.steps ?? []));
+  for (const ex of m.exercises ?? []) words += countWords(ex.question, ex.hint, ex.answer);
+  const minutes = words / WORDS_PER_MINUTE + (m.commands?.length ?? 0) * MIN_PER_COMMAND + (m.practiceLabs?.length ?? 0) * MIN_PER_LAB + (m.exercises?.length ?? 0) * MIN_PER_EXERCISE;
   return Math.max(3, Math.round(minutes));
 }
 
 export function withResolvedMeta(modules: Module[]): Module[] {
-  return modules.map((m) => ({
-    ...m,
-    level: resolveLevel(m),
-    readMinutes: resolveReadMinutes(m),
-  }));
+  return modules.map((m) => ({ ...m, level: resolveLevel(m), readMinutes: resolveReadMinutes(m) }));
 }
 
 export function countByLevel(modules: Module[]): Record<ModuleLevel | "todos", number> {
-  const out: Record<ModuleLevel | "todos", number> = {
-    todos: modules.length,
-    iniciante: 0,
-    intermediario: 0,
-    avancado: 0,
-  };
-  for (const m of modules) {
-    out[resolveLevel(m)] += 1;
-  }
+  const out: Record<ModuleLevel | "todos", number> = { todos: modules.length, iniciante: 0, intermediario: 0, avancado: 0 };
+  for (const m of modules) out[resolveLevel(m)] += 1;
   return out;
 }
 
-export type LevelFilter = "todos" | ModuleLevel;
-
 export const LEVEL_STORAGE_KEY = "debian-book:level-filter";
+
+// Sidebar/course filtering helpers (built lazily, no circular imports)
+export const LEVEL_LABEL: Record<Nivel, string> = {
+  iniciante: "Iniciante",
+  intermediario: "Intermediário",
+  avancado: "Avançado",
+};
+
+export const LEVEL_SHORT: Record<Nivel, string> = {
+  iniciante: "I",
+  intermediario: "M",
+  avancado: "A",
+};
+
+export const LEVEL_COLOR: Record<Nivel, string> = {
+  iniciante: "--debian-green",
+  intermediario: "--debian-amber",
+  avancado: "--debian-red",
+};
+
+// LEVELS and LEVEL_COUNTS will be populated after modules load, without circular imports.
+// The Sidebar and course.ts handle this internally.
+export const LEVELS: Record<string, Nivel> = {};
+export const LEVEL_COUNTS: Record<Nivel, number> = { iniciante: 0, intermediario: 0, avancado: 0 };

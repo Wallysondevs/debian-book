@@ -1,156 +1,249 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-debian-red: hsl(var(--debian-red));
+  --color-debian-light-red: hsl(var(--debian-light-red));
+  --color-debian-dark: hsl(var(--debian-dark));
+  --color-debian-amber: hsl(var(--debian-amber));
+  --font-sans: var(--app-font-sans);
+  --font-mono: var(--app-font-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Debian Crimson Theme — luz */
+:root {
+  --background: 220 22% 96%;
+  --foreground: 215 28% 9%;
+  --border: 215 18% 86%;
+  --input: 215 18% 86%;
+  --ring: 350 85% 45%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 28% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 28% 9%;
+  --primary: 350 85% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 18% 92%;
+  --secondary-foreground: 215 28% 18%;
+  --muted: 215 18% 92%;
+  --muted-foreground: 215 14% 42%;
+  --accent: 350 85% 45%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 58%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Debian terminal palette */
+  --debian-bg: 340 40% 5%;
+  --debian-bg-2: 340 30% 8%;
+  --debian-red: 350 85% 45%;          /* prompt / accent */
+  --debian-light-red: 350 85% 58%;    /* hover / glow */
+  --debian-dark: 350 50% 20%;         /* chrome */
+  --debian-amber: 38 90% 50%;        /* warning */
+  --debian-green: 142 60% 45%;       /* success */
+  --debian-blue: 199 80% 55%;        /* info */
+  --debian-fg: 200 10% 90%;          /* default text */
+  --debian-dim: 210 10% 55%;         /* dim text/comments */
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace;
+  --radius: 0.5rem;
+
+  /* Custom scrollbar palette */
+  --scrollbar-track: 215 18% 90%;
+  --scrollbar-thumb: 350 85% 45%;
+  --scrollbar-thumb-hover: 350 85% 35%;
+}
+
+.dark {
+  --background: 220 22% 6%;
+  --foreground: 200 14% 92%;
+  --border: 220 16% 14%;
+  --input: 220 16% 14%;
+  --ring: 350 85% 60%;
+  --card: 220 22% 8%;
+  --card-foreground: 200 14% 92%;
+  --popover: 220 22% 8%;
+  --popover-foreground: 200 14% 92%;
+  --primary: 350 85% 56%;
+  --primary-foreground: 220 22% 8%;
+  --secondary: 220 16% 12%;
+  --secondary-foreground: 200 14% 80%;
+  --muted: 220 16% 12%;
+  --muted-foreground: 200 10% 55%;
+  --accent: 350 85% 56%;
+  --accent-foreground: 220 22% 8%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --scrollbar-track: 220 16% 11%;
+  --scrollbar-thumb: 350 85% 50%;
+  --scrollbar-thumb-hover: 350 85% 65%;
+}
 
 @layer base {
-  :root {
-  /* Terminal realista (portado do ubuntu-book, host debian) */
-  --term-bg: #300a24;
-  --term-bg-2: #2b0a20;
-  --term-chrome: #3d1a32;
-  --term-chrome-2: #2a1224;
-  --debian-term-accent: #d70a53;
-
-    --background: 220 20% 97%;
-    --foreground: 220 25% 12%;
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 350 85% 45%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 12%;
-    --primary: 350 85% 45%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 93%;
-    --secondary-foreground: 220 25% 20%;
-    --muted: 220 15% 93%;
-    --muted-foreground: 220 15% 45%;
-    --accent: 350 85% 45%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --radius: 0.5rem;
-
-    --debian-red: 350 85% 45%;
-    --debian-light-red: 350 85% 60%;
-    --debian-dark-red: 350 90% 30%;
-    --terminal: 120 40% 35%;
-    --terminal-bg: 220 25% 12%;
-    --success: 142 70% 40%;
-    --warning: 38 90% 50%;
-    --info: 217 86% 55%;
-  }
-
-  .dark {
-    --background: 220 25% 8%;
-    --foreground: 210 20% 92%;
-    --border: 220 18% 18%;
-    --input: 220 18% 18%;
-    --ring: 350 85% 60%;
-    --card: 220 22% 11%;
-    --card-foreground: 210 20% 92%;
-    --popover: 220 22% 11%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 350 85% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 18% 14%;
-    --secondary-foreground: 210 20% 85%;
-    --muted: 220 18% 14%;
-    --muted-foreground: 215 15% 55%;
-    --accent: 350 85% 58%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --debian-red: 350 85% 58%;
-    --debian-light-red: 350 90% 70%;
-    --debian-dark-red: 350 75% 40%;
-    --terminal: 120 50% 65%;
-    --terminal-bg: 220 30% 6%;
-  }
-
   * {
     border-color: hsl(var(--border));
     box-sizing: border-box;
   }
 
-  body {
+  html { overflow-x: hidden;
+    scrollbar-color: hsl(var(--scrollbar-thumb)) hsl(var(--scrollbar-track));
+    scrollbar-width: thin;
+  }
+
+  body { overflow-x: hidden;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-sans, 'Inter', sans-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(circle at 18% 12%, hsl(var(--primary) / 0.07), transparent 38%),
+      radial-gradient(circle at 82% 88%, hsl(var(--debian-dark) / 0.05), transparent 42%);
+    background-attachment: fixed;
   }
 
-  code, pre, .mono {
-    font-family: 'JetBrains Mono', monospace;
+  /* ====== Custom scrollbar (WebKit / Blink) ====== */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--scrollbar-track));
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--scrollbar-thumb)) 0%,
+      hsl(var(--scrollbar-thumb) / 0.85) 100%
+    );
+    border-radius: 8px;
+    border: 2px solid hsl(var(--scrollbar-track));
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--scrollbar-thumb-hover));
+    background-clip: padding-box;
+    border: 2px solid hsl(var(--scrollbar-track));
+  }
+  ::-webkit-scrollbar-corner {
+    background: hsl(var(--scrollbar-track));
   }
 
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
-}
-
-@layer components {
-  .prose-debian {
-    color: hsl(var(--foreground) / 0.9);
-    line-height: 1.75;
+  /* Scrollbar fino no terminal Debian */
+  .debian-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
-  .prose-debian h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
+  .debian-scroll::-webkit-scrollbar-track {
+    background: hsl(var(--debian-bg));
+  }
+  .debian-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--debian-red) / 0.45);
+    border-radius: 4px;
+    border: 1px solid hsl(var(--debian-bg-2));
+    background-clip: padding-box;
+  }
+  .debian-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--debian-red) / 0.75);
+    background-clip: padding-box;
+  }
+  .debian-scroll {
+    scrollbar-color: hsl(var(--debian-red) / 0.5) hsl(var(--debian-bg));
+  }
+
+  h1, h2, h3, h4, h5, h6 {
     color: hsl(var(--foreground));
-    padding-bottom: 0.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+
+  h1 { font-size: 2rem; margin-top: 0; }
+  h2 {
+    font-size: 1.5rem;
     border-bottom: 1px solid hsl(var(--border));
+    padding-bottom: 0.4em;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
   }
-  .prose-debian h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-top: 2rem;
-    margin-bottom: 0.75rem;
-    color: hsl(var(--foreground));
+  h2::before {
+    content: "$_";
+    color: hsl(var(--primary));
+    font-family: var(--app-font-mono);
+    font-size: 0.9em;
+    opacity: 0.6;
   }
-  .prose-debian p {
-    margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
+  h3 { font-size: 1.25rem; }
+
+  p {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
     line-height: 1.75;
+    color: hsl(var(--foreground) / 0.9);
   }
-  .prose-debian ul, .prose-debian ol {
-    padding-left: 1.5rem;
-    margin: 0.75rem 0;
+
+  ul, ol {
+    padding-left: 1.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
-  .prose-debian li {
-    margin-top: 0.4rem;
-    margin-bottom: 0.4rem;
+
+  li {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
     line-height: 1.7;
+    color: hsl(var(--foreground) / 0.9);
   }
-  .prose-debian strong {
-    color: hsl(var(--foreground));
-    font-weight: 600;
-  }
-  .prose-debian a {
+
+  a {
     color: hsl(var(--primary));
     text-decoration: none;
   }
-  .prose-debian a:hover {
+
+  a:hover {
     text-decoration: underline;
   }
-  .prose-debian code:not(pre code) {
+
+  strong {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+
+  code:not(pre code) {
     background: hsl(var(--muted));
     color: hsl(var(--primary));
     padding: 0.1em 0.4em;
     border-radius: 0.25rem;
     font-size: 0.875em;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
   }
 }
 
@@ -160,225 +253,156 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
-  .text-terminal { color: hsl(var(--terminal)); }
-  .bg-terminal-bg { background-color: hsl(var(--terminal-bg)); }
 
-  /* ===== Home animada ===== */
-  .hero-grid {
+  .grid-bg {
     background-image:
-      linear-gradient(hsl(var(--primary) / 0.09) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.09) 1px, transparent 1px);
-    background-size: 46px 46px;
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 78%);
-    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 78%);
-    animation: grid-drift 22s linear infinite;
+      linear-gradient(hsl(var(--border) / 0.35) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.35) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
-  .aurora-orb {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(64px);
-    opacity: 0.55;
-    pointer-events: none;
-    will-change: transform;
-  }
-  .aurora-orb-1 { animation: float-a 15s ease-in-out infinite; }
-  .aurora-orb-2 { animation: float-b 19s ease-in-out infinite; }
-  .aurora-orb-3 { animation: float-a 24s ease-in-out infinite reverse; }
 
-  .shine-text {
-    background: linear-gradient(
-      100deg,
-      hsl(var(--foreground)) 30%,
-      hsl(var(--primary)) 50%,
-      hsl(var(--foreground)) 70%
+  /* Cintilação do cursor terminal */
+  @keyframes debian-blink {
+    0%, 60% { opacity: 1; }
+    61%, 100% { opacity: 0; }
+  }
+  .debian-cursor {
+    display: inline-block;
+    width: 0.6ch;
+    height: 1em;
+    background: hsl(var(--debian-red));
+    margin-left: 2px;
+    vertical-align: -2px;
+    animation: debian-blink 1s steps(1) infinite;
+    box-shadow: 0 0 8px hsl(var(--debian-red) / 0.7);
+  }
+
+  /* Scanlines no terminal */
+  .debian-scanlines {
+    position: relative;
+  }
+  .debian-scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      hsl(0 0% 0% / 0.06) 3px,
+      transparent 4px
     );
-    background-size: 200% auto;
+    border-radius: inherit;
+  }
+
+  /* Gradiente do título Debian (crimson → amber) */
+  .text-gradient-debian {
+    background: linear-gradient(100deg, hsl(var(--debian-red)) 0%, hsl(var(--primary)) 45%, hsl(var(--debian-amber)) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: shine 6s linear infinite;
   }
-  .term-cursor::after {
-    content: "▋";
-    margin-left: 2px;
-    animation: blink 1.1s steps(1) infinite;
-    color: hsl(var(--terminal));
+
+  /* Aurora background animation */
+  .aurora {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(40% 40% at 20% 20%, hsl(var(--primary) / 0.30), transparent 60%),
+      radial-gradient(45% 45% at 80% 15%, hsl(var(--debian-dark) / 0.22), transparent 60%),
+      radial-gradient(50% 50% at 60% 80%, hsl(var(--debian-red) / 0.18), transparent 60%);
+    filter: blur(30px);
+    animation: debian-aurora 18s ease-in-out infinite alternate;
+  }
+  @keyframes debian-aurora {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(2%, -2%, 0) scale(1.08); }
+    100% { transform: translate3d(-2%, 2%, 0) scale(1.04); }
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(60px);
+    opacity: 0.5;
+    animation: debian-float 12s ease-in-out infinite;
+  }
+  @keyframes debian-float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    50%      { transform: translateY(-24px) translateX(12px); }
+  }
+
+  /* Shimmer effect on cards */
+  @keyframes debian-shimmer { 100% { transform: translateX(100%); } }
+  .shine { position: relative; overflow: hidden; }
+  .shine::after {
+    content: "";
+    position: absolute; inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.12), transparent);
+    animation: debian-shimmer 2.6s infinite;
+  }
+
+  /* Terminal window styling */
+  .term-window {
+    position: relative;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    border: 1px solid hsl(0 0% 100% / 0.09);
+    background: hsl(var(--debian-bg));
+    box-shadow:
+      0 18px 40px -18px hsl(0 0% 0% / 0.75),
+      0 2px 0 hsl(0 0% 100% / 0.05) inset;
+  }
+
+  .term-window--debian {
+    border-color: hsl(var(--debian-red) / 0.28);
+    box-shadow:
+      0 18px 44px -18px hsl(350 80% 35% / 0.35),
+      0 0 0 1px hsl(var(--debian-red) / 0.08),
+      0 2px 0 hsl(0 0% 100% / 0.05) inset;
+  }
+
+  .term-window--debian:hover {
+    box-shadow:
+      0 22px 52px -18px hsl(350 80% 38% / 0.45),
+      0 0 0 1px hsl(var(--debian-red) / 0.16),
+      0 2px 0 hsl(0 0% 100% / 0.07) inset;
+  }
+
+  .term-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(180deg, hsl(var(--debian-dark)) 0%, hsl(var(--debian-dark) / 0.7) 100%);
+    border-bottom: 1px solid hsl(0 0% 0% / 0.45);
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.06) inset;
+  }
+
+  .term-dot {
+    width: 0.72rem;
+    height: 0.72rem;
+    border-radius: 999px;
+    box-shadow: 0 1px 1px hsl(0 0% 0% / 0.4) inset;
   }
 }
 
-@keyframes grid-drift {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 46px 46px, 46px 46px; }
+/* Previne scroll horizontal em telas pequenas com comandos longos */
+pre, code, .font-mono {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
-@keyframes float-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(28px, -34px) scale(1.12); }
+pre {
+  white-space: pre-wrap;
+  max-width: 100%;
 }
-@keyframes float-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-32px, 26px) scale(1.08); }
+img, svg, video, iframe {
+  max-width: 100%;
+  height: auto;
 }
-@keyframes shine {
-  to { background-position: 200% center; }
-}
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  50.01%, 100% { opacity: 0; }
-}
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-grid, .aurora-orb-1, .aurora-orb-2, .aurora-orb-3, .shine-text, .term-cursor::after {
-    animation: none !important;
-  }
-}
-
-/* === Terminal realista === */
-.term-window {
-  position: relative;
-  border-radius: 0.85rem;
-  overflow: hidden;
-  border: 1px solid hsl(0 0% 100% / 0.09);
-  background: var(--term-bg);
-  box-shadow:
-    0 18px 40px -18px hsl(0 0% 0% / 0.75),
-    0 2px 0 hsl(0 0% 100% / 0.05) inset;
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-.term-window--shell {
-  border-color: hsl(340 91% 44% / 0.28);
-  box-shadow:
-    0 18px 44px -18px hsl(340 80% 35% / 0.35),
-    0 0 0 1px hsl(340 91% 44% / 0.08),
-    0 2px 0 hsl(0 0% 100% / 0.05) inset;
-}
-
-.term-window--shell:hover {
-  box-shadow:
-    0 22px 52px -18px hsl(340 80% 38% / 0.45),
-    0 0 0 1px hsl(340 91% 44% / 0.16),
-    0 2px 0 hsl(0 0% 100% / 0.07) inset;
-}
-
-.term-titlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: linear-gradient(180deg, var(--term-chrome) 0%, var(--term-chrome-2) 100%);
-  border-bottom: 1px solid hsl(0 0% 0% / 0.45);
-  box-shadow: 0 1px 0 hsl(0 0% 100% / 0.06) inset;
-}
-
-.term-dot {
-  width: 0.72rem;
-  height: 0.72rem;
-  border-radius: 999px;
-  box-shadow: 0 1px 1px hsl(0 0% 0% / 0.4) inset;
-}
-
-.term-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  border-radius: 0.4rem;
-  color: hsl(0 0% 75%);
-  transition: color 0.15s ease, background-color 0.15s ease;
-}
-.term-btn:hover { color: #fff; background: hsl(0 0% 100% / 0.12); }
-
-.term-body {
-  background:
-    radial-gradient(120% 130% at 50% -10%, #3d1030 0%, var(--term-bg) 45%, var(--term-bg-2) 100%);
-  color: #d3d7cf;
-  position: relative;
-}
-
-.term-file {
-  background: linear-gradient(180deg, #1d1a20 0%, #17151a 100%);
-}
-
-/* Linhas de varredura discretas, como um terminal de verdade sob luz. */
-.term-scanlines::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    180deg,
-    hsl(0 0% 100% / 0.022) 0px,
-    hsl(0 0% 100% / 0.022) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-}
-
-.term-scroll::-webkit-scrollbar { height: 9px; }
-.term-scroll::-webkit-scrollbar-thumb {
-  background: hsl(340 91% 44% / 0.4);
-  border-radius: 999px;
-}
-.term-scroll::-webkit-scrollbar-thumb:hover { background: hsl(340 91% 44% / 0.65); }
-
-.term-line {
-  position: relative;
-  padding: 0 1.75rem 0 0;
-  margin: 0 -0.35rem;
-  padding-left: 0.35rem;
-  border-radius: 0.25rem;
-  animation: term-line-in 0.26s ease-out both;
-}
-.term-line:hover { background: hsl(0 0% 100% / 0.045); }
-.term-comment { opacity: 0.92; }
-
-.term-line-copy {
-  position: absolute;
-  top: 0.1rem;
-  right: 0.15rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 0.3rem;
-  color: hsl(0 0% 80%);
-  background: hsl(0 0% 100% / 0.08);
-  opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
-}
-.term-line:hover .term-line-copy { opacity: 1; }
-.term-line-copy:hover { color: #fff; background: hsl(340 91% 44% / 0.35); }
-
-/* Cursor piscando no fim do ultimo comando. */
-.term-cursor {
-  display: inline-block;
-  width: 0.55em;
-  height: 1.05em;
-  margin-left: 0.15em;
-  vertical-align: -0.18em;
-  background: #d70a53;
-  box-shadow: 0 0 8px hsl(340 91% 44% / 0.7);
-  animation: term-blink 1.05s steps(1) infinite;
-}
-
-@keyframes term-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-
-@keyframes term-line-in {
-  from { opacity: 0; transform: translateY(3px); }
-  to { opacity: 1; transform: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .term-line, .term-cursor { animation: none !important; }
-  .term-window { transition: none; }
-}
-

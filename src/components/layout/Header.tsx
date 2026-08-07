@@ -1,22 +1,16 @@
-import { Menu, Moon, Search, Sun } from "lucide-react";
+import { Menu, Moon, Sun, Github } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
-import { EVENTO_ABRIR_BUSCA } from "@/components/layout/CommandPalette";
 
 interface HeaderProps {
   onMenuClick: () => void;
-  onHome?: () => void;
 }
 
-export function Header({ onMenuClick, onHome }: HeaderProps) {
+export function Header({ onMenuClick }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-
-  function abrirBusca() {
-    window.dispatchEvent(new Event(EVENTO_ABRIR_BUSCA));
-  }
 
   return (
     <header className="sticky top-0 z-30 w-full glass-panel border-b border-border px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 min-w-0">
         <button
           onClick={onMenuClick}
           className="lg:hidden p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -25,25 +19,28 @@ export function Header({ onMenuClick, onHome }: HeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <button
-          onClick={onHome}
-          className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground w-56 lg:w-72 hover:border-primary/40 hover:text-foreground transition-colors"
-        >
-          <span className="text-primary font-mono font-bold">$</span>
-          <span className="font-mono truncate">cd ~/curso-debian</span>
-        </button>
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--debian-bg-2))] border border-white/5 rounded-lg text-xs font-mono w-auto">
+          <span className="text-[hsl(var(--debian-green))]">●</span>
+          <span className="text-[hsl(var(--debian-red))]">root</span>
+          <span className="text-[hsl(var(--debian-amber))]">@</span>
+          <span className="text-[hsl(var(--debian-red))]">debian</span>
+          <span className="text-[hsl(var(--debian-dim))]">:</span>
+          <span className="text-[hsl(var(--debian-blue))]">~</span>
+          <span className="text-[hsl(var(--debian-red))]">#</span>
+          <span className="debian-cursor" />
+        </div>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2">
-        <button
-          onClick={abrirBusca}
-          className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent hover:border-border transition-colors"
-          title="Buscar capítulos (Ctrl+K)"
-          aria-label="Buscar capítulos"
+      <div className="flex items-center gap-1">
+        <a
+          href="https://github.com/Wallysondevs/debian-book"
+          target="_blank"
+          rel="noreferrer"
+          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors hidden sm:inline-flex"
+          title="Repositório no GitHub"
         >
-          <Search className="w-4 h-4" />
-          <span className="hidden md:inline font-mono text-xs">Ctrl+K</span>
-        </button>
+          <Github className="w-5 h-5" />
+        </a>
         <button
           onClick={toggleTheme}
           className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

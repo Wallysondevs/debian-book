@@ -1,32 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, CornerDownLeft, Hash, Home } from "lucide-react";
+import { useHashLocation } from "wouter/use-hash-location";
+import { Check, CornerDownLeft, Hash } from "lucide-react";
 import {
   CommandDialog,
+  CommandInput,
+  CommandList,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
-  CommandList,
 } from "@/components/ui/command";
-import type { Module } from "@/types/module";
-import { useProgress } from "@/hooks/useProgress";
-import { HOME_ID } from "@/components/layout/Sidebar";
-import { resolveLevel } from "@/lib/levels";
+import { COURSE, TOTAL_LESSONS, useProgress } from "@/lib/course";
 
-export const EVENTO_ABRIR_BUSCA = "debian:abrir-busca";
+/** Evento global para abrir a busca de qualquer lugar da interface. */
+export const EVENTO_ABRIR_BUSCA = "kali:abrir-busca";
 
+/** Remove acentos para que "exploracao" encontre "Exploração". */
 function semAcento(s: string) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-interface CommandPaletteProps {
-  modules: Module[];
-  onSelect: (id: string) => void;
-}
-
-export function CommandPalette({ modules, onSelect }: CommandPaletteProps) {
+export function CommandPalette() {
   const [aberto, setAberto] = useState(false);
-  const { completed } = useProgress();
+  const [, navegar] = useHashLocation();
+  const { has } = useProgress();
 
   useEffect(() => {
     function aoTeclar(e: KeyboardEvent) {
@@ -37,11 +33,13 @@ export function CommandPalette({ modules, onSelect }: CommandPaletteProps) {
           alvo.tagName === "TEXTAREA" ||
           alvo.isContentEditable);
 
+      // Ctrl+K / Cmd+K alterna a busca
       if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setAberto((v) => !v);
         return;
       }
+      // "/" abre a busca, como no vim e no man
       if (e.key === "/" && !digitando && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         setAberto(true);
@@ -60,68 +58,56 @@ export function CommandPalette({ modules, onSelect }: CommandPaletteProps) {
     };
   }, []);
 
+  // Agrupa os tópicos por módulo, mantendo a ordem da trilha.
   const grupos = useMemo(() => {
-    const mapa = new Map<string, Module[]>();
-    for (const m of modules) {
-      const atual = mapa.get(m.category);
-      if (atual) atual.push(m);
-      else mapa.set(m.category, [m]);
+    const mapa = new Map<string, typeof COURSE>();
+    for (const licao of COURSE) {
+      const atual = mapa.get(licao.module);
+      if (atual) atual.push(licao);
+      else mapa.set(licao.module, [licao]);
     }
     return Array.from(mapa.entries());
-  }, [modules]);
+  }, []);
 
-  function ir(id: string) {
+  function ir(path: string) {
     setAberto(false);
-    onSelect(id);
+    navegar(path);
   }
 
   return (
     <CommandDialog open={aberto} onOpenChange={setAberto}>
-      <CommandInput placeholder={`Buscar entre ${modules.length} capítulos...`} />
-      <CommandList className="max-h-[65vh]">
+      <CommandInput placeholder={`Buscar entre ${TOTAL_LESSONS} tópicos...`} />
+      <CommandList className="max-h-[65vh] kali-scroll">
         <CommandEmpty>
-          <span className="text-sm text-muted-foreground">Nenhum capítulo encontrado.</span>
+          <span className="font-mono text-sm text-[hsl(var(--kali-dim))]">
+            Nenhum tópico encontrado.
+          </span>
         </CommandEmpty>
 
-        <CommandGroup heading="Navegação">
-          <CommandItem
-            value={`inicio home ${semAcento("início")}`}
-            onSelect={() => ir(HOME_ID)}
-            className="gap-2 text-[13px]"
-          >
-            <Home className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-            <span className="flex-1 truncate">Início</span>
-          </CommandItem>
-        </CommandGroup>
-
-        {grupos.map(([categoria, itens], gIdx) => (
+        {grupos.map(([modulo, itens], gIdx) => (
           <CommandGroup
-            key={categoria}
-            heading={`${String(gIdx + 1).padStart(2, "0")} · ${categoria}`}
+            key={modulo}
+            heading={`${String(gIdx + 1).padStart(2, "0")} · ${modulo}`}
           >
-            {itens.map((m) => {
-              const feito = completed.has(m.id);
-              const nivel = resolveLevel(m);
+            {itens.map((licao) => {
+              const feito = has(licao.path);
               return (
                 <CommandItem
-                  key={m.id}
-                  value={`${m.title} ${m.category} ${m.id} ${m.description} ${semAcento(
-                    m.title,
-                  )} ${semAcento(m.category)} ${nivel}`}
-                  onSelect={() => ir(m.id)}
-                  className="gap-2 text-[13px]"
+                  key={licao.path}
+                  value={`${licao.label} ${licao.module} ${licao.path} ${semAcento(
+                    licao.label,
+                  )} ${semAcento(licao.module)}`}
+                  onSelect={() => ir(licao.path)}
+                  className="font-mono text-[13px] gap-2"
                 >
                   {feito ? (
-                    <Check className="w-3.5 h-3.5 shrink-0 text-green-500" />
+                    <Check className="w-3.5 h-3.5 shrink-0 text-[hsl(var(--kali-green))]" />
                   ) : (
-                    <Hash className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                    <Hash className="w-3.5 h-3.5 shrink-0 text-[hsl(var(--kali-dim))]" />
                   )}
-                  <span className="shrink-0" aria-hidden>
-                    {m.icon}
-                  </span>
-                  <span className="flex-1 truncate">{m.title}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground shrink-0 uppercase">
-                    {nivel === "iniciante" ? "I" : nivel === "intermediario" ? "M" : "A"}
+                  <span className="flex-1 truncate">{licao.label}</span>
+                  <span className="text-[10px] text-[hsl(var(--kali-dim))] shrink-0">
+                    {licao.path}
                   </span>
                 </CommandItem>
               );
@@ -130,7 +116,7 @@ export function CommandPalette({ modules, onSelect }: CommandPaletteProps) {
         ))}
       </CommandList>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2 font-mono text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 border-t border-white/5 px-3 py-2 font-mono text-[10px] text-[hsl(var(--kali-dim))]">
         <span className="flex items-center gap-1.5">
           <CornerDownLeft className="w-3 h-3" /> abrir
         </span>
